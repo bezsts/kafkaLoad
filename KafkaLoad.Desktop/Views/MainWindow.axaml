@@ -11,63 +11,113 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="300, *" Margin="10">
+    <TabControl Margin="5">
         
-        <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Padding="0,0,10,0">
-            <StackPanel Spacing="15">
-                <TextBlock Text="Configuration" FontWeight="Bold" FontSize="18"/>
+        <TabItem Header="Run Load Test" FontSize="16">
+            <Grid ColumnDefinitions="350, *" Margin="10">
+                <StackPanel Grid.Column="0" Spacing="15">
+                    <TextBlock Text="Scenario Settings" FontWeight="Bold" FontSize="18"/>
+
+                    <StackPanel>
+                        <TextBlock Text="Select Producer Config"/>
+                        <ComboBox ItemsSource="{Binding ProducerProfiles}" 
+                                  SelectedItem="{Binding SelectedProducerProfile}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="Select Consumer Config"/>
+                        <ComboBox ItemsSource="{Binding ConsumerProfiles}" 
+                                  SelectedItem="{Binding SelectedConsumerProfile}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <Separator/>
+
+                    <StackPanel>
+                        <TextBlock Text="Topic Name"/>
+                        <TextBox Text="{Binding TopicName}"/>
+                    </StackPanel>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Threads (Producers)"/>
+                        <NumericUpDown Value="{Binding Threads}" Minimum="1" Maximum="100"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="Message Size (bytes)"/>
+                        <NumericUpDown Value="{Binding MessageSize}" Increment="128"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="Duration (seconds)"/>
+                        <NumericUpDown Value="{Binding Duration}"/>
+                    </StackPanel>
+
+                    <Button Command="{Binding StartTestCommand}" 
+                            Content="START TEST" 
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Background="#007ACC" Foreground="White" FontWeight="Bold" Padding="10"/>
+                </StackPanel>
+
+                <Border Grid.Column="1" Margin="20,0,0,0" BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
+                    <TextBox Text="{Binding Logs}" IsReadOnly="True" BorderThickness="0" Background="Black" Foreground="#00FF00" FontFamily="Consolas"/>
+                </Border>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Manage Profiles" FontSize="16">
+            <Grid ColumnDefinitions="250, *" Margin="10">
                 
-                <StackPanel>
-                    <TextBlock Text="Bootstrap Servers"/>
-                    <TextBox Text="{Binding BootstrapServers}" IsEnabled="{Binding !IsRunning}"/>
-                </StackPanel>
+                <DockPanel Grid.Column="0" LastChildFill="True">
+                    <Button DockPanel.Dock="Bottom" Content="+ Add New Profile" Command="{Binding AddNewProducerProfileCommand}" HorizontalAlignment="Stretch"/>
+                    <ListBox ItemsSource="{Binding ProducerProfiles}" SelectedItem="{Binding EditingProducerProfile}" Background="#F0F0F0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
 
-                <StackPanel>
-                    <TextBlock Text="Topic Name"/>
-                    <TextBox Text="{Binding TopicName}" IsEnabled="{Binding !IsRunning}"/>
-                </StackPanel>
+                <ScrollViewer Grid.Column="1" Margin="20,0,0,0">
+                    <StackPanel Spacing="10" IsVisible="{Binding EditingProducerProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <TextBlock Text="Edit Producer Profile" FontWeight="Bold" FontSize="20"/>
+                        
+                        <TextBlock Text="Profile Name"/>
+                        <TextBox Text="{Binding EditingProducerProfile.Name}"/>
 
-                <StackPanel>
-                    <TextBlock Text="Producers (Threads)"/>
-                    <NumericUpDown Value="{Binding ProducerCount}" Minimum="1" Maximum="100" 
-                                   IsEnabled="{Binding !IsRunning}"/>
-                </StackPanel>
+                        <TextBlock Text="Bootstrap Servers"/>
+                        <TextBox Text="{Binding EditingProducerProfile.BootstrapServers}"/>
 
-                <StackPanel>
-                    <TextBlock Text="Message Size (Bytes)"/>
-                    <NumericUpDown Value="{Binding MessageSize}" Minimum="10" Maximum="1000000" 
-                                   Increment="128" IsEnabled="{Binding !IsRunning}"/>
-                </StackPanel>
+                        <TextBlock Text="Acks (Reliability)"/>
+                        <ComboBox SelectedIndex="{Binding EditingProducerProfile.Acks, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                            <ComboBoxItem>Leader (1)</ComboBoxItem>
+                            <ComboBoxItem>All (-1)</ComboBoxItem>
+                            <ComboBoxItem>None (0)</ComboBoxItem>
+                        </ComboBox>
 
-                <StackPanel>
-                    <TextBlock Text="Duration (Seconds)"/>
-                    <NumericUpDown Value="{Binding DurationSeconds}" Minimum="5" Maximum="3600" 
-                                   IsEnabled="{Binding !IsRunning}"/>
-                </StackPanel>
+                        <TextBlock Text="Batch Size (bytes)"/>
+                        <NumericUpDown Value="{Binding EditingProducerProfile.BatchSize}"/>
 
-                <Button Command="{Binding StartTestCommand}" 
-                        Content="{Binding IsRunning, Converter={x:Static StringConverters.IsNullOrEmpty}, ConverterParameter='Running...'}"
-                        HorizontalAlignment="Stretch" 
-                        HorizontalContentAlignment="Center"
-                        Background="#007ACC" Foreground="White"
-                        FontWeight="Bold" Padding="10">
-                    <Button.Content>
-                        <TextBlock Text="START LOAD TEST"/>
-                    </Button.Content>
-                </Button>
-            </StackPanel>
-        </Border>
+                        <TextBlock Text="Linger MS (wait time)"/>
+                        <NumericUpDown Value="{Binding EditingProducerProfile.LingerMs}"/>
 
-        <Grid Grid.Column="1" RowDefinitions="Auto, *" Margin="10,0,0,0">
-            <TextBlock Grid.Row="0" Text="Real-time Metrics (Log Mode)" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
-            
-            <TextBox Grid.Row="1" 
-                     Text="{Binding Logs}" 
-                     IsReadOnly="True" 
-                     AcceptsReturn="True" 
-                     TextWrapping="Wrap"
-                     FontFamily="Consolas, Monospace"
-                     Background="#F5F5F5"/>
-        </Grid>
-    </Grid>
+                        <TextBlock Text="Compression"/>
+                        <ComboBox SelectedIndex="{Binding EditingProducerProfile.Compression, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                            <ComboBoxItem>None</ComboBoxItem>
+                            <ComboBoxItem>Gzip</ComboBoxItem>
+                            <ComboBoxItem>Snappy</ComboBoxItem>
+                            <ComboBoxItem>Lz4</ComboBoxItem>
+                            <ComboBoxItem>Zstd</ComboBoxItem>
+                        </ComboBox>
+
+                        <TextBlock Text="Changes are saved automatically in memory" FontStyle="Italic" Foreground="Gray"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </TabItem>
+
+    </TabControl>
 </Window>
