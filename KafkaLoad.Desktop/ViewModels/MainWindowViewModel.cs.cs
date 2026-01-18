@@ -1,11 +1,13 @@
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Threading;
+using Confluent.Kafka;
 using KafkaLoad.Desktop.Services;
 using KafkaLoad.Desktop.Models;
-using System.Collections.ObjectModel;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
@@ -15,98 +17,93 @@ public partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel()
     {
-        // Коли двигун каже "ось нові метрики", ми оновлюємо текст
-        _engine.OnMetricUpdated += (sender, metric) =>
+        // --- Ініціалізація дефолтних даних ---
+        ProducerProfiles = new ObservableCollection<ProducerProfile>
         {
-            // Важливо: оновлення UI має бути в головному потоці
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                Logs += $"[{metric.Timestamp:HH:mm:ss}] RPS: {metric.ThroughputRps:F0} | Latency: {metric.AverageLatencyMs:F1} ms\n";
-            });
+            new ProducerProfile { Name = "Localhost (Fast)", BootstrapServers = "localhost:9092", Acks = Acks.Leader },
+            new ProducerProfile { Name = "Production (Reliable)", BootstrapServers = "192.168.1.10:9092", Acks = Acks.All }
         };
 
-        // Коли тест закінчився сам (по часу)
-        _engine.OnTestFinished += (sender, result) =>
+        ConsumerProfiles = new ObservableCollection<ConsumerProfile>
         {
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                Logs += $"[System]: Test finished. Total: {result.TotalMessages}\n";
-                IsRunning = false;
-            });
+            new ConsumerProfile { Name = "Local Reader", GroupId = "test-group-1" }
         };
+
+        // Обираємо перші елементи за замовчуванням
+        SelectedProducerProfile = ProducerProfiles.First();
+        SelectedConsumerProfile = ConsumerProfiles.First();
+
+        // Підписка на події двигуна
+        _engine.OnMetricUpdated += (s, m) => Dispatcher.UIThread.Invoke(() => 
+            Logs += $"[{m.Timestamp:HH:mm:ss}] RPS: {m.ThroughputRps:F0} | Latency: {m.AverageLatencyMs:F1} ms\n");
+            
+        _engine.OnTestFinished += (s, r) => Dispatcher.UIThread.Invoke(() => 
+            { Logs += $"Finished. Total: {r.TotalMessages}\n"; IsRunning = false; });
     }
+
     // --- Списки Профілів ---
-    [ObservableProperty] private ObservableCollection<ProducerProfile> _producerProfiles;
-    [ObservableProperty] private ObservableCollection<ConsumerProfile> _consumerProfiles;
+    [ObservableProperty] 
+    private ObservableCollection<ProducerProfile> _producerProfiles = new();
+
+    [ObservableProperty] 
+    private ObservableCollection<ConsumerProfile> _consumerProfiles = new();
 
     // --- Обрані Профілі (для запуску тесту) ---
-    [ObservableProperty] private ProducerProfile _selectedProducerProfile;
-    [ObservableProperty] private ConsumerProfile _selectedConsumerProfile;
+    // ВИПРАВЛЕННЯ WARNING: Додано " = null!;", щоб заспокоїти компілятор
+    [ObservableProperty] 
+    private ProducerProfile _selectedProducerProfile = null!;
 
-    // --- Профіль, який ми редагуємо зараз (для вкладки налаштувань) ---
-    [ObservableProperty] private ProducerProfile _editingProducerProfile;
+    [ObservableProperty] 
+    private ConsumerProfile _selectedConsumerProfile = null!;
 
-    // --- Вхідні параметри (Input) ---
-    [ObservableProperty]
-    private string _bootstrapServers = "localhost:9092";
+    // --- Профіль, який ми редагуємо зараз ---
+    [ObservableProperty] 
+    private ProducerProfile? _editingProducerProfile;
 
-    [ObservableProperty]
-    private string _topicName = "test-topic";
 
-    [ObservableProperty]
-    private int _producerCount = 1;
-
-    [ObservableProperty]
-    private int _messageSize = 1024;
-
-    [ObservableProperty]
-    private int _durationSeconds = 10;
-
-    // --- Стан інтерфейсу ---
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(StartTestCommand))]
-    private bool _isRunning = false;
-
-    // Текстове поле для логів/метрик
-    [ObservableProperty]
-    private string _logs = "Ready to start...\n";
+    // --- Загальні налаштування сценарію ---
+    // ВИПРАВЛЕННЯ ERROR: Додані відсутні поля, які шукав XAML
+    [ObservableProperty] private string _topicName = "test-topic";
+    [ObservableProperty] private int _threads = 1;       // Це виправить помилку 'Threads'
+    [ObservableProperty] private int _duration = 10;     // Це виправить помилку 'Duration'
+    [ObservableProperty] private int _messageSize = 1024;
+    
+    [ObservableProperty] private bool _isRunning;
+    [ObservableProperty] private string _logs = "";
 
     // --- Команди ---
+
     [RelayCommand]
     private void AddNewProducerProfile()
     {
         var newProfile = new ProducerProfile { Name = "New Producer Config" };
         ProducerProfiles.Add(newProfile);
-        SelectedProducerProfile = newProfile; // Одразу обираємо його
-        EditingProducerProfile = newProfile;  // І відкриваємо для редагування
+        SelectedProducerProfile = newProfile;
+        EditingProducerProfile = newProfile;
     }
 
     [RelayCommand(CanExecute = nameof(CanStart))]
     private async Task StartTest()
     {
         IsRunning = true;
-        Logs = $"[System]: Connecting to {BootstrapServers}...\n";
+        Logs += $"Starting test using profile: {SelectedProducerProfile.Name}...\n";
 
-        // Збираємо конфігурацію з полів вводу
         var config = new TestConfiguration
         {
-            BootstrapServers = BootstrapServers,
+            ProducerSettings = SelectedProducerProfile,
             Topic = TopicName,
-            ProducerCount = ProducerCount,
+            ProducerCount = Threads,
             MessageSizeBytes = MessageSize,
-            DurationSeconds = DurationSeconds
+            DurationSeconds = Duration
         };
 
-        // Запускаємо реальний тест (без await, бо він працює у фоні, а ми чекаємо подій)
-        // Але оскільки наш метод StartTestAsync в Engine чекає завершення - можна і await
-        try 
+        try
         {
             await _engine.StartTestAsync(config);
         }
         catch (Exception ex)
         {
-            Logs += $"[Error]: {ex.Message}\n";
+            Logs += $"Error: {ex.Message}\n";
             IsRunning = false;
         }
     }

@@ -37,10 +37,12 @@ public class LoadEngineService
         // 2. Створюємо конфіг Kafka Producer
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = config.BootstrapServers,
-            LingerMs = 5,       // Оптимізація: чекати 5мс для збору пачки
-            BatchSize = 64 * 1024, // 64KB пачка
-            Acks = Acks.Leader
+            // Беремо дані з профілю
+            BootstrapServers = config.ProducerSettings.BootstrapServers,
+            LingerMs = config.ProducerSettings.LingerMs,
+            BatchSize = config.ProducerSettings.BatchSize,
+            Acks = config.ProducerSettings.Acks,
+            CompressionType = config.ProducerSettings.Compression
         };
 
         // Підготовка даних (щоб не генерувати їх в циклі)
