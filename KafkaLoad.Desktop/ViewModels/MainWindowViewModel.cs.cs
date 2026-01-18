@@ -5,15 +5,48 @@ using CommunityToolkit.Mvvm.Input;
 using Avalonia.Threading;
 using KafkaLoad.Desktop.Services;
 using KafkaLoad.Desktop.Models;
+using System.Collections.ObjectModel;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    private readonly LoadEngineService _engine = new();
+    private readonly LoadEngineService _engine = new LoadEngineService();
+
+    public MainWindowViewModel()
+    {
+        // Коли двигун каже "ось нові метрики", ми оновлюємо текст
+        _engine.OnMetricUpdated += (sender, metric) =>
+        {
+            // Важливо: оновлення UI має бути в головному потоці
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                Logs += $"[{metric.Timestamp:HH:mm:ss}] RPS: {metric.ThroughputRps:F0} | Latency: {metric.AverageLatencyMs:F1} ms\n";
+            });
+        };
+
+        // Коли тест закінчився сам (по часу)
+        _engine.OnTestFinished += (sender, result) =>
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                Logs += $"[System]: Test finished. Total: {result.TotalMessages}\n";
+                IsRunning = false;
+            });
+        };
+    }
+    // --- Списки Профілів ---
+    [ObservableProperty] private ObservableCollection<ProducerProfile> _producerProfiles;
+    [ObservableProperty] private ObservableCollection<ConsumerProfile> _consumerProfiles;
+
+    // --- Обрані Профілі (для запуску тесту) ---
+    [ObservableProperty] private ProducerProfile _selectedProducerProfile;
+    [ObservableProperty] private ConsumerProfile _selectedConsumerProfile;
+
+    // --- Профіль, який ми редагуємо зараз (для вкладки налаштувань) ---
+    [ObservableProperty] private ProducerProfile _editingProducerProfile;
 
     // --- Вхідні параметри (Input) ---
-
     [ObservableProperty]
     private string _bootstrapServers = "localhost:9092";
 
@@ -39,28 +72,16 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _logs = "Ready to start...\n";
 
-    public MainWindowViewModel()
+    // --- Команди ---
+    [RelayCommand]
+    private void AddNewProducerProfile()
     {
-        // Коли двигун каже "ось нові метрики", ми оновлюємо текст
-        _engine.OnMetricUpdated += (sender, metric) =>
-        {
-            // Важливо: оновлення UI має бути в головному потоці
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                Logs += $"[{metric.Timestamp:HH:mm:ss}] RPS: {metric.ThroughputRps:F0} | Latency: {metric.AverageLatencyMs:F1} ms\n";
-            });
-        };
-
-        // Коли тест закінчився сам (по часу)
-        _engine.OnTestFinished += (sender, result) =>
-        {
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                Logs += $"[System]: Test finished. Total: {result.TotalMessages}\n";
-                IsRunning = false;
-            });
-        };
+        var newProfile = new ProducerProfile { Name = "New Producer Config" };
+        ProducerProfiles.Add(newProfile);
+        SelectedProducerProfile = newProfile; // Одразу обираємо його
+        EditingProducerProfile = newProfile;  // І відкриваємо для редагування
     }
+
     [RelayCommand(CanExecute = nameof(CanStart))]
     private async Task StartTest()
     {
