@@ -8,14 +8,66 @@
         x:Class="KafkaLoad.Desktop.MainWindow"
         Title="KafkaLoad.Desktop">
     <Design.DataContext>
-    <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <StackPanel Spacing="20" Margin="20" VerticalAlignment="Center">
-        <TextBox Text="{Binding TopicName}" Watermark="Enter Topic Name"/>
+    <Grid ColumnDefinitions="300, *" Margin="10">
+        
+        <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0" Padding="0,0,10,0">
+            <StackPanel Spacing="15">
+                <TextBlock Text="Configuration" FontWeight="Bold" FontSize="18"/>
+                
+                <StackPanel>
+                    <TextBlock Text="Bootstrap Servers"/>
+                    <TextBox Text="{Binding BootstrapServers}" IsEnabled="{Binding !IsRunning}"/>
+                </StackPanel>
 
-        <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Center"/>
+                <StackPanel>
+                    <TextBlock Text="Topic Name"/>
+                    <TextBox Text="{Binding TopicName}" IsEnabled="{Binding !IsRunning}"/>
+                </StackPanel>
 
-        <Button Command="{Binding StartTestCommand}" Content="Start Load Test" HorizontalAlignment="Center"/>
-    </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Producers (Threads)"/>
+                    <NumericUpDown Value="{Binding ProducerCount}" Minimum="1" Maximum="100" 
+                                   IsEnabled="{Binding !IsRunning}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Message Size (Bytes)"/>
+                    <NumericUpDown Value="{Binding MessageSize}" Minimum="10" Maximum="1000000" 
+                                   Increment="128" IsEnabled="{Binding !IsRunning}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Duration (Seconds)"/>
+                    <NumericUpDown Value="{Binding DurationSeconds}" Minimum="5" Maximum="3600" 
+                                   IsEnabled="{Binding !IsRunning}"/>
+                </StackPanel>
+
+                <Button Command="{Binding StartTestCommand}" 
+                        Content="{Binding IsRunning, Converter={x:Static StringConverters.IsNullOrEmpty}, ConverterParameter='Running...'}"
+                        HorizontalAlignment="Stretch" 
+                        HorizontalContentAlignment="Center"
+                        Background="#007ACC" Foreground="White"
+                        FontWeight="Bold" Padding="10">
+                    <Button.Content>
+                        <TextBlock Text="START LOAD TEST"/>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Column="1" RowDefinitions="Auto, *" Margin="10,0,0,0">
+            <TextBlock Grid.Row="0" Text="Real-time Metrics (Log Mode)" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
+            
+            <TextBox Grid.Row="1" 
+                     Text="{Binding Logs}" 
+                     IsReadOnly="True" 
+                     AcceptsReturn="True" 
+                     TextWrapping="Wrap"
+                     FontFamily="Consolas, Monospace"
+                     Background="#F5F5F5"/>
+        </Grid>
+    </Grid>
 </Window>
