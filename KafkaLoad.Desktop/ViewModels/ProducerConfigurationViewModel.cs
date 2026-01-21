@@ -44,7 +44,7 @@ public class ProducerConfigurationViewModel : ViewModelBase
             if (_model.Name != value)
             {
                 _model.Name = value;
-                this.RaisePropertyChanged(); // Автоматично сповіщає про зміну "Name"
+                this.RaisePropertyChanged();
             }
         }
     }
@@ -206,7 +206,7 @@ public class ProducerConfigurationViewModel : ViewModelBase
     private async System.Threading.Tasks.Task SaveConfigAsync()
     {
         // TODO: add FileDialog
-        string path = $"{Name}_config.json"; 
+        string path = $"{Name}_producer_config.json"; 
         await _configManager.SaveAsync(_model, path);
     }
 }
