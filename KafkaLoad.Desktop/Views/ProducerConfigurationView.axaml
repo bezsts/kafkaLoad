@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="KafkaLoad.Desktop.Views.ProducerConfigurationView"
+             x:DataType="vm:ProducerConfigurationViewModel">
+  <ScrollViewer>
+        <StackPanel Spacing="10" Margin="20">
+            
+            <TextBlock Text="Producer Configuration" FontSize="20" FontWeight="Bold"/>
+
+            <TextBlock Text="Name"/>
+            <TextBox Text="{Binding Name}" Watermark="Config Name"/>
+
+            <TextBlock Text="Bootstrap Servers"/>
+            <TextBox Text="{Binding BootstrapServers}" Watermark="localhost:9092"/>
+
+            <TextBlock Text="Key Serializer"/>
+            <ComboBox ItemsSource="{Binding KeySerializerOptions}"
+                      SelectedItem="{Binding SelectedKeySerializer}"
+                      HorizontalAlignment="Stretch"/>
+
+            <TextBlock Text="Value Serializer"/>
+            <ComboBox ItemsSource="{Binding ValueSerializerOptions}"
+                      SelectedItem="{Binding SelectedValueSerializer}"
+                      HorizontalAlignment="Stretch"/>
+
+            <TextBlock Text="Acks"/>
+            <ComboBox ItemsSource="{Binding AcksOptions}"
+                      SelectedItem="{Binding SelectedAcks}"
+                      HorizontalAlignment="Stretch"/>
+
+            <TextBlock Text="Retries"/>
+            <NumericUpDown Value="{Binding Retries}" Minimum="0" Increment="100"/>
+
+            <CheckBox IsChecked="{Binding EnableIdempotence}" 
+                      Content="Enable Idempotence (Strict Order)"/>
+
+            <TextBlock Text="Batch Size"/>
+            <NumericUpDown Value="{Binding BatchSize}" Minimum="0" Increment="100"/>
+
+            <TextBlock Text="Linger"/>
+            <NumericUpDown Value="{Binding Linger}" Minimum="0" Increment="100"/>
+
+            <TextBlock Text="Compression type"/>
+            <ComboBox ItemsSource="{Binding CompressionTypeOptions}"
+                      SelectedItem="{Binding SelectedCompressionType}"
+                      HorizontalAlignment="Stretch"/>
+
+            <TextBlock Text="Buffer memory"/>
+            <NumericUpDown Value="{Binding BufferMemory}" Minimum="0" Increment="100"/>
+
+            <TextBlock Text="Max in flight requests per connection"/>
+            <NumericUpDown Value="{Binding MaxInFlightRequestsPerConnection}" Minimum="0" Increment="100"/>
+
+            <Button Command="{Binding SaveCommand}" 
+                    Content="Save Configuration" 
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0"/>
+            
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
