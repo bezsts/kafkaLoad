@@ -1,7 +1,8 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="KafkaLoad.Desktop.Views.ProducerConfigurationView"
@@ -13,7 +14,7 @@
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Name}" Watermark="e.g. Prod-HighThroughput"/>
+                <TextBox Name = "NameTextBox" Text="{Binding Name}" Watermark="Enter name of configuration"/>
             </StackPanel>
 
             <StackPanel Spacing="5">
@@ -40,7 +41,8 @@
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Acks (Durability)"/>
-                <ComboBox ItemsSource="{Binding AcksOptions}"
+                <ComboBox Name="AcksComboBox"
+                          ItemsSource="{Binding AcksOptions}"
                           SelectedItem="{Binding SelectedAcks}"
                           HorizontalAlignment="Stretch"/>
             </StackPanel>
@@ -74,7 +76,7 @@
                 <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Retries"/>
                     <NumericUpDown Value="{Binding Retries}" 
-                                   Minimum="0" Increment="1"/>
+                                   Minimum="0" Maximum = "2147483647" Increment="1"/>
                 </StackPanel>
             </Grid>
 
@@ -101,4 +103,4 @@
             
         </StackPanel>
     </ScrollViewer>
-</UserControl>
+</rxui:ReactiveUserControl>
