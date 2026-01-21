@@ -19,8 +19,19 @@ public class ProducerConfigurationViewModel : ViewModelBase
         _configManager = configManger;
         _model = new ProducerConfiguration();
 
-        SaveCommand = ReactiveCommand.CreateFromTask(SaveConfigAsync, 
-                                                    outputScheduler: RxApp.MainThreadScheduler);
+        var canSave = this.WhenAnyValue(
+            x => x.Name,
+            x => x.BootstrapServers,
+            (name, servers) => 
+                !string.IsNullOrWhiteSpace(name) && 
+                !string.IsNullOrWhiteSpace(servers)
+        );
+
+        SaveCommand = ReactiveCommand.CreateFromTask(
+            SaveConfigAsync,
+            canExecute: canSave, 
+            outputScheduler: RxApp.MainThreadScheduler
+        );
     }
 
     // --- Properties Wrappers ---
