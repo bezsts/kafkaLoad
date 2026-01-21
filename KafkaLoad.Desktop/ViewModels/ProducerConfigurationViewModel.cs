@@ -6,10 +6,12 @@ using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
+using ReactiveUI.Validation.Helpers;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
-public class ProducerConfigurationViewModel : ViewModelBase
+public class ProducerConfigurationViewModel : ReactiveValidationObject
 {
     private readonly IConfigurationManager _configManager;
     private ProducerConfiguration _model;
@@ -19,19 +21,78 @@ public class ProducerConfigurationViewModel : ViewModelBase
         _configManager = configManger;
         _model = new ProducerConfiguration();
 
-        var canSave = this.WhenAnyValue(
-            x => x.Name,
-            x => x.BootstrapServers,
-            (name, servers) => 
-                !string.IsNullOrWhiteSpace(name) && 
-                !string.IsNullOrWhiteSpace(servers)
-        );
+        InitializeValidation();
 
         SaveCommand = ReactiveCommand.CreateFromTask(
             SaveConfigAsync,
-            canExecute: canSave, 
+            canExecute: this.IsValid(), 
             outputScheduler: RxApp.MainThreadScheduler
         );
+    }
+
+    private void InitializeValidation()
+    {
+        this.ValidationRule(
+            viewModel => viewModel.Name,
+            name => !string.IsNullOrWhiteSpace(name),
+            "Name is required");
+        
+        this.ValidationRule(
+            viewModel => viewModel.BootstrapServers,
+            servers => !string.IsNullOrWhiteSpace(servers),
+            "Bootstrap servers are required");
+
+        var idempotenceAndAcks = this.WhenAnyValue(
+            x => x.EnableIdempotence,
+            x => x.SelectedAcks,
+            (idempotence, acks) => 
+            {
+                if (!idempotence) return true; 
+                return acks == AcksEnum.All;
+            }
+        );
+
+        this.ValidationRule(
+            vm => vm.SelectedAcks,
+            idempotenceAndAcks,
+            "Idempotence requires Acks to be set to 'All'"
+        );
+
+        var idempotenceAndRetries = this.WhenAnyValue(
+            x => x.EnableIdempotence,
+            x => x.Retries,
+            (idempotence, retries) => 
+            {
+                if (!idempotence) return true; 
+                return retries > 0;
+            }
+        );
+
+        this.ValidationRule(
+            vm => vm.Retries,
+            idempotenceAndRetries,
+            "Idempotence requires number of retries to greater than zero"
+        );
+
+        var bufferAndBatch = this.WhenAnyValue(
+            x => x.BufferMemory,
+            x => x.BatchSize,
+            (bufferMemory, batchSize) => 
+            {
+                return bufferMemory > batchSize;
+            }
+        );
+
+        this.ValidationRule(
+            vm => vm.BatchSize,
+            bufferAndBatch,
+            "Batch size should be less than Buffer memory"
+        );
+
+        this.ValidationRule(
+            viewModel => viewModel.MaxInFlightRequestsPerConnection,
+            maxFlight => maxFlight != 0,
+            "Max in flight requests per connection should be greater than zero");
     }
 
     // --- Properties Wrappers ---
@@ -106,14 +167,16 @@ public class ProducerConfigurationViewModel : ViewModelBase
         }
     }
 
-    public int Retries
+    public int? Retries
     {
         get => _model.Retries;
         set
         {
-            if (_model.Retries != value)
+            var newValue = value ?? 0;
+
+            if (_model.Retries != newValue)
             {
-                _model.Retries = value;
+                _model.Retries = newValue;
                 this.RaisePropertyChanged();
             }
         }
@@ -132,27 +195,31 @@ public class ProducerConfigurationViewModel : ViewModelBase
         }
     }
 
-    public int BatchSize
+    public int? BatchSize
     {
         get => _model.BatchSize;
         set
         {
-            if (_model.BatchSize != value)
+            var newValue = value ?? 0;
+
+            if (_model.BatchSize != newValue)
             {
-                _model.BatchSize = value;
+                _model.BatchSize = newValue;
                 this.RaisePropertyChanged();
             }
         }
     }
 
-    public double Linger
+    public double? Linger
     {
         get => _model.Linger;
         set
         {
-            if (_model.Linger != value)
+            var newValue = value ?? 0;
+
+            if (_model.Linger != newValue)
             {
-                _model.Linger = value;
+                _model.Linger = newValue;
                 this.RaisePropertyChanged();
             }
         }
@@ -173,27 +240,31 @@ public class ProducerConfigurationViewModel : ViewModelBase
         }
     }
 
-    public long BufferMemory
+    public long? BufferMemory
     {
         get => _model.BufferMemory;
         set
         {
-            if (_model.BufferMemory != value)
+            var newValue = value ?? 0;
+
+            if (_model.BufferMemory != newValue)
             {
-                _model.BufferMemory = value;
+                _model.BufferMemory = newValue;
                 this.RaisePropertyChanged();
             }
         }
     }
 
-    public int MaxInFlightRequestsPerConnection
+    public int? MaxInFlightRequestsPerConnection
     {
         get => _model.MaxInFlightRequestsPerConnection;
         set
         {
-            if (_model.MaxInFlightRequestsPerConnection != value)
+            var newValue = value ?? 0;
+
+            if (_model.MaxInFlightRequestsPerConnection != newValue)
             {
-                _model.MaxInFlightRequestsPerConnection = value;
+                _model.MaxInFlightRequestsPerConnection = newValue;
                 this.RaisePropertyChanged();
             }
         }
@@ -202,7 +273,6 @@ public class ProducerConfigurationViewModel : ViewModelBase
     // --- Commands ---
 
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-
     private async System.Threading.Tasks.Task SaveConfigAsync()
     {
         // TODO: add FileDialog
