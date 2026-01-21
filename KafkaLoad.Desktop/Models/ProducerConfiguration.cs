@@ -6,6 +6,10 @@ namespace KafkaLoad.Desktop.Models;
 
 public class ProducerConfiguration
 {
+    private const int DefaultBatchSizeBytes = 16 * 1024;
+    private const long DefaultBufferMemoryBytes = 32 * 1024 * 1024;
+    private const int DefaultLingerMs = 0;
+    private const int DefaultMaxInFlightRequests = 5;
     public string Name { get; set; } = string.Empty;
     public string BootstrapServers { get; set; } = string.Empty;
 
@@ -22,7 +26,7 @@ public class ProducerConfiguration
     public AcksEnum Acks { get; set; }
 
     // The maximum number of retries the producer will attempt in case of transient errors.
-    public int Retries { get; set; }
+    public int Retries { get; set; } = int.MaxValue;
 
     // Ensures exactly-once delivery semantics (no duplicates). 
     // Requires Acks = All.
@@ -30,22 +34,22 @@ public class ProducerConfiguration
 
     // Maximum size (in bytes) of a single batch of messages.
     // Larger values reduce the number of requests but increase latency.
-    public int BatchSize { get; set;}
+    public int BatchSize { get; set;} = DefaultBatchSizeBytes;
 
     // Wait time (in milliseconds) before sending a batch.
     // Allows accumulating more messages in a single batch.
     // Higher values increase throughput but add latency.
-    public double Linger { get; set; }
+    public double Linger { get; set; } = DefaultLingerMs;
 
     public CompressionTypeEnum CompressionType { get; set; }
 
     // Total memory size (in bytes) available to the producer for buffering.
     // If the buffer is full, the .Produce() call will block.
-    public long BufferMemory { get; set; }
+    public long BufferMemory { get; set; } = DefaultBufferMemoryBytes;
 
     // Maximum number of unacknowledged requests that can be sent per connection.
     // Higher values increase throughput but can risk message reordering if retries occur.
-    public int MaxInFlightRequestsPerConnection { get; set; }
+    public int MaxInFlightRequestsPerConnection { get; set; } = DefaultMaxInFlightRequests;
 
     public bool AutoCreateTopicsEnable { get; } = false;
     public override string ToString() => Name;

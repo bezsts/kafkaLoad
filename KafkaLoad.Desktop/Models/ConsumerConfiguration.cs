@@ -6,6 +6,12 @@ namespace KafkaLoad.Desktop.Models;
 
 public class ConsumerConfiguration
 {
+    private const int DefaultFetchMinBytes = 1;
+    private const int DefaultFetchMaxWaitMs = 500;
+    private const int DefaultMaxPollRecords = 500;
+    private const int DefaultMaxPollIntervalMs = 5 * 60 * 1000;
+
+
     public string Name { get; set; } = string.Empty;
     public string BootstrapServers { get; set; } = string.Empty;
 
@@ -28,19 +34,19 @@ public class ConsumerConfiguration
     // Minimum amount of data the server should return for a fetch request.
     // If data is insufficient, the broker waits before answering.
     // Higher values reduce CPU load on the broker but increase latency.
-    public int FetchMinBytes { get; set; }
+    public int FetchMinBytes { get; set; } = DefaultFetchMinBytes;
 
     // Maximum amount of time the server will block before answering the fetch request
     // if there isn't sufficient data to satisfy FetchMinBytes.
-    public int FetchMaxWait { get; set; }
+    public int FetchMaxWait { get; set; } = DefaultFetchMaxWaitMs;
 
     // The maximum number of records returned in a single call to .Consume() or .Poll().
     // Use this to control the batch size of processing.
-    public int MaxPollRecords { get; set; }
+    public int MaxPollRecords { get; set; } = DefaultMaxPollRecords;
 
     // The maximum delay between invocations of .Consume() or .Poll().
     // If you take longer than this to process messages, the broker will consider 
     // this consumer dead and trigger a rebalance (kicking you out of the group).
-    public int MaxPollInterval { get; set; }
+    public int MaxPollInterval { get; set; } = DefaultMaxPollIntervalMs;
     public override string ToString() => Name;
 }
