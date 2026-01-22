@@ -6,10 +6,12 @@ using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
+using ReactiveUI.Validation.Helpers;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
-public class ConsumerConfigurationViewModel : ViewModelBase
+public class ConsumerConfigurationViewModel : ReactiveValidationObject
 {
     private readonly IConfigurationManager _configManager;
     private ConsumerConfiguration _model;
@@ -19,21 +21,31 @@ public class ConsumerConfigurationViewModel : ViewModelBase
         _configManager = configManager;
         _model = new ConsumerConfiguration();
 
-        var canSave = this.WhenAnyValue(
-            x => x.Name,
-            x => x.BootstrapServers,
-            x => x.GroupId,
-            (name, servers, groupid) => 
-                !string.IsNullOrWhiteSpace(name) && 
-                !string.IsNullOrWhiteSpace(servers) &&
-                !string.IsNullOrWhiteSpace(groupid)
-        );
+        InitializeValidation();
 
         SaveCommand = ReactiveCommand.CreateFromTask(
             SaveConfigAsync,
-            canExecute: canSave, 
+            canExecute: this.IsValid(), 
             outputScheduler: RxApp.MainThreadScheduler
         );
+    }
+
+    private void InitializeValidation()
+    {
+        this.ValidationRule(
+            viewModel => viewModel.Name,
+            name => !string.IsNullOrWhiteSpace(name),
+            "Name is required");
+        
+        this.ValidationRule(
+            viewModel => viewModel.BootstrapServers,
+            servers => !string.IsNullOrWhiteSpace(servers),
+            "Bootstrap servers are required");
+
+        this.ValidationRule(
+            viewModel => viewModel.GroupId,
+            groupId => !string.IsNullOrWhiteSpace(groupId),
+            "Group Id is required");
     }
 
     // --- Properties Wrappers ---
@@ -121,66 +133,74 @@ public class ConsumerConfigurationViewModel : ViewModelBase
         }
     }
 
-    public bool EnableAutoCommit
-    {
-        get => _model.EnableAutoCommit;
-        set
-        {
-            if (_model.EnableAutoCommit != value)
-            {
-                _model.EnableAutoCommit = value;
-                this.RaisePropertyChanged();
-            }
-        }
-    }
+    // public bool EnableAutoCommit
+    // {
+    //     get => _model.EnableAutoCommit;
+    //     set
+    //     {
+    //         if (_model.EnableAutoCommit != value)
+    //         {
+    //             _model.EnableAutoCommit = value;
+    //             this.RaisePropertyChanged();
+    //         }
+    //     }
+    // }
 
-    public int FetchMinBytes
+    public int? FetchMinBytes
     {
         get => _model.FetchMinBytes;
         set
         {
-            if (_model.FetchMinBytes != value)
+            var newValue = value ?? 1;
+
+            if (_model.FetchMinBytes != newValue)
             {
-                _model.FetchMinBytes = value;
+                _model.FetchMinBytes = newValue;
                 this.RaisePropertyChanged();
             }
         }
     }
 
-    public int FetchMaxWait
+    public int? FetchMaxWait
     {
         get => _model.FetchMaxWait;
         set
         {
-            if (_model.FetchMaxWait != value)
+            var newValue = value ?? 500;
+
+            if (_model.FetchMaxWait != newValue)
             {
-                _model.FetchMaxWait = value;
+                _model.FetchMaxWait = newValue;
                 this.RaisePropertyChanged();
             }
         }
     }
 
-    public int MaxPollRecords
+    public int? MaxPollRecords
     {
         get => _model.MaxPollRecords;
         set
         {
-            if (_model.MaxPollRecords != value)
+            var newValue = value ?? 500;
+
+            if (_model.MaxPollRecords != newValue)
             {
-                _model.MaxPollRecords = value;
+                _model.MaxPollRecords = newValue;
                 this.RaisePropertyChanged();
             }
         }
     }
 
-    public int MaxPollInterval
+    public int? MaxPollInterval
     {
         get => _model.MaxPollInterval;
         set
         {
-            if (_model.MaxPollInterval != value)
+            var newValue = value ?? (5 * 60 * 1000);
+
+            if (_model.MaxPollInterval != newValue)
             {
-                _model.MaxPollInterval = value;
+                _model.MaxPollInterval = newValue;
                 this.RaisePropertyChanged();
             }
         }

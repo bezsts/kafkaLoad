@@ -1,7 +1,8 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="KafkaLoad.Desktop.Views.ConsumerConfigurationView"
@@ -13,12 +14,12 @@
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Name}" Watermark="e.g. Prod-HighThroughput"/>
+                <TextBox Text="{Binding Name}"/>
             </StackPanel>
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Bootstrap Servers *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding BootstrapServers}" Watermark="e.g. localhost:9092, 192.168.1.5:9092"/>
+                <TextBox Text="{Binding BootstrapServers}"/>
             </StackPanel>
 
             <StackPanel Spacing="5">
@@ -50,21 +51,21 @@
                               HorizontalAlignment="Stretch"/>
                 </StackPanel>
 
-            <CheckBox IsChecked="{Binding EnableAutoCommit}" 
-                      Content="Enable auto commit"/>
+            <!-- <CheckBox IsChecked="{Binding EnableAutoCommit}" 
+                      Content="Enable auto commit"/> -->
 
             <Grid ColumnDefinitions="*, 15, *" RowDefinitions="Auto, Auto, Auto, Auto">
                 
                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
                     <TextBlock Text="Fetch min bytes"/>
                     <NumericUpDown Value="{Binding FetchMinBytes}" 
-                                   Minimum="0" Maximum="52428800" Increment="4096"
+                                   Minimum="1" Maximum="52428800" Increment="4096"
                                    FormatString="N0"/> </StackPanel>
 
                 <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Fetch max wait"/>
                     <NumericUpDown Value="{Binding FetchMaxWait}" 
-                                   Minimum="0" Maximum="10000" Increment="5"/>
+                                   Minimum="1" Maximum="10000" Increment="5"/>
                 </StackPanel>
 
                 <Border Grid.Row="1" Height="15"/>
@@ -72,14 +73,14 @@
                 <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
                     <TextBlock Text="Max poll records"/>
                     <NumericUpDown Value="{Binding MaxPollRecords}" 
-                                   Minimum="0" Increment="1048576" 
+                                   Minimum="1" Maximum="10000" Increment="5" 
                                    FormatString="N0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Max poll interval"/>
                     <NumericUpDown Value="{Binding MaxPollInterval}" 
-                                   Minimum="0" Increment="1"/>
+                                   Minimum="6000" Maximum="3600000" Increment="1000"/>
                 </StackPanel>
             </Grid>
 
@@ -92,4 +93,4 @@
             
         </StackPanel>
   </ScrollViewer>
-</UserControl>
+</rxui:ReactiveUserControl>
