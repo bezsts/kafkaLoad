@@ -14,12 +14,12 @@
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
-                <TextBox Name = "NameTextBox" Text="{Binding Name}" Watermark="Enter name of configuration"/>
+                <TextBox Name = "NameTextBox" Text="{Binding Name}"/>
             </StackPanel>
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Bootstrap Servers *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding BootstrapServers}" Watermark="e.g. localhost:9092, 192.168.1.5:9092"/>
+                <TextBox Text="{Binding BootstrapServers}"/>
             </StackPanel>
 
             <Separator Height="20" Opacity="0"/> 
