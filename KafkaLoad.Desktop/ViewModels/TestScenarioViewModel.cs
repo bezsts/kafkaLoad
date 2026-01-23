@@ -72,6 +72,11 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
             "Producer count is required");
 
         this.ValidationRule(
+            viewModel => viewModel.ConsumerCount,
+            consumerCount => consumerCount is not null,
+            "Consumer count is required");
+
+        this.ValidationRule(
             viewModel => viewModel.MessageSize,
             messageSize => messageSize is not null,
             "Message size is required");
@@ -115,7 +120,7 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
         get => _model.ProducerConfig;
         set
         {
-            if (_model.ProducerConfig != value && value is not null)
+            if (_model.ProducerConfig != value)
             {
                 _model.ProducerConfig = value;
                 this.RaisePropertyChanged();
@@ -129,7 +134,7 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
         get => _model.ConsumerConfig;
         set
         {
-            if (_model.ConsumerConfig != value && value is not null)
+            if (_model.ConsumerConfig != value)
             {
                 _model.ConsumerConfig = value;
                 this.RaisePropertyChanged();
@@ -154,9 +159,9 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
         get => _model.ProducerCount;
         set
         {
-            if (_model.ProducerCount != value && value is not null)
+            if (_model.ProducerCount != value)
             {
-                _model.ProducerCount = (int)value;
+                _model.ProducerCount = value;
                 this.RaisePropertyChanged();
             }
         }
@@ -167,9 +172,9 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
         get => _model.ConsumerCount;
         set
         {
-            if (_model.ConsumerCount != value && value is not null)
+            if (_model.ConsumerCount != value)
             {
-                _model.ConsumerCount = (int)value;
+                _model.ConsumerCount = value;
                 this.RaisePropertyChanged();
             }
         }
@@ -180,9 +185,9 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
         get => _model.MessageSize;
         set
         {
-            if (_model.MessageSize != value && value is not null)
+            if (_model.MessageSize != value)
             {
-                _model.MessageSize = (int)value;
+                _model.MessageSize = value;
                 this.RaisePropertyChanged();
             }
         }
@@ -193,9 +198,9 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
         get => _model.Duration;
         set
         {
-            if (_model.Duration != value && value is not null)
+            if (_model.Duration != value)
             {
-                _model.Duration = (int)value;
+                _model.Duration = value;
                 this.RaisePropertyChanged();
             }
         }

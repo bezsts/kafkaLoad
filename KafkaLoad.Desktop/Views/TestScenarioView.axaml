@@ -8,7 +8,7 @@
              x:Class="KafkaLoad.Desktop.Views.TestScenarioView"
              x:DataType="vm:TestScenarioViewModel">
     <ScrollViewer>
-        <StackPanel Spacing="15" Margin="20" MaxWidth="600" HorizontalAlignment="Left">
+        <StackPanel Spacing="15" Margin="20">
             
             <TextBlock Text="Create Test Scenario" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
 
@@ -66,7 +66,7 @@
                 <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Consumers Count"/>
                     <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue=''}" 
-                                   Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
+                                   Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,15,0,0">
