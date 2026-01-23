@@ -1,10 +1,32 @@
-<Window xmlns="https://github.com/avaloniaui"
+<rxui:ReactiveWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        x:DataType="vm:MainWindowViewModel"
+        xmlns:rxui="http://reactiveui.net"
+        xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
+        xmlns:views="using:KafkaLoad.Desktop.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:DataType="vm:MainViewModel"
+        x:TypeArguments="vm:MainViewModel"
         x:Class="KafkaLoad.Desktop.MainWindow"
         Title="KafkaLoad">
 
-</Window>
+        <Design.DataContext>
+                <vm:MainViewModel/>
+        </Design.DataContext>
+
+        <Panel>
+                <TabControl Margin="5">
+                
+                <TabItem Header="Producer Config" FontSize="16">
+                        <views:ProducerConfigurationView DataContext="{Binding ProducerConfigurationViewModel}"/>
+                </TabItem>
+
+                <TabItem Header="Consumer Config" FontSize="16">
+                        <views:ConsumerConfigurationView DataContext="{Binding ConsumerConfigurationViewModel}"/>
+                </TabItem>
+                
+                </TabControl>
+        </Panel>
+        
+</rxui:ReactiveWindow>
