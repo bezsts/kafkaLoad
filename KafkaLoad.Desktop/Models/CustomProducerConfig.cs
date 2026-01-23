@@ -4,7 +4,7 @@ using KafkaLoad.Desktop.Enums;
 
 namespace KafkaLoad.Desktop.Models;
 
-public class ProducerConfiguration
+public class CustomProducerConfig
 {
     private const int DefaultBatchSizeBytes = 16 * 1024;
     private const long DefaultBufferMemoryBytes = 32 * 1024 * 1024;

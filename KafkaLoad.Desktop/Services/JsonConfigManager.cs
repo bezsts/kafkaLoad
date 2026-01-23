@@ -6,7 +6,7 @@ using KafkaLoad.Desktop.Services.Interfaces;
 
 namespace KafkaLoad.Desktop.Services;
 
-public class JsonConfigurationManager : IConfigurationManager
+public class JsonConfigManager : IConfigManager
 {
     private readonly JsonSerializerOptions _options = new() 
     { 

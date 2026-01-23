@@ -20,21 +20,21 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         Locator.CurrentMutable.RegisterConstant(
-            new JsonConfigurationManager(), 
-            typeof(IConfigurationManager));
+            new JsonConfigManager(), 
+            typeof(IConfigManager));
 
         Locator.CurrentMutable.RegisterConstant(
             new KafkaClientFactory(), 
             typeof(IKafkaClientFactory));
 
         Locator.CurrentMutable.Register(() => 
-            new ProducerConfigurationView(), typeof(IViewFor<ProducerConfigurationViewModel>));
+            new ProducerConfigView(), typeof(IViewFor<ProducerConfigViewModel>));
         Locator.CurrentMutable.Register(() => 
-            new ConsumerConfigurationView(), typeof(IViewFor<ConsumerConfigurationViewModel>));
+            new ConsumerConfigView(), typeof(IViewFor<ConsumerConfigViewModel>));
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var configManager = Locator.Current.GetService<IConfigurationManager>()!;
+            var configManager = Locator.Current.GetService<IConfigManager>()!;
             var kafkaFactory = Locator.Current.GetService<IKafkaClientFactory>()!;
 
             desktop.MainWindow = new MainWindow

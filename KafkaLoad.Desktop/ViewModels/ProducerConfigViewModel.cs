@@ -11,15 +11,15 @@ using ReactiveUI.Validation.Helpers;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
-public class ProducerConfigurationViewModel : ReactiveValidationObject
+public class ProducerConfigViewModel : ReactiveValidationObject
 {
-    private readonly IConfigurationManager _configManager;
-    private ProducerConfiguration _model;
+    private readonly IConfigManager _configManager;
+    private CustomProducerConfig _model;
 
-    public ProducerConfigurationViewModel(IConfigurationManager configManger)
+    public ProducerConfigViewModel(IConfigManager configManger)
     {
         _configManager = configManger;
-        _model = new ProducerConfiguration();
+        _model = new CustomProducerConfig();
 
         InitializeValidation();
 

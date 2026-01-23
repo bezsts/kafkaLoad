@@ -8,12 +8,12 @@ namespace KafkaLoad.Desktop.Services;
 public class KafkaClientFactory : IKafkaClientFactory
 {
     public IProducer<TKey, TValue> CreateProducer<TKey, TValue>(
-        ProducerConfiguration config, 
+        Models.CustomProducerConfig config, 
         ISerializer<TKey> keySerializer, 
         ISerializer<TValue> valueSerializer)
     {
         // 1. Map ViewModel config to Confluent's ProducerConfig
-        var producerConfig = new ProducerConfig
+        var producerConfig = new Confluent.Kafka.ProducerConfig
         {
             BootstrapServers = config.BootstrapServers,
             ClientId = config.ClientID,
@@ -44,12 +44,12 @@ public class KafkaClientFactory : IKafkaClientFactory
     }
 
     public IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(
-        ConsumerConfiguration config, 
+        Models.CustomConsumerConfig config, 
         IDeserializer<TKey> keyDeserializer, 
         IDeserializer<TValue> valueDeserializer)
     {
         // Map ViewModel config to Confluent's ConsumerConfig
-        var consumerConfig = new ConsumerConfig
+        var consumerConfig = new Confluent.Kafka.ConsumerConfig
         {
             BootstrapServers = config.BootstrapServers,
             GroupId = config.GroupId,

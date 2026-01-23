@@ -19,11 +19,11 @@
                 <TabControl Margin="5">
                 
                 <TabItem Header="Producer Config" FontSize="16">
-                        <views:ProducerConfigurationView DataContext="{Binding ProducerConfigurationViewModel}"/>
+                        <views:ProducerConfigView DataContext="{Binding ProducerConfigViewModel}"/>
                 </TabItem>
 
                 <TabItem Header="Consumer Config" FontSize="16">
-                        <views:ConsumerConfigurationView DataContext="{Binding ConsumerConfigurationViewModel}"/>
+                        <views:ConsumerConfigView DataContext="{Binding ConsumerConfigViewModel}"/>
                 </TabItem>
                 
                 </TabControl>

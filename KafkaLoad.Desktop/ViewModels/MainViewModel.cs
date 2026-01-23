@@ -6,15 +6,15 @@ namespace KafkaLoad.Desktop.ViewModels;
 
 public class MainViewModel : ReactiveValidationObject
 {
-    public ProducerConfigurationViewModel ProducerConfigurationViewModel { get; }
-    public ConsumerConfigurationViewModel ConsumerConfigurationViewModel { get; }
+    public ProducerConfigViewModel ProducerConfigViewModel { get; }
+    public ConsumerConfigViewModel ConsumerConfigViewModel { get; }
 
 
     public MainViewModel(
-        IConfigurationManager configurationManager, 
+        IConfigManager configManager, 
         IKafkaClientFactory kafkaClientFactory)
     {
-        ProducerConfigurationViewModel = new ProducerConfigurationViewModel(configurationManager);
-        ConsumerConfigurationViewModel = new ConsumerConfigurationViewModel(configurationManager);
+        ProducerConfigViewModel = new ProducerConfigViewModel(configManager);
+        ConsumerConfigViewModel = new ConsumerConfigViewModel(configManager);
     }
 }

@@ -5,8 +5,8 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="KafkaLoad.Desktop.Views.ConsumerConfigurationView"
-             x:DataType="vm:ConsumerConfigurationViewModel">
+             x:Class="KafkaLoad.Desktop.Views.ConsumerConfigView"
+             x:DataType="vm:ConsumerConfigViewModel">
   <ScrollViewer>
         <StackPanel Spacing="15" Margin="20">
             

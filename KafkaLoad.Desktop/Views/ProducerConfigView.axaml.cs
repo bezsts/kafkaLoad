@@ -8,9 +8,9 @@ using System.Reactive.Disposables.Fluent;
 
 namespace KafkaLoad.Desktop.Views;
 
-public partial class ProducerConfigurationView : ReactiveUserControl<ProducerConfigurationViewModel>
+public partial class ProducerConfigView : ReactiveUserControl<ProducerConfigViewModel>
 {
-    public ProducerConfigurationView()
+    public ProducerConfigView()
     {
         InitializeComponent();
     }

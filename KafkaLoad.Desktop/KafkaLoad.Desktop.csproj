@@ -24,8 +24,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services/" />
     <Folder Include="Services/Interfaces/" />
-    <Folder Include="ViewModels/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views/ConsumerConfigView.axaml.cs">
+      <DependentUpon>ConsumerConfigView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views/ProducerConfigView.axaml.cs">
+      <DependentUpon>ProducerConfigView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

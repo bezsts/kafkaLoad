@@ -6,9 +6,9 @@ using ReactiveUI.Avalonia;
 
 namespace KafkaLoad.Desktop.Views;
 
-public partial class ConsumerConfigurationView : ReactiveUserControl<ConsumerConfigurationViewModel>
+public partial class ConsumerConfigView : ReactiveUserControl<ConsumerConfigViewModel>
 {
-    public ConsumerConfigurationView()
+    public ConsumerConfigView()
     {
         InitializeComponent();
     }

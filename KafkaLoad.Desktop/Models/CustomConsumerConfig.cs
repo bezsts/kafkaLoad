@@ -4,7 +4,7 @@ using KafkaLoad.Desktop.Enums;
 
 namespace KafkaLoad.Desktop.Models;
 
-public class ConsumerConfiguration
+public class CustomConsumerConfig
 {
     private const int DefaultFetchMinBytes = 1;
     private const int DefaultFetchMaxBytes = 50 * 1024 * 1024;
