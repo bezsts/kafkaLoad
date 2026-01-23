@@ -160,7 +160,20 @@ public class ConsumerConfigurationViewModel : ReactiveValidationObject
             }
         }
     }
+    public int? FetchMaxBytes
+    {
+        get => _model.FetchMaxBytes;
+        set
+        {
+            var newValue = value ?? (50 * 1024 * 1024);
 
+            if (_model.FetchMaxBytes != newValue)
+            {
+                _model.FetchMaxBytes = newValue;
+                this.RaisePropertyChanged();
+            }
+        }
+    }
     public int? FetchMaxWait
     {
         get => _model.FetchMaxWait;
@@ -176,20 +189,6 @@ public class ConsumerConfigurationViewModel : ReactiveValidationObject
         }
     }
 
-    public int? MaxPollRecords
-    {
-        get => _model.MaxPollRecords;
-        set
-        {
-            var newValue = value ?? 500;
-
-            if (_model.MaxPollRecords != newValue)
-            {
-                _model.MaxPollRecords = newValue;
-                this.RaisePropertyChanged();
-            }
-        }
-    }
 
     public int? MaxPollInterval
     {

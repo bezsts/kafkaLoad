@@ -62,19 +62,19 @@
                                    Minimum="1" Maximum="52428800" Increment="4096"
                                    FormatString="N0"/> </StackPanel>
 
+                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Fetch max bytes"/>
+                    <NumericUpDown Value="{Binding FetchMaxBytes}" 
+                                   Minimum="1" Maximum="52428800" Increment="4096" 
+                                   FormatString="N0"/>
+                </StackPanel>
+
+                <Border Grid.Row="1" Height="15"/>
+                
                 <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Fetch max wait"/>
                     <NumericUpDown Value="{Binding FetchMaxWait}" 
                                    Minimum="1" Maximum="10000" Increment="5"/>
-                </StackPanel>
-
-                <Border Grid.Row="1" Height="15"/>
-
-                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Max poll records"/>
-                    <NumericUpDown Value="{Binding MaxPollRecords}" 
-                                   Minimum="1" Maximum="10000" Increment="5" 
-                                   FormatString="N0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
