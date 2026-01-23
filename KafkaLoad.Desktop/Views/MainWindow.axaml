@@ -17,6 +17,10 @@
 
         <Panel>
                 <TabControl Margin="5">
+
+                <TabItem Header="Test scenarios" FontSize="16">
+                        <views:TestScenarioView DataContext="{Binding TestScenarioViewModel}"/>
+                </TabItem>
                 
                 <TabItem Header="Producer Config" FontSize="16">
                         <views:ProducerConfigView DataContext="{Binding ProducerConfigViewModel}"/>

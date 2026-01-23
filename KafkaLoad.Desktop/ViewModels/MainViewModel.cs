@@ -9,14 +9,20 @@ public class MainViewModel : ReactiveValidationObject
 {
     public ProducerConfigViewModel ProducerConfigViewModel { get; }
     public ConsumerConfigViewModel ConsumerConfigViewModel { get; }
+    public TestScenarioViewModel TestScenarioViewModel { get; }
 
 
     public MainViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository, 
-        IConfigRepository<CustomConsumerConfig> consumerConfigRepository, 
+        IConfigRepository<CustomConsumerConfig> consumerConfigRepository,
+        IConfigRepository<TestScenario> testScenarioRepository, 
         IKafkaClientFactory kafkaClientFactory)
     {
         ProducerConfigViewModel = new ProducerConfigViewModel(producerConfigRepository);
         ConsumerConfigViewModel = new ConsumerConfigViewModel(consumerConfigRepository);
+        TestScenarioViewModel = new TestScenarioViewModel(
+            producerConfigRepository, 
+            consumerConfigRepository, 
+            testScenarioRepository);
     }
 }

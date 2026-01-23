@@ -32,6 +32,10 @@ public partial class App : Application
             typeof(IConfigRepository<CustomConsumerConfig>));
 
         Locator.CurrentMutable.RegisterConstant(
+            new JsonConfigRepository<TestScenario>(jsonConfigManager, "TestScenarios"),
+            typeof(IConfigRepository<TestScenario>));
+
+        Locator.CurrentMutable.RegisterConstant(
             new KafkaClientFactory(), 
             typeof(IKafkaClientFactory));
 
@@ -39,16 +43,23 @@ public partial class App : Application
             new ProducerConfigView(), typeof(IViewFor<ProducerConfigViewModel>));
         Locator.CurrentMutable.Register(() => 
             new ConsumerConfigView(), typeof(IViewFor<ConsumerConfigViewModel>));
+        Locator.CurrentMutable.Register(() => 
+            new TestScenarioView(), typeof(IViewFor<TestScenarioViewModel>));
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var producerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomProducerConfig>>()!;
             var consumerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomConsumerConfig>>()!;
+            var testScenarioRepository = Locator.Current.GetService<IConfigRepository<TestScenario>>()!;
             var kafkaFactory = Locator.Current.GetService<IKafkaClientFactory>()!;
 
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainViewModel(producerConfigRepository, consumerConfigRepository, kafkaFactory)
+                DataContext = new MainViewModel(
+                    producerConfigRepository, 
+                    consumerConfigRepository,
+                    testScenarioRepository, 
+                    kafkaFactory)
             };
         }
 
