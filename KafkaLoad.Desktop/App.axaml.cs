@@ -21,7 +21,7 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var jsonConfigManager = new JsonConfigManager();
-        Locator.CurrentMutable.RegisterConstant(jsonConfigManager, typeof(IConfigManager));
+        Locator.CurrentMutable.RegisterConstant(jsonConfigManager, typeof(IConfigRepository));
 
         Locator.CurrentMutable.RegisterConstant(
             new JsonConfigRepository<CustomProducerConfig>(jsonConfigManager, "Producers"),
@@ -42,12 +42,13 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var configManager = Locator.Current.GetService<IConfigManager>()!;
+            var producerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomProducerConfig>>()!;
+            var consumerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomConsumerConfig>>()!;
             var kafkaFactory = Locator.Current.GetService<IKafkaClientFactory>()!;
 
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainViewModel(configManager, kafkaFactory)
+                DataContext = new MainViewModel(producerConfigRepository, consumerConfigRepository, kafkaFactory)
             };
         }
 

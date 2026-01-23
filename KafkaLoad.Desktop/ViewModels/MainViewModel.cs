@@ -1,4 +1,5 @@
 using System;
+using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI.Validation.Helpers;
 
@@ -11,10 +12,11 @@ public class MainViewModel : ReactiveValidationObject
 
 
     public MainViewModel(
-        IConfigManager configManager, 
+        IConfigRepository<CustomProducerConfig> producerConfigRepository, 
+        IConfigRepository<CustomConsumerConfig> consumerConfigRepository, 
         IKafkaClientFactory kafkaClientFactory)
     {
-        ProducerConfigViewModel = new ProducerConfigViewModel(configManager);
-        ConsumerConfigViewModel = new ConsumerConfigViewModel(configManager);
+        ProducerConfigViewModel = new ProducerConfigViewModel(producerConfigRepository);
+        ConsumerConfigViewModel = new ConsumerConfigViewModel(consumerConfigRepository);
     }
 }

@@ -13,12 +13,12 @@ namespace KafkaLoad.Desktop.ViewModels;
 
 public class ConsumerConfigViewModel : ReactiveValidationObject
 {
-    private readonly IConfigManager _configManager;
+    private readonly IConfigRepository<CustomConsumerConfig> _configRepository;
     private CustomConsumerConfig _model;
 
-    public ConsumerConfigViewModel(IConfigManager configManager)
+    public ConsumerConfigViewModel(IConfigRepository<CustomConsumerConfig> configrepository)
     {
-        _configManager = configManager;
+        _configRepository = configrepository;
         _model = new CustomConsumerConfig();
 
         InitializeValidation();
@@ -211,8 +211,6 @@ public class ConsumerConfigViewModel : ReactiveValidationObject
 
     private async System.Threading.Tasks.Task SaveConfigAsync()
     {
-        // TODO: add FileDialog
-        string path = $"{Name}_consumer_config.json"; 
-        await _configManager.SaveAsync(_model, path);
+        await _configRepository.SaveAsync(_model);
     }
 }

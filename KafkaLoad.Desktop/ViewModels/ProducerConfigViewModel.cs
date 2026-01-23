@@ -13,12 +13,12 @@ namespace KafkaLoad.Desktop.ViewModels;
 
 public class ProducerConfigViewModel : ReactiveValidationObject
 {
-    private readonly IConfigManager _configManager;
+    private readonly IConfigRepository<CustomProducerConfig> _configRepository;
     private CustomProducerConfig _model;
 
-    public ProducerConfigViewModel(IConfigManager configManger)
+    public ProducerConfigViewModel(IConfigRepository<CustomProducerConfig> configRepository)
     {
-        _configManager = configManger;
+        _configRepository = configRepository;
         _model = new CustomProducerConfig();
 
         InitializeValidation();
@@ -275,8 +275,6 @@ public class ProducerConfigViewModel : ReactiveValidationObject
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     private async System.Threading.Tasks.Task SaveConfigAsync()
     {
-        // TODO: add FileDialog
-        string path = $"{Name}_producer_config.json"; 
-        await _configManager.SaveAsync(_model, path);
+        await _configRepository.SaveAsync(_model);
     }
 }
