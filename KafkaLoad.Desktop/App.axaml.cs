@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services;
 using KafkaLoad.Desktop.Services.Interfaces;
 using KafkaLoad.Desktop.ViewModels;
@@ -19,9 +20,16 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var jsonConfigManager = new JsonConfigManager();
+        Locator.CurrentMutable.RegisterConstant(jsonConfigManager, typeof(IConfigManager));
+
         Locator.CurrentMutable.RegisterConstant(
-            new JsonConfigManager(), 
-            typeof(IConfigManager));
+            new JsonConfigRepository<CustomProducerConfig>(jsonConfigManager, "Producers"),
+            typeof(IConfigRepository<CustomProducerConfig>));
+
+        Locator.CurrentMutable.RegisterConstant(
+            new JsonConfigRepository<CustomConsumerConfig>(jsonConfigManager, "Consumers"),
+            typeof(IConfigRepository<CustomConsumerConfig>));
 
         Locator.CurrentMutable.RegisterConstant(
             new KafkaClientFactory(), 
