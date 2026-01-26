@@ -39,6 +39,15 @@ public partial class App : Application
             new KafkaClientFactory(), 
             typeof(IKafkaClientFactory));
 
+        Locator.CurrentMutable.RegisterConstant(new MetricsService(), typeof(IMetricsService));
+
+        Locator.CurrentMutable.RegisterLazySingleton(() => 
+            new TestRunnerService(
+                Locator.Current.GetService<IKafkaClientFactory>()!,
+                Locator.Current.GetService<IMetricsService>()!
+            ), 
+            typeof(ITestRunnerService));
+
         Locator.CurrentMutable.Register(() => 
             new ProducerConfigView(), typeof(IViewFor<ProducerConfigViewModel>));
         Locator.CurrentMutable.Register(() => 
