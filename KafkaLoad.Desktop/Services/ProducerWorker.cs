@@ -45,7 +45,7 @@ public class ProducerWorker
                         stopwatch.Stop();
                         if (deliveryReport.Error.IsError)
                         {
-                            _metrics.RecordError();
+                            _metrics.RecordProducerError();
                         }
                         else
                         {
@@ -57,7 +57,7 @@ public class ProducerWorker
             }
             catch (Exception)
             {
-                _metrics.RecordError();
+                _metrics.RecordProducerError();
             }
         }
     }
