@@ -7,15 +7,37 @@ namespace KafkaLoad.Desktop.Services;
 
 public class MetricsService : IMetricsService
 {
-    private readonly MetricsAccumulator _accumulator = new();
-    public IObservable<LiveMetrics> MetricsStream => 
+    private readonly ProducerMetricsAccumulator _producerAccumulator = new();
+    private readonly ConsumerMetricsAccumulator _consumerAccumulator = new();
+    private DateTime _startTime;
+    public IObservable<GlobalMetricsSnapshot> MetricsStream => 
         Observable.Interval(TimeSpan.FromSeconds(1))
-                  .Select(_ => _accumulator.GetSnapshot());
-                  
+                  .Select(_ => CreateSnapshot());
+
     public void RecordProducerSuccess(int bytes, double latencyMs) =>
-        _accumulator.AddSuccess(bytes, latencyMs);
+        _producerAccumulator.AddSuccess(bytes, latencyMs);
+    public void RecordConsumerSuccess(int bytes, double latencyMs) =>
+        _consumerAccumulator.AddSuccess(bytes, latencyMs);
 
-    public void RecordError() => _accumulator.AddError();
+    public void RecordProducerError() => _producerAccumulator.AddError();
+    public void RecordConsumerError() => _consumerAccumulator.AddError();
 
-    public void Reset() => _accumulator.Reset();
+    private GlobalMetricsSnapshot CreateSnapshot()
+    {
+        var now = DateTime.UtcNow;
+        double elapsed = (now - _startTime).TotalSeconds;
+
+        return new GlobalMetricsSnapshot(
+            now,
+            _producerAccumulator.GetSnapshot(elapsed),
+            _consumerAccumulator.GetSnapshot(elapsed)
+        );
+    }
+
+    public void Reset()
+    {
+        _startTime = DateTime.UtcNow;
+        _producerAccumulator.Reset();
+        _consumerAccumulator.Reset();    
+    }
 }
