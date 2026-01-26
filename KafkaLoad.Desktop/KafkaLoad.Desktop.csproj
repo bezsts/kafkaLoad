@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Converters/" />
     <Folder Include="Enums/Configs/" />
     <Folder Include="Services/Interfaces/" />
   </ItemGroup>
@@ -34,6 +35,9 @@
     </Compile>
     <Compile Update="Views/ProducerConfigView.axaml.cs">
       <DependentUpon>ProducerConfigView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views/TestRunnerView.axaml.cs">
+      <DependentUpon>TestRunnerView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

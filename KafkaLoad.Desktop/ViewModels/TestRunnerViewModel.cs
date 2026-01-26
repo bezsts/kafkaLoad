@@ -10,7 +10,7 @@ using ReactiveUI;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
-public class RunTestViewModel : ReactiveObject, IActivatableViewModel
+public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
 {
     private readonly ITestRunnerService _testRunner;
     private readonly IMetricsService _metricsService;
@@ -18,7 +18,7 @@ public class RunTestViewModel : ReactiveObject, IActivatableViewModel
 
     public ViewModelActivator Activator { get; } = new();
 
-    public RunTestViewModel(
+    public TestRunnerViewModel(
         ITestRunnerService testRunner, 
         IMetricsService metricsService,
         IConfigRepository<TestScenario> testScenarioRepository)

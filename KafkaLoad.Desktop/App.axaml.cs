@@ -54,13 +54,17 @@ public partial class App : Application
             new ConsumerConfigView(), typeof(IViewFor<ConsumerConfigViewModel>));
         Locator.CurrentMutable.Register(() => 
             new TestScenarioView(), typeof(IViewFor<TestScenarioViewModel>));
+        Locator.CurrentMutable.Register(() => 
+            new TestRunnerView(), typeof(IViewFor<TestRunnerViewModel>));
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var producerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomProducerConfig>>()!;
             var consumerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomConsumerConfig>>()!;
             var testScenarioRepository = Locator.Current.GetService<IConfigRepository<TestScenario>>()!;
-            var kafkaFactory = Locator.Current.GetService<IKafkaClientFactory>()!;
+            //var kafkaFactory = Locator.Current.GetService<IKafkaClientFactory>()!;
+            var testRunnerService = Locator.Current.GetService<ITestRunnerService>()!;
+            var metricsService = Locator.Current.GetService<IMetricsService>()!;
 
             desktop.MainWindow = new MainWindow
             {
@@ -68,7 +72,9 @@ public partial class App : Application
                     producerConfigRepository, 
                     consumerConfigRepository,
                     testScenarioRepository, 
-                    kafkaFactory)
+                    //kafkaFactory,
+                    testRunnerService,
+                    metricsService)
             };
         }
 

@@ -18,6 +18,10 @@
         <Panel>
                 <TabControl Margin="5">
 
+                <TabItem Header="Run test" FontSize="16">
+                        <views:TestRunnerView DataContext="{Binding TestRunnerViewModel}"/>
+                </TabItem>
+
                 <TabItem Header="Test scenarios" FontSize="16">
                         <views:TestScenarioView DataContext="{Binding TestScenarioViewModel}"/>
                 </TabItem>

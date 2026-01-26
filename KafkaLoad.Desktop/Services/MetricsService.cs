@@ -25,10 +25,12 @@ public class MetricsService : IMetricsService
     private GlobalMetricsSnapshot CreateSnapshot()
     {
         var now = DateTime.UtcNow;
-        double elapsed = (now - _startTime).TotalSeconds;
+        TimeSpan duration = now - _startTime;
+        double elapsed = duration.TotalSeconds;
 
         return new GlobalMetricsSnapshot(
             now,
+            duration,
             _producerAccumulator.GetSnapshot(elapsed),
             _consumerAccumulator.GetSnapshot(elapsed)
         );
