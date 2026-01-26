@@ -1,9 +1,6 @@
-using System;
-
 namespace KafkaLoad.Desktop.Models;
 
-public record LiveMetrics(
-    DateTime Timestamp, 
+public record ProducerMetricsSnapshot(
     long TotalMsgsSent,
     long TotalBytesSent,
     long SuccessMsgsSent,

@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Enums/Configs/" />
     <Folder Include="Services/Interfaces/" />
   </ItemGroup>
 
