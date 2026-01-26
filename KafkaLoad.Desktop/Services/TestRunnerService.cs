@@ -14,6 +14,8 @@ public class TestRunnerService : ITestRunnerService
     private readonly IMetricsService _metricsService;
     private CancellationTokenSource? _cts;
     private readonly List<IProducer<byte[], byte[]>> _activeProducers = new();
+    private readonly List<IConsumer<byte[], byte[]>> _activeConsumers = new();
+
     
     public bool IsRunning => _cts != null && !_cts.IsCancellationRequested;
 
@@ -29,31 +31,53 @@ public class TestRunnerService : ITestRunnerService
 
         _cts = new CancellationTokenSource();
         _metricsService.Reset();
-        _activeProducers.Clear();
+
+        CleanupClients();
 
         var tasks = new List<Task>();
 
         //TODO: implement generic serializers (json, string)
         var keySer = Serializers.ByteArray;
         var valSer = Serializers.ByteArray;
+        var keyDeser = Deserializers.ByteArray;
+        var valDeser = Deserializers.ByteArray;
 
-        int pCount = scenario.ProducerCount ?? 1;
-
-        for (int i = 0; i < pCount; i++)
+        // --- 1. Start Producers ---
+        if (scenario.ProducerConfig != null)
         {
-            var producer = _clientFactory.CreateProducer(scenario.ProducerConfig!, keySer, valSer);
-            _activeProducers.Add(producer);
+            int pCount = scenario.ProducerCount ?? 1;
+            for (int i = 0; i < pCount; i++)
+            {
+                var producer = _clientFactory.CreateProducer(scenario.ProducerConfig, keySer, valSer);
+                _activeProducers.Add(producer);
 
-            var worker = new ProducerWorker(
-                producer, 
-                _metricsService, 
-                scenario.TopicName, 
-                scenario.MessageSize ?? 1024);
+                var worker = new ProducerWorker(
+                    producer,
+                    _metricsService,
+                    scenario.TopicName,
+                    scenario.MessageSize ?? 1024);
 
-            tasks.Add(worker.StartAsync(_cts.Token));
+                tasks.Add(worker.StartAsync(_cts.Token));
+            }
         }
 
-        //TODO: add consumer workers
+        // --- 2. Start Consumers ---
+        if (scenario.ConsumerConfig != null)
+        {
+            int cCount = scenario.ConsumerCount ?? 0;
+            for (int i = 0; i < cCount; i++)
+            {
+                var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, keyDeser, valDeser);
+                _activeConsumers.Add(consumer);
+
+                var worker = new ConsumerWorker(
+                    consumer,
+                    _metricsService,
+                    scenario.TopicName);
+
+                tasks.Add(worker.StartAsync(_cts.Token));
+            }
+        }
 
         try
         {
@@ -74,12 +98,32 @@ public class TestRunnerService : ITestRunnerService
     {
         _cts?.Cancel();
         
+        CleanupClients();
+        
+        _cts = null;
+    }
+
+    private void CleanupClients()
+    {
         foreach (var p in _activeProducers)
         {
-            p.Flush(TimeSpan.FromSeconds(5));
-            p.Dispose();
+            try 
+            {
+                p.Flush(TimeSpan.FromSeconds(3)); 
+                p.Dispose();
+            }
+            catch (Exception e) { Console.WriteLine($"Error disposing producer: {e.Message}"); }
         }
         _activeProducers.Clear();
-        _cts = null;
+
+        foreach (var c in _activeConsumers)
+        {
+            try 
+            {
+                c.Dispose();
+            }
+            catch (Exception e) { Console.WriteLine($"Error disposing consumer: {e.Message}"); }
+        }
+        _activeConsumers.Clear();
     }
 }
