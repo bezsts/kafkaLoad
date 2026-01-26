@@ -4,7 +4,7 @@ using KafkaLoad.Desktop.Models;
 
 namespace KafkaLoad.Desktop.Services;
 
-public class MetricsAccumulator
+public class ProducerMetricsAccumulator
 {
     private long _totalMsgsSent;
     private long _totalBytesSent;
@@ -30,19 +30,21 @@ public class MetricsAccumulator
         Interlocked.Increment(ref _errorMsgsSent);
     }
 
-    public LiveMetrics GetSnapshot()
+    public ProducerMetricsSnapshot GetSnapshot(double elapsedSeconds)
     {
         long count = Interlocked.Read(ref _latencyCount);
         double avgLat = count > 0 ? (double)Interlocked.Read(ref _totalLatencySumMs) / count : 0;
 
-        return new LiveMetrics(
-            DateTime.Now,
+        double throughputMsg = elapsedSeconds > 0 ? Interlocked.Read(ref _totalMsgsSent) / elapsedSeconds : 0;
+        double throughputBytes = elapsedSeconds > 0 ? Interlocked.Read(ref _totalBytesSent) / elapsedSeconds : 0;
+
+        return new ProducerMetricsSnapshot(
             Interlocked.Read(ref _totalMsgsSent),
             Interlocked.Read(ref _totalBytesSent),
             Interlocked.Read(ref _successMsgsSent),
             Interlocked.Read(ref _errorMsgsSent),
-            0,
-            0,
+            throughputMsg,
+            throughputBytes,
             avgLat,
             0 // TODO: implement p95
         );
