@@ -50,6 +50,10 @@ public class ProducerWorker
                         }
                         else
                         {
+                            // if (new Random().Next(100) == 0) 
+                            // {
+                            //     Console.WriteLine($"[WORKER] Success! Bytes: {_payload.Length}");
+                            // }
                             _metrics.RecordProducerSuccess(_payload.Length, stopwatch.Elapsed.TotalMilliseconds);
                         }
                     });

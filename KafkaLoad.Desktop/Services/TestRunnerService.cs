@@ -58,7 +58,7 @@ public class TestRunnerService : ITestRunnerService
                     scenario.TopicName,
                     scenario.MessageSize ?? 1024);
 
-                tasks.Add(worker.StartAsync(_cts.Token));
+                tasks.Add(Task.Run(() => worker.StartAsync(_cts.Token)));
             }
         }
 
@@ -76,7 +76,7 @@ public class TestRunnerService : ITestRunnerService
                     _metricsService,
                     scenario.TopicName);
 
-                tasks.Add(worker.StartAsync(_cts.Token));
+                tasks.Add(Task.Run(() => worker.StartAsync(_cts.Token)));
             }
         }
 

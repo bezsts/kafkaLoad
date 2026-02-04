@@ -79,10 +79,10 @@
                         </Grid.Styles>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total messages sent:"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Metrics.Producer.TotalMsgsSent, StringFormat='N0'}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Metrics.Producer.TotalMsgsSent, StringFormat='{}{0:N0}'}"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Total MB sent:"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Metrics.Producer.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='N2 MB'}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Metrics.Producer.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Successful messages sent:"/>
                         <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" 
@@ -93,15 +93,15 @@
                                    Text="{Binding Metrics.Producer.ErrorMsgsSent}" Foreground="#E74C3C"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Throughput (Msg/sec):"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding Metrics.Producer.ThroughputMsg, StringFormat='N1'}"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding Metrics.Producer.ThroughputMsg, StringFormat='{}{0:N1}'}"/>
 
                         <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Throughput (MB/sec):"/>
                         <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" 
-                                   Text="{Binding Metrics.Producer.ThroughputBytes, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='N2 MB/s'}"/>
+                                   Text="{Binding Metrics.Producer.ThroughputBytes, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
 
                         <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Avg Latency:"/>
                         <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" 
-                                   Text="{Binding Metrics.Producer.AvgLatMs, StringFormat='N2 ms'}" Foreground="#F1C40F"/>
+                                   Text="{Binding Metrics.Producer.AvgLatMs, StringFormat='{}{0:N2} ms'}" Foreground="#F1C40F"/>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -125,10 +125,10 @@
                         </Grid.Styles>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total messages received:"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Metrics.Consumer.TotalMsgConsumed, StringFormat='N0'}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Metrics.Consumer.TotalMsgConsumed, StringFormat='{}{0:N0}'}"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Total MB received:"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Metrics.Consumer.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='N2 MB'}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Metrics.Consumer.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
 
                         <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Successful messages received:"/>
                         <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" 
@@ -139,15 +139,15 @@
                                    Text="{Binding Metrics.Consumer.ErrorMsgsConsumed}" Foreground="#E74C3C"/>
                         
                         <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Throughput (Msg/sec):"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding Metrics.Consumer.ThroughputMsg, StringFormat='N1'}"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding Metrics.Consumer.ThroughputMsg, StringFormat='{}{0:N1}'}"/>
 
                         <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Throughput (MB/sec):"/>
                         <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" 
-                                   Text="{Binding Metrics.Consumer.ThroughputBytes, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='N2 MB/s'}"/>
+                                   Text="{Binding Metrics.Consumer.ThroughputBytes, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
 
                         <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="E2E Latency:"/>
                         <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" 
-                                   Text="{Binding Metrics.Consumer.AvgLatencyMs, StringFormat='N2 ms'}" Foreground="#F1C40F"/>
+                                   Text="{Binding Metrics.Consumer.AvgLatencyMs, StringFormat='{}{0:N2} ms'}" Foreground="#F1C40F"/>
                     </Grid>
                 </StackPanel>
             </Border>

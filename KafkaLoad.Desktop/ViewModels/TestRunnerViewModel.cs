@@ -70,6 +70,8 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(snapshot =>
                 {
+                    System.Console.WriteLine($"[VM-UPDATE] TotalSent: {snapshot.Producer.TotalMsgsSent}");
+
                     Metrics = snapshot;
                     
                     if (IsRunning)
