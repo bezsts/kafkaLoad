@@ -13,7 +13,7 @@ public class TestRunnerService : ITestRunnerService
     private readonly IKafkaClientFactory _clientFactory;
     private readonly IMetricsService _metricsService;
     private CancellationTokenSource? _cts;
-    private readonly List<IProducer<byte[], byte[]>> _activeProducers = new();
+    private readonly List<IKafkaProducer<byte[], byte[]>> _activeProducers = new();
     private readonly List<IConsumer<byte[], byte[]>> _activeConsumers = new();
 
     
@@ -48,11 +48,12 @@ public class TestRunnerService : ITestRunnerService
             int pCount = scenario.ProducerCount ?? 1;
             for (int i = 0; i < pCount; i++)
             {
-                var producer = _clientFactory.CreateProducer(scenario.ProducerConfig, keySer, valSer);
-                _activeProducers.Add(producer);
+                var nativeProducer = _clientFactory.CreateProducer(scenario.ProducerConfig, keySer, valSer);
+                var wrapper = new KafkaProducer<byte[], byte[]>(nativeProducer);
+                _activeProducers.Add(wrapper);
 
                 var worker = new ProducerWorker(
-                    producer,
+                    wrapper,
                     _metricsService,
                     scenario.TopicName,
                     scenario.MessageSize ?? 1024);
@@ -109,7 +110,7 @@ public class TestRunnerService : ITestRunnerService
         {
             try 
             {
-                p.Flush(TimeSpan.FromSeconds(3)); 
+                //p.Flush(TimeSpan.FromSeconds(3)); 
                 p.Dispose();
             }
             catch (Exception e) { Console.WriteLine($"Error disposing producer: {e.Message}"); }

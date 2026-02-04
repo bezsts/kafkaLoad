@@ -9,13 +9,14 @@ namespace KafkaLoad.Desktop.Services;
 
 public class ProducerWorker
 {
-    private readonly IProducer<byte[], byte[]> _producer; //TODO: implement generic producer
+    private readonly IKafkaProducer<byte[], byte[]> _producer;
     private readonly IMetricsService _metrics;
     private readonly string _topic;
     private readonly byte[] _payload; //TODO: implement generation messages
+    private int pollCounter = 0;
 
     public ProducerWorker(
-        IProducer<byte[], byte[]> producer,
+        IKafkaProducer<byte[], byte[]> producer,
         IMetricsService metrics,
         string topic,
         int messageSize
@@ -39,7 +40,7 @@ public class ProducerWorker
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                _producer.Produce(_topic, new Message<byte[], byte[]> { Value = _payload },
+                _producer.Produce(_topic, null, _payload,
                     (deliveryReport) =>
                     {
                         stopwatch.Stop();
@@ -52,12 +53,30 @@ public class ProducerWorker
                             _metrics.RecordProducerSuccess(_payload.Length, stopwatch.Elapsed.TotalMilliseconds);
                         }
                     });
-                    
-                //TODO: add delay to limit speed (cap algorithm?) 
+
+                pollCounter++;
+                if (pollCounter % 1000 == 0)
+                {
+                    _producer.Poll(TimeSpan.Zero); 
+                }
             }
-            catch (Exception)
+            catch (ProduceException<byte[], byte[]> e)
             {
+                if (e.Error.Code == ErrorCode.Local_QueueFull)
+                {
+                    _producer.Poll(TimeSpan.FromMilliseconds(10));
+                }
+                else
+                {
+                    Console.WriteLine($"Kafka Error: {e.Error.Reason}");
+                    _metrics.RecordProducerError();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Critical Worker Error: " + ex.Message);
                 _metrics.RecordProducerError();
+                await Task.Delay(100, ct); 
             }
         }
     }
