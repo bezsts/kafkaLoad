@@ -97,10 +97,10 @@ public class TestRunnerService : ITestRunnerService
 
     public void StopTest()
     {
+        _metricsService.Stop();
+
         _cts?.Cancel();
-        
         CleanupClients();
-        
         _cts = null;
     }
 

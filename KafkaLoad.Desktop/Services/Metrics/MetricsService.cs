@@ -10,7 +10,8 @@ public class MetricsService : IMetricsService
     private readonly ProducerMetricsAccumulator _producerAccumulator = new();
     private readonly ConsumerMetricsAccumulator _consumerAccumulator = new();
     private DateTime _startTime;
-    public IObservable<GlobalMetricsSnapshot> MetricsStream => 
+    private DateTime? _endTime;
+    public IObservable<GlobalMetricsSnapshot> MetricsStream =>
         Observable.Interval(TimeSpan.FromSeconds(1))
                   .Select(_ => CreateSnapshot());
 
@@ -33,11 +34,12 @@ public class MetricsService : IMetricsService
     private GlobalMetricsSnapshot CreateSnapshot()
     {
         var now = DateTime.UtcNow;
-        TimeSpan duration = now - _startTime;
+        var effectiveTime = _endTime ?? now;
+        TimeSpan duration = effectiveTime - _startTime;
         double elapsed = duration.TotalSeconds;
 
         return new GlobalMetricsSnapshot(
-            now,
+            effectiveTime,
             duration,
             _producerAccumulator.GetSnapshot(elapsed),
             _consumerAccumulator.GetSnapshot(elapsed)
@@ -47,7 +49,16 @@ public class MetricsService : IMetricsService
     public void Reset()
     {
         _startTime = DateTime.UtcNow;
+        _endTime = null;
         _producerAccumulator.Reset();
-        _consumerAccumulator.Reset();    
+        _consumerAccumulator.Reset();
+    }
+
+    public void Stop()
+    {
+        if (_endTime == null)
+        {
+            _endTime = DateTime.UtcNow;
+        }
     }
 }

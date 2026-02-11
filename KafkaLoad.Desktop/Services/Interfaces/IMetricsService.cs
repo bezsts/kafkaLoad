@@ -10,5 +10,6 @@ public interface IMetricsService
     void RecordProducerError();
     void RecordConsumerError();
     void Reset();
+    void Stop();
     IObservable<GlobalMetricsSnapshot> MetricsStream { get; }
 }
