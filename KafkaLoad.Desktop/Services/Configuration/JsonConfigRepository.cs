@@ -8,10 +8,10 @@ namespace KafkaLoad.Desktop.Services;
 
 public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
 {
-    private readonly IConfigRepository _fileManager;
+    private readonly IFileManager _fileManager;
     private readonly string _folderPath;
 
-    public JsonConfigRepository(IConfigRepository fileManager, string folderName)
+    public JsonConfigRepository(IFileManager fileManager, string folderName)
     {
         _fileManager = fileManager;
         _folderPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Configs", folderName);

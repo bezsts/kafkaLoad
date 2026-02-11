@@ -26,7 +26,6 @@
   <ItemGroup>
     <Folder Include="Converters/" />
     <Folder Include="Enums/Configs/" />
-    <Folder Include="Services/Interfaces/" />
   </ItemGroup>
 
   <ItemGroup>

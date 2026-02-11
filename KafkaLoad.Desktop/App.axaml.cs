@@ -21,7 +21,7 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var jsonConfigManager = new JsonConfigManager();
-        Locator.CurrentMutable.RegisterConstant(jsonConfigManager, typeof(IConfigRepository));
+        Locator.CurrentMutable.RegisterConstant(jsonConfigManager, typeof(IFileManager));
 
         Locator.CurrentMutable.RegisterConstant(
             new JsonConfigRepository<CustomProducerConfig>(jsonConfigManager, "Producers"),
