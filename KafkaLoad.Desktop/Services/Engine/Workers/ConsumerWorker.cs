@@ -2,48 +2,49 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
+using KafkaLoad.Desktop.Services.Engine.Workers;
 using KafkaLoad.Desktop.Services.Interfaces;
 
 namespace KafkaLoad.Desktop.Services;
 
-public class ConsumerWorker
+//TODO make consumerworker generic
+public class ConsumerWorker : BaseWorker
 {
     private readonly IConsumer<byte[], byte[]> _consumer;
-    private readonly IMetricsService _metrics;
-    private readonly string _topic;
 
     public ConsumerWorker(
         IConsumer<byte[], byte[]> consumer,
         IMetricsService metrics,
-        string topic)
+        string topic) : base(metrics, topic)
     {
         _consumer = consumer;
-        _metrics = metrics;
-        _topic = topic;
     }
 
-    public async Task StartAsync(CancellationToken ct)
+    public override async Task StartAsync(CancellationToken ct)
     {
         await Task.Yield();
 
         try
         {
-            _consumer.Subscribe(_topic);
+            _consumer.Subscribe(Topic);
 
             while (!ct.IsCancellationRequested)
             {
                 try
                 {
+                    // Consume blocks until a message is available or the token is cancelled
                     var result = _consumer.Consume(ct);
 
                     if (result != null && !result.IsPartitionEOF)
                     {
+                        // Calculate End-to-End latency
                         double latencyMs = (DateTime.UtcNow - result.Message.Timestamp.UtcDateTime).TotalMilliseconds;
-                        
+
+                        // Sanity check for clock skew
                         if (latencyMs < 0) latencyMs = 0;
 
                         int bytes = result.Message.Value?.Length ?? 0;
-                        _metrics.RecordConsumerSuccess(bytes, latencyMs);
+                        Metrics.RecordConsumerSuccess(bytes, latencyMs);
                     }
                 }
                 catch (OperationCanceledException)
@@ -52,12 +53,13 @@ public class ConsumerWorker
                 }
                 catch (ConsumeException)
                 {
-                    _metrics.RecordConsumerError();
+                    //TODO: log consumer exception
+                    Metrics.RecordConsumerError();
                 }
                 catch (Exception)
                 {
-                    //TODO: add log here
-                    _metrics.RecordConsumerError();
+                    //TODO: log exception
+                    Metrics.RecordConsumerError();
                 }
             }
         }

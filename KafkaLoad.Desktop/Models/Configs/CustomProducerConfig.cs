@@ -1,10 +1,9 @@
-using System;
-using Confluent.Kafka;
 using KafkaLoad.Desktop.Enums;
+using KafkaLoad.Desktop.Models.Interfaces;
 
 namespace KafkaLoad.Desktop.Models;
 
-public class CustomProducerConfig
+public class CustomProducerConfig : IConfigModel
 {
     private const int DefaultBatchSizeBytes = 16 * 1024;
     private const long DefaultBufferMemoryBytes = 32 * 1024 * 1024;
@@ -18,7 +17,7 @@ public class CustomProducerConfig
 
     public KeySerializerEnum KeySerializer { get; set; }
     public ValueSerializerEnum ValueSerializer { get; set; }
-    
+
     // Determines how many brokers must acknowledge the message receipt.
     // None - Producer does not wait for any acknowledgment.
     // Leader - Only the partition leader must acknowledge.
@@ -34,7 +33,7 @@ public class CustomProducerConfig
 
     // Maximum size (in bytes) of a single batch of messages.
     // Larger values reduce the number of requests but increase latency.
-    public int BatchSize { get; set;} = DefaultBatchSizeBytes;
+    public int BatchSize { get; set; } = DefaultBatchSizeBytes;
 
     // Wait time (in milliseconds) before sending a batch.
     // Allows accumulating more messages in a single batch.

@@ -1,10 +1,9 @@
-using System;
-using Confluent.Kafka;
 using KafkaLoad.Desktop.Enums;
+using KafkaLoad.Desktop.Models.Interfaces;
 
 namespace KafkaLoad.Desktop.Models;
 
-public class CustomConsumerConfig
+public class CustomConsumerConfig : IConfigModel
 {
     private const int DefaultFetchMinBytes = 1;
     private const int DefaultFetchMaxBytes = 50 * 1024 * 1024;
@@ -29,7 +28,7 @@ public class CustomConsumerConfig
 
     // If true, the consumer's offset will be periodically committed in the background.
     // If false, you must manually commit offsets (recommended for high reliability).
-    
+
     // public bool EnableAutoCommit { get; set; } = true;
 
     // Minimum amount of data the server should return for a fetch request.

@@ -1,6 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using KafkaLoad.Desktop.Models;
+using System.Threading.Tasks;
 
 namespace KafkaLoad.Desktop.Services.Interfaces;
 

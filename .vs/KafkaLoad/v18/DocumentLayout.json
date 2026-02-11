@@ -3,40 +3,28 @@
   "WorkspaceRootPath": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\views\\testrunnerview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\views\\testrunnerview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\scenarious\\testscenariosviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\scenarious\\testscenariosviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\app.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\app.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\scenarious\\testscenarioeditorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\scenarious\\testscenarioeditorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\mainviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\mainviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\clients\\clientsconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\clients\\clientsconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\views\\mainwindow.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\views\\mainwindow.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\clients\\producerconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\clients\\producerconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\views\\testscenariosview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\views\\testscenariosview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\clients\\baseconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\clients\\baseconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\testscenarioeditorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\testscenarioeditorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\testscenariosviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\testscenariosviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\clientsconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\clientsconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\producerconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\producerconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\viewmodels\\clients\\consumerconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\viewmodels\\clients\\consumerconfigviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -46,124 +34,90 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "ProducerConfigViewModel.cs",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\ProducerConfigViewModel.cs",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\ProducerConfigViewModel.cs",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\ProducerConfigViewModel.cs",
-              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\ProducerConfigViewModel.cs",
-              "ViewState": "AgIAABUBAAAAAAAAAAAiwCkBAAAIAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "BaseConfigViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\BaseConfigViewModel.cs",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\Clients\\BaseConfigViewModel.cs",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\BaseConfigViewModel.cs",
+              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\Clients\\BaseConfigViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-11T15:19:02.837Z",
-              "IsPinned": true,
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ClientsConfigViewModel.cs",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\ClientsConfigViewModel.cs",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\ClientsConfigViewModel.cs",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\ClientsConfigViewModel.cs",
-              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\ClientsConfigViewModel.cs",
-              "ViewState": "AgIAAIoAAAAAAAAAAAAgwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-11T15:25:47.775Z",
-              "IsPinned": true,
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "TestScenariosViewModel.cs",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\TestScenariosViewModel.cs",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\TestScenariosViewModel.cs",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\TestScenariosViewModel.cs",
-              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\TestScenariosViewModel.cs",
-              "ViewState": "AgIAAHEAAAAAAAAAAAAqwG4AAAAaAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-11T15:24:04.306Z",
+              "WhenOpened": "2026-02-11T18:29:36.841Z",
               "IsPinned": true,
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "TestScenarioEditorViewModel.cs",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\TestScenarioEditorViewModel.cs",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\TestScenarioEditorViewModel.cs",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\TestScenarioEditorViewModel.cs",
-              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\TestScenarioEditorViewModel.cs",
-              "ViewState": "AgIAAO4AAAAAAAAAAAAAABkAAAA5AAAAAAAAAA==",
+              "Title": "ConsumerConfigViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\ConsumerConfigViewModel.cs",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\Clients\\ConsumerConfigViewModel.cs",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\ConsumerConfigViewModel.cs",
+              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\Clients\\ConsumerConfigViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-11T15:17:09.338Z",
+              "WhenOpened": "2026-02-11T18:32:39.219Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ProducerConfigViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\ProducerConfigViewModel.cs",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\Clients\\ProducerConfigViewModel.cs",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\ProducerConfigViewModel.cs",
+              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\Clients\\ProducerConfigViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T18:42:33.449Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ClientsConfigViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\ClientsConfigViewModel.cs",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\Clients\\ClientsConfigViewModel.cs",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Clients\\ClientsConfigViewModel.cs",
+              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\Clients\\ClientsConfigViewModel.cs",
+              "ViewState": "AgIAAKkAAAAAAAAAAAAAAMYAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T18:55:39.502Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TestScenarioEditorViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenarioEditorViewModel.cs",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenarioEditorViewModel.cs",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenarioEditorViewModel.cs",
+              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenarioEditorViewModel.cs",
+              "ViewState": "AgIAAGEAAAAAAAAAAAAUwBEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-11T19:04:46.42Z",
               "IsPinned": true,
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "TestRunnerView.axaml",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
-              "RelativeToolTip": "KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-02-11T15:38:46.205Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "App.axaml.cs",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\App.axaml.cs",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\App.axaml.cs",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\App.axaml.cs",
-              "RelativeToolTip": "KafkaLoad.Desktop\\App.axaml.cs",
-              "ViewState": "AgIAACcAAAAAAAAAAAAiwDsAAABLAAAAAAAAAA==",
+              "Title": "TestScenariosViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenariosViewModel.cs",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenariosViewModel.cs",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenariosViewModel.cs",
+              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\Scenarious\\TestScenariosViewModel.cs",
+              "ViewState": "AgIAAGwAAAAAAAAAAAAqwJIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-11T15:35:08.774Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "MainViewModel.cs",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\MainViewModel.cs",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\ViewModels\\MainViewModel.cs",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\ViewModels\\MainViewModel.cs",
-              "RelativeToolTip": "KafkaLoad.Desktop\\ViewModels\\MainViewModel.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAACQAAAAkAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-11T15:33:47.411Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "MainWindow.axaml",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\MainWindow.axaml",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\Views\\MainWindow.axaml",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\MainWindow.axaml",
-              "RelativeToolTip": "KafkaLoad.Desktop\\Views\\MainWindow.axaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-02-11T15:32:54.583Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "TestScenariosView.axaml",
-              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestScenariosView.axaml",
-              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\Views\\TestScenariosView.axaml",
-              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestScenariosView.axaml",
-              "RelativeToolTip": "KafkaLoad.Desktop\\Views\\TestScenariosView.axaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-02-11T15:31:09.147Z",
+              "WhenOpened": "2026-02-11T19:04:51.164Z",
+              "IsPinned": true,
               "EditorCaption": ""
             }
           ]

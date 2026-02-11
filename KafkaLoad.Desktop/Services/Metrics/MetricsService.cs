@@ -17,14 +17,6 @@ public class MetricsService : IMetricsService
 
     public void RecordProducerSuccess(int bytes, double latencyMs) =>
         _producerAccumulator.AddSuccess(bytes, latencyMs);
-
-    // public void RecordProducerSuccess(int bytes, double latencyMs)
-    // {
-    //     if (_producerAccumulator.GetSnapshot(1).TotalMsgsSent == 0) {
-    //         Console.WriteLine("[METRICS-SERVICE] First data received!");
-    //     }
-    //         _producerAccumulator.AddSuccess(bytes, latencyMs);
-    // }
     public void RecordConsumerSuccess(int bytes, double latencyMs) =>
         _consumerAccumulator.AddSuccess(bytes, latencyMs);
 

@@ -13,10 +13,11 @@ public class TestRunnerService : ITestRunnerService
     private readonly IKafkaClientFactory _clientFactory;
     private readonly IMetricsService _metricsService;
     private CancellationTokenSource? _cts;
-    private readonly List<IKafkaProducer<byte[], byte[]>> _activeProducers = new();
-    private readonly List<IConsumer<byte[], byte[]>> _activeConsumers = new();
+    //private readonly List<IKafkaProducer<byte[], byte[]>> _activeProducers = new();
+    //private readonly List<IConsumer<byte[], byte[]>> _activeConsumers = new();
 
-    
+    private readonly List<IDisposable> _activeClients = new();
+
     public bool IsRunning => _cts != null && !_cts.IsCancellationRequested;
 
     public TestRunnerService(IKafkaClientFactory clientFactory, IMetricsService metricsService)
@@ -50,7 +51,7 @@ public class TestRunnerService : ITestRunnerService
             {
                 var nativeProducer = _clientFactory.CreateProducer(scenario.ProducerConfig, keySer, valSer);
                 var wrapper = new KafkaProducer<byte[], byte[]>(nativeProducer);
-                _activeProducers.Add(wrapper);
+                _activeClients.Add(wrapper);
 
                 var worker = new ProducerWorker(
                     wrapper,
@@ -69,7 +70,7 @@ public class TestRunnerService : ITestRunnerService
             for (int i = 0; i < cCount; i++)
             {
                 var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, keyDeser, valDeser);
-                _activeConsumers.Add(consumer);
+                _activeClients.Add(consumer);
 
                 var worker = new ConsumerWorker(
                     consumer,
@@ -80,6 +81,7 @@ public class TestRunnerService : ITestRunnerService
             }
         }
 
+        // --- 3. Wait for Test Duration ---
         try
         {
             int durationMs = (scenario.Duration ?? 60) * 1000;
@@ -106,25 +108,18 @@ public class TestRunnerService : ITestRunnerService
 
     private void CleanupClients()
     {
-        foreach (var p in _activeProducers)
+        foreach (var client in _activeClients)
         {
-            try 
+            try
             {
-                //p.Flush(TimeSpan.FromSeconds(3)); 
-                p.Dispose();
+                client.Dispose();
             }
-            catch (Exception e) { Console.WriteLine($"Error disposing producer: {e.Message}"); }
-        }
-        _activeProducers.Clear();
-
-        foreach (var c in _activeConsumers)
-        {
-            try 
+            catch (Exception e)
             {
-                c.Dispose();
+                //TODO: log errors
+                Console.WriteLine($"Error disposing client: {e.Message}");
             }
-            catch (Exception e) { Console.WriteLine($"Error disposing consumer: {e.Message}"); }
         }
-        _activeConsumers.Clear();
+        _activeClients.Clear();
     }
 }

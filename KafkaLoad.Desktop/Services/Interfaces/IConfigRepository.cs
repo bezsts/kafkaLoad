@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,7 +10,7 @@ public interface IConfigRepository<T>
     Task SaveAsync(T config);
 
     Task<T?> GetByNameAsync(string name);
-    
+
     Task DeleteAsync(string name);
 
     Task<bool> ExistsAsync(string name);

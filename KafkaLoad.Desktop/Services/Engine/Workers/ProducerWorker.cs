@@ -1,38 +1,42 @@
+using Confluent.Kafka;
+using KafkaLoad.Desktop.Services.Engine.Workers;
+using KafkaLoad.Desktop.Services.Interfaces;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Confluent.Kafka;
-using KafkaLoad.Desktop.Services.Interfaces;
 
 namespace KafkaLoad.Desktop.Services;
 
-public class ProducerWorker
+//TODO: make producerworker generic
+public class ProducerWorker : BaseWorker
 {
     private readonly IKafkaProducer<byte[], byte[]> _producer;
-    private readonly IMetricsService _metrics;
-    private readonly string _topic;
     private readonly byte[] _payload; //TODO: implement generation messages
-    private int pollCounter = 0;
+
+    // How often to force a poll to trigger delivery callbacks
+    private const int pollIntervalMessages = 1000;
 
     public ProducerWorker(
         IKafkaProducer<byte[], byte[]> producer,
         IMetricsService metrics,
         string topic,
         int messageSize
-    )
+    ) : base(metrics, topic)
     {
         _producer = producer;
-        _metrics = metrics;
-        _topic = topic;
 
-        _payload = new byte[messageSize]; 
+        //HACK: temp payload before generating messages 
+        _payload = new byte[messageSize];
         new Random().NextBytes(_payload);
     }
 
-    public async Task StartAsync(CancellationToken ct)
+    public override async Task StartAsync(CancellationToken ct)
     {
-        await Task.Yield(); 
+        // Yield to ensure the UI thread isn't blocked during startup
+        await Task.Yield();
+
+        int messagesSinceLastPoll = 0;
 
         while (!ct.IsCancellationRequested)
         {
@@ -40,47 +44,47 @@ public class ProducerWorker
             {
                 var stopwatch = Stopwatch.StartNew();
 
-                _producer.Produce(_topic, null, _payload,
+                // Send message asynchronously
+                _producer.Produce(Topic, null, _payload,
                     (deliveryReport) =>
                     {
                         stopwatch.Stop();
                         if (deliveryReport.Error.IsError)
                         {
-                            _metrics.RecordProducerError();
+                            Metrics.RecordProducerError();
                         }
                         else
                         {
-                            // if (new Random().Next(100) == 0) 
-                            // {
-                            //     Console.WriteLine($"[WORKER] Success! Bytes: {_payload.Length}");
-                            // }
-                            _metrics.RecordProducerSuccess(_payload.Length, stopwatch.Elapsed.TotalMilliseconds);
+                            Metrics.RecordProducerSuccess(_payload.Length, stopwatch.Elapsed.TotalMilliseconds);
                         }
                     });
 
-                pollCounter++;
-                if (pollCounter % 1000 == 0)
+                // Periodically poll to process delivery reports
+                messagesSinceLastPoll++;
+                if (messagesSinceLastPoll >= pollIntervalMessages)
                 {
-                    _producer.Poll(TimeSpan.Zero); 
+                    _producer.Poll(TimeSpan.Zero);
+                    messagesSinceLastPoll = 0;
                 }
             }
             catch (ProduceException<byte[], byte[]> e)
             {
+                // If the internal queue is full, wait a bit for the driver to catch up
                 if (e.Error.Code == ErrorCode.Local_QueueFull)
                 {
                     _producer.Poll(TimeSpan.FromMilliseconds(10));
                 }
                 else
                 {
-                    Console.WriteLine($"Kafka Error: {e.Error.Reason}");
-                    _metrics.RecordProducerError();
+                    //TODO: log kafka error 
+                    Metrics.RecordProducerError();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Critical Worker Error: " + ex.Message);
-                _metrics.RecordProducerError();
-                await Task.Delay(100, ct); 
+                //TODO: log exception
+                Metrics.RecordProducerError();
+                await Task.Delay(100, ct);
             }
         }
     }

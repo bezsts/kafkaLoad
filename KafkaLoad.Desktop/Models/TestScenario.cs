@@ -1,8 +1,9 @@
+using KafkaLoad.Desktop.Models.Interfaces;
 using System;
 
 namespace KafkaLoad.Desktop.Models;
 
-public class TestScenario
+public class TestScenario : IConfigModel
 {
     public string Name { get; set;} = string.Empty;
     public CustomProducerConfig? ProducerConfig { get; set; }
