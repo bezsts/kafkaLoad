@@ -12,7 +12,7 @@ public class MainViewModel : ReactiveValidationObject
     public ProducerConfigViewModel ProducerConfigViewModel { get; }
     public ConsumerConfigViewModel ConsumerConfigViewModel { get; }
     public ClientsConfigViewModel ClientsConfigViewModel { get; }
-    public TestScenarioViewModel TestScenarioViewModel { get; }
+    public TestScenariosViewModel TestScenariosViewModel { get; }
     public TestRunnerViewModel TestRunnerViewModel { get; }
 
     public MainViewModel(
@@ -31,10 +31,10 @@ public class MainViewModel : ReactiveValidationObject
             consumerConfigRepository
         );
 
-        TestScenarioViewModel = new TestScenarioViewModel(
+        TestScenariosViewModel = new TestScenariosViewModel(
+            testScenarioRepository,
             producerConfigRepository, 
-            consumerConfigRepository, 
-            testScenarioRepository);
+            consumerConfigRepository);
         TestRunnerViewModel = new TestRunnerViewModel(testRunnerService, metricsService, testScenarioRepository);
     }
 }

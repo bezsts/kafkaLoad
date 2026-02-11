@@ -23,7 +23,7 @@
                 </TabItem>
 
                 <TabItem Header="Test scenarios" FontSize="16">
-                        <views:TestScenarioView DataContext="{Binding TestScenarioViewModel}"/>
+                        <views:TestScenariosView DataContext="{Binding TestScenariosViewModel}"/>
                 </TabItem>
                 
                 <TabItem Header="Clients Configuration" FontSize="16">

@@ -41,5 +41,8 @@
     <Compile Update="Views\ClientsConfigView.axaml.cs">
       <DependentUpon>ClientsConfigView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\TestScenarioEditorView.axaml.cs">
+      <DependentUpon>TestScenarioEditorView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

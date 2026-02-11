@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -12,23 +13,38 @@ using ReactiveUI.Validation.Helpers;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
-public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewModel
+public class TestScenarioEditorViewModel : ReactiveValidationObject, IActivatableViewModel
 {
     public ViewModelActivator Activator { get; } = new ViewModelActivator();
     private readonly IConfigRepository<CustomProducerConfig> _producerConfigRepository;
     private readonly IConfigRepository<CustomConsumerConfig> _consumerConfigRepository;
     private readonly IConfigRepository<TestScenario> _testScenarioRepository;
+    
     private TestScenario _model;
+    private readonly string _originalName;
 
-    public TestScenarioViewModel(
+    public IObservable<Unit> SaveComplete => SaveCommand;
+
+    public TestScenarioEditorViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository,
         IConfigRepository<CustomConsumerConfig> consumerConfigRepository,
-        IConfigRepository<TestScenario> testScenarioRepository)
+        IConfigRepository<TestScenario> testScenarioRepository,
+        TestScenario? modelToEdit = null)
     {
         _producerConfigRepository = producerConfigRepository;
         _consumerConfigRepository = consumerConfigRepository;
         _testScenarioRepository = testScenarioRepository;
-        _model = new TestScenario();
+        
+        if (modelToEdit != null)
+        {
+            _model = Clone(modelToEdit);
+            _originalName = _model.Name;
+        }
+        else
+        {
+            _model = new TestScenario();
+            _originalName = string.Empty;
+        }
 
         InitializeValidation();
 
@@ -87,6 +103,12 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
             "Duration is required");
     }
 
+    private TestScenario Clone(TestScenario source)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(source);
+        return System.Text.Json.JsonSerializer.Deserialize<TestScenario>(json)!;
+    }
+
     private async Task LoadConfigurationsAsync()
     {
         Producers.Clear();
@@ -97,6 +119,18 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
 
         var consumerList = await _consumerConfigRepository.GetAllAsync();
         foreach (var c in consumerList) Consumers.Add(c);
+
+        if (_model.ProducerConfig != null)
+        {
+            var match = Enumerable.FirstOrDefault(Producers, p => p.Name == _model.ProducerConfig.Name);
+            if (match != null) SelectedProducer = match;
+        }
+
+        if (_model.ConsumerConfig != null)
+        {
+            var match = Enumerable.FirstOrDefault(Consumers, c => c.Name == _model.ConsumerConfig.Name);
+            if (match != null) SelectedConsumer = match;
+        }
     }
 
     // --- Properties Wrappers ---
@@ -211,6 +245,16 @@ public class TestScenarioViewModel : ReactiveValidationObject, IActivatableViewM
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     private async Task SaveConfigAsync()
     {
+        if (_model.Name != _originalName && await _testScenarioRepository.ExistsAsync(_model.Name))
+        {
+            throw new Exception($"Test Scenario with name '{_model.Name}' already exists!");
+        }
+
+        if (!string.IsNullOrEmpty(_originalName) && _model.Name != _originalName)
+        {
+            await _testScenarioRepository.DeleteAsync(_originalName);
+        }
+
         await _testScenarioRepository.SaveAsync(_model);
     }
 }

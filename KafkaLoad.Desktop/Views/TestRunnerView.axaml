@@ -33,7 +33,14 @@
                 <ComboBox ItemsSource="{Binding TestScenarios}"
                           SelectedItem="{Binding SelectedTestScenario}"
                           HorizontalAlignment="Stretch"
-                          PlaceholderText="Choose a test scenario..."/>
+                          PlaceholderText="Choose a test scenario...">
+                    
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
             </StackPanel>
             
             <Border Classes="card" Padding="15">
