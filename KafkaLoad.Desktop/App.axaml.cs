@@ -53,6 +53,8 @@ public partial class App : Application
         Locator.CurrentMutable.Register(() => 
             new ConsumerConfigView(), typeof(IViewFor<ConsumerConfigViewModel>));
         Locator.CurrentMutable.Register(() => 
+            new ClientsConfigView(), typeof(IViewFor<ClientsConfigViewModel>));
+        Locator.CurrentMutable.Register(() => 
             new TestScenarioView(), typeof(IViewFor<TestScenarioViewModel>));
         Locator.CurrentMutable.Register(() => 
             new TestRunnerView(), typeof(IViewFor<TestRunnerViewModel>));

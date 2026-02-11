@@ -39,5 +39,8 @@
     <Compile Update="Views/TestRunnerView.axaml.cs">
       <DependentUpon>TestRunnerView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\ClientsConfigView.axaml.cs">
+      <DependentUpon>ClientsConfigView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

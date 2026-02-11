@@ -16,10 +16,12 @@ public class ProducerConfigViewModel : ReactiveValidationObject
     private readonly IConfigRepository<CustomProducerConfig> _configRepository;
     private CustomProducerConfig _model;
 
-    public ProducerConfigViewModel(IConfigRepository<CustomProducerConfig> configRepository)
+    public IObservable<Unit> SaveComplete => SaveCommand;
+
+    public ProducerConfigViewModel(IConfigRepository<CustomProducerConfig> configRepository, CustomProducerConfig? modelToEdit = null)
     {
         _configRepository = configRepository;
-        _model = new CustomProducerConfig();
+        _model = modelToEdit != null ? Clone(modelToEdit) : new CustomProducerConfig();
 
         InitializeValidation();
 
@@ -28,6 +30,11 @@ public class ProducerConfigViewModel : ReactiveValidationObject
             canExecute: this.IsValid(), 
             outputScheduler: RxApp.MainThreadScheduler
         );
+    }
+    private CustomProducerConfig Clone(CustomProducerConfig source)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(source);
+        return System.Text.Json.JsonSerializer.Deserialize<CustomProducerConfig>(json)!;
     }
 
     private void InitializeValidation()

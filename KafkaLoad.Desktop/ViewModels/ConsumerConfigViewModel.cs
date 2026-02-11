@@ -16,10 +16,12 @@ public class ConsumerConfigViewModel : ReactiveValidationObject
     private readonly IConfigRepository<CustomConsumerConfig> _configRepository;
     private CustomConsumerConfig _model;
 
-    public ConsumerConfigViewModel(IConfigRepository<CustomConsumerConfig> configrepository)
+    public IObservable<Unit> SaveComplete => SaveCommand;
+
+    public ConsumerConfigViewModel(IConfigRepository<CustomConsumerConfig> configrepository, CustomConsumerConfig? modelToEdit = null)
     {
         _configRepository = configrepository;
-        _model = new CustomConsumerConfig();
+        _model = modelToEdit != null ? Clone(modelToEdit) : new CustomConsumerConfig();
 
         InitializeValidation();
 
@@ -28,6 +30,12 @@ public class ConsumerConfigViewModel : ReactiveValidationObject
             canExecute: this.IsValid(), 
             outputScheduler: RxApp.MainThreadScheduler
         );
+    }
+
+    private CustomConsumerConfig Clone(CustomConsumerConfig source)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(source);
+        return System.Text.Json.JsonSerializer.Deserialize<CustomConsumerConfig>(json)!;
     }
 
     private void InitializeValidation()

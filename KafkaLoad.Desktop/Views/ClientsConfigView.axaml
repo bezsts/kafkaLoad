@@ -1,0 +1,86 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rxui="http://reactiveui.net"
+             xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
+             xmlns:views="using:KafkaLoad.Desktop.Views"
+             x:DataType="vm:ClientsConfigViewModel"
+             x:Class="KafkaLoad.Desktop.Views.ClientsConfigView">
+  <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="350"/> <ColumnDefinition Width="*"/>   </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" BorderBrush="#333" BorderThickness="0,0,1,0" Background="#252526">
+            <Grid RowDefinitions="*, *">
+                
+                <Grid Grid.Row="0" RowDefinitions="Auto, *, Auto" Margin="10">
+                    <TextBlock Text="Producers" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
+                    
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Producers}" SelectedItem="{Binding SelectedProducer}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" HorizontalAlignment="Right">
+                        <Button Command="{Binding CreateProducerCommand}" Content="+" ToolTip.Tip="New"/>
+                        <Button Command="{Binding DuplicateProducerCommand}" Content="Copy"/>
+                        <Button Command="{Binding DeleteProducerCommand}" Content="Del" Background="#990000"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" Margin="10">
+                    <TextBlock Text="Consumers" FontWeight="Bold" FontSize="16" Margin="0,0,0,5"/>
+                    
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Consumers}" SelectedItem="{Binding SelectedConsumer}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" HorizontalAlignment="Right">
+                        <Button Command="{Binding CreateConsumerCommand}" Content="+" ToolTip.Tip="New"/>
+                        <Button Command="{Binding DuplicateConsumerCommand}" Content="Copy"/>
+                        <Button Command="{Binding DeleteConsumerCommand}" Content="Del" Background="#990000"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <TransitioningContentControl Content="{Binding CurrentEditor}">
+                <TransitioningContentControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type vm:ProducerConfigViewModel}">
+                        <views:ProducerConfigView/> 
+                        </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:ConsumerConfigViewModel}">
+                        <views:ConsumerConfigView/>
+                    </DataTemplate>
+                </TransitioningContentControl.DataTemplates>
+            </TransitioningContentControl>
+
+            <TextBlock Text="Select or Create a Configuration to Edit" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="#555" FontSize="18"
+                       IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+            <Border Background="#228B22" CornerRadius="4" Padding="15,10" 
+                    HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="20"
+                    IsVisible="{Binding NotificationMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding NotificationMessage}" Foreground="White" FontWeight="Bold"/>
+                
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
+                    </Transitions>
+                </Border.Transitions>
+            </Border>
+        </Grid>
+
+    </Grid>
+</rxui:ReactiveUserControl>

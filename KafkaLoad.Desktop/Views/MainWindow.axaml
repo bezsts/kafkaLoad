@@ -26,12 +26,8 @@
                         <views:TestScenarioView DataContext="{Binding TestScenarioViewModel}"/>
                 </TabItem>
                 
-                <TabItem Header="Producer Config" FontSize="16">
-                        <views:ProducerConfigView DataContext="{Binding ProducerConfigViewModel}"/>
-                </TabItem>
-
-                <TabItem Header="Consumer Config" FontSize="16">
-                        <views:ConsumerConfigView DataContext="{Binding ConsumerConfigViewModel}"/>
+                <TabItem Header="Clients Configuration" FontSize="16">
+                        <views:ClientsConfigView DataContext="{Binding ClientsConfigViewModel}"/>
                 </TabItem>
                 
                 </TabControl>
