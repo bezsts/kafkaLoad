@@ -22,6 +22,12 @@ public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
         }
     }
 
+    public async Task<bool> ExistsAsync(string name)
+    {
+        string fullPath = Path.Combine(_folderPath, $"{name}.json");
+        return await Task.Run(() => File.Exists(fullPath));
+    }
+
     public async Task<IEnumerable<T>> GetAllAsync()
     {
         var files = Directory.GetFiles(_folderPath, "*.json");

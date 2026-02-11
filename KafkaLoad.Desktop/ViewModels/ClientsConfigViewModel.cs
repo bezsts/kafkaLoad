@@ -79,7 +79,19 @@ namespace KafkaLoad.Desktop.ViewModels
             {
                 if (SelectedProducer == null) return;
                 var copy = Clone(SelectedProducer);
-                copy.Name += "_Copy";
+
+                string baseName = $"{SelectedProducer.Name}_Copy";
+                string uniqueName = baseName;
+                int counter = 1;
+
+                while (await _producerRepo.ExistsAsync(uniqueName))
+                {
+                    uniqueName = $"{baseName}_{counter}";
+                    counter++;
+                }
+
+                copy.Name = uniqueName;
+
                 await _producerRepo.SaveAsync(copy);
                 await RefreshLists();
                 SelectedProducer = Producers.FirstOrDefault(p => p.Name == copy.Name);
@@ -104,8 +116,20 @@ namespace KafkaLoad.Desktop.ViewModels
             {
                 if (SelectedConsumer == null) return;
                 var copy = Clone(SelectedConsumer);
-                copy.Name += "_Copy";
+                
+                string baseName = $"{SelectedConsumer.Name}_Copy";
+                string uniqueName = baseName;
+                int counter = 1;
+
+                while (await _consumerRepo.ExistsAsync(uniqueName))
+                {
+                    uniqueName = $"{baseName}_{counter}";
+                    counter++;
+                }
+
+                copy.Name = uniqueName;
                 await _consumerRepo.SaveAsync(copy);
+
                 await RefreshLists();
                 SelectedConsumer = Consumers.FirstOrDefault(p => p.Name == copy.Name);
                 ShowNotification($"Consumer '{copy.Name}' duplicated!");
@@ -131,10 +155,15 @@ namespace KafkaLoad.Desktop.ViewModels
 
             var vm = new ProducerConfigViewModel(_producerRepo, config);
 
-            vm.SaveComplete.Subscribe(async _ =>
+            vm.SaveCommand.Subscribe(async _ =>
             {
                 await RefreshLists();
                 ShowNotification("Producer configuration saved successfully!");
+            });
+
+            vm.SaveCommand.ThrownExceptions.Subscribe(ex =>
+            {
+                ShowNotification($"Error: {ex.Message}");
             });
 
             CurrentEditor = vm;
@@ -146,10 +175,15 @@ namespace KafkaLoad.Desktop.ViewModels
 
             var vm = new ConsumerConfigViewModel(_consumerRepo, config);
 
-            vm.SaveComplete.Subscribe(async _ =>
+            vm.SaveCommand.Subscribe(async _ =>
             {
                 await RefreshLists();
                 ShowNotification("Consumer configuration saved successfully!");
+            });
+
+            vm.SaveCommand.ThrownExceptions.Subscribe(ex =>
+            {
+                ShowNotification($"Error: {ex.Message}");
             });
 
             CurrentEditor = vm;

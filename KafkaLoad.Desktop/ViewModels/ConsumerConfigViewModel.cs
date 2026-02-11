@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Threading.Tasks;
 using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
@@ -16,12 +17,23 @@ public class ConsumerConfigViewModel : ReactiveValidationObject
     private readonly IConfigRepository<CustomConsumerConfig> _configRepository;
     private CustomConsumerConfig _model;
 
+    private readonly string _originalName;
     public IObservable<Unit> SaveComplete => SaveCommand;
 
     public ConsumerConfigViewModel(IConfigRepository<CustomConsumerConfig> configrepository, CustomConsumerConfig? modelToEdit = null)
     {
         _configRepository = configrepository;
-        _model = modelToEdit != null ? Clone(modelToEdit) : new CustomConsumerConfig();
+
+        if (modelToEdit != null)
+        {
+            _model = Clone(modelToEdit);
+            _originalName = _model.Name;
+        }
+        else
+        {
+            _model = new CustomConsumerConfig();
+            _originalName = string.Empty;
+        }
 
         InitializeValidation();
 
@@ -217,8 +229,18 @@ public class ConsumerConfigViewModel : ReactiveValidationObject
 
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
-    private async System.Threading.Tasks.Task SaveConfigAsync()
+    private async Task SaveConfigAsync()
     {
+        if (_model.Name != _originalName && await _configRepository.ExistsAsync(_model.Name))
+        {
+            throw new Exception($"Configuration with name '{_model.Name}' already exists!");
+        }
+
+        if (!string.IsNullOrEmpty(_originalName) && _model.Name != _originalName)
+        {
+            await _configRepository.DeleteAsync(_originalName);
+        }
+
         await _configRepository.SaveAsync(_model);
     }
 }

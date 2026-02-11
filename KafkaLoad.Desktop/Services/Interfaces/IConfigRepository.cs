@@ -13,4 +13,6 @@ public interface IConfigRepository<T>
     Task<T?> GetByNameAsync(string name);
     
     Task DeleteAsync(string name);
+
+    Task<bool> ExistsAsync(string name);
 }
