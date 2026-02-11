@@ -82,7 +82,8 @@ namespace KafkaLoad.Desktop.ViewModels
                 copy.Name += "_Copy";
                 await _producerRepo.SaveAsync(copy);
                 await RefreshLists();
-                ShowNotification($"Producer '{SelectedProducer.Name}' duplicated!");
+                SelectedProducer = Producers.FirstOrDefault(p => p.Name == copy.Name);
+                ShowNotification($"Producer '{copy.Name}' duplicated!");
             }, this.WhenAnyValue(x => x.SelectedProducer).Select(x => x != null));
 
             DeleteProducerCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -90,8 +91,10 @@ namespace KafkaLoad.Desktop.ViewModels
                 if (SelectedProducer == null) return;
                 await _producerRepo.DeleteAsync(SelectedProducer.Name); 
 
-                ShowNotification("Producer configuration deleted successfully!");
                 await RefreshLists();
+                SelectedProducer = null;
+                CurrentEditor = null;
+                ShowNotification("Producer configuration deleted successfully!");
             }, this.WhenAnyValue(x => x.SelectedProducer).Select(x => x != null));
 
             // ----- Consumer commands ------
@@ -104,7 +107,8 @@ namespace KafkaLoad.Desktop.ViewModels
                 copy.Name += "_Copy";
                 await _consumerRepo.SaveAsync(copy);
                 await RefreshLists();
-                ShowNotification($"Consumer '{SelectedConsumer.Name}' duplicated!");
+                SelectedConsumer = Consumers.FirstOrDefault(p => p.Name == copy.Name);
+                ShowNotification($"Consumer '{copy.Name}' duplicated!");
             }, this.WhenAnyValue(x => x.SelectedConsumer).Select(x => x != null));
 
             DeleteConsumerCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -112,8 +116,10 @@ namespace KafkaLoad.Desktop.ViewModels
                 if (SelectedConsumer == null) return;
                 await _consumerRepo.DeleteAsync(SelectedConsumer.Name); 
 
-                ShowNotification("Consumer configuration deleted successfully!");
                 await RefreshLists();
+                SelectedConsumer = null;
+                CurrentEditor = null;
+                ShowNotification("Consumer configuration deleted successfully!");
             }, this.WhenAnyValue(x => x.SelectedConsumer).Select(x => x != null));
 
             _ = RefreshLists();
