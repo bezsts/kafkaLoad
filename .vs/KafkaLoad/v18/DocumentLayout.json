@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\views\\testrunnerview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\views\\testrunnerview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\views\\testscenarioview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
+      "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\views\\testscenarioview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|c:\\users\\bezst\\source\\repos\\bezsts\\kafkaload\\kafkaload.desktop\\views\\clientsconfigview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
       "RelativeMoniker": "D:0:0:{98862E43-8193-4035-BE14-61670960E598}|KafkaLoad.Desktop\\KafkaLoad.Desktop.csproj|solutionrelative:kafkaload.desktop\\views\\clientsconfigview.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
     }
@@ -19,6 +27,30 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "TestRunnerView.axaml",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
+              "RelativeToolTip": "KafkaLoad.Desktop\\Views\\TestRunnerView.axaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-02-11T14:15:30.822Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TestScenarioView.axaml",
+              "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestScenarioView.axaml",
+              "RelativeDocumentMoniker": "KafkaLoad.Desktop\\Views\\TestScenarioView.axaml",
+              "ToolTip": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\TestScenarioView.axaml",
+              "RelativeToolTip": "KafkaLoad.Desktop\\Views\\TestScenarioView.axaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-02-11T14:10:27.986Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "ClientsConfigView.axaml",
               "DocumentMoniker": "C:\\Users\\Bezst\\source\\repos\\bezsts\\kafkaLoad\\KafkaLoad.Desktop\\Views\\ClientsConfigView.axaml",
               "RelativeDocumentMoniker": "KafkaLoad.Desktop\\Views\\ClientsConfigView.axaml",
