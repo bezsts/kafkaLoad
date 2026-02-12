@@ -55,6 +55,7 @@ nunit-*.xml
 
 # Visual Studio temporary files
 .vs/
+.continue/
 [Dd]ebug/
 [Rr]elease/
 bin/
