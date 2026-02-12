@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services;
 using KafkaLoad.Desktop.Services.Interfaces;
+using KafkaLoad.Desktop.Services.Kafka;
 using KafkaLoad.Desktop.ViewModels;
 using KafkaLoad.Desktop.Views;
 using ReactiveUI;
@@ -60,7 +61,9 @@ public partial class App : Application
             new TestScenariosView(), typeof(IViewFor<TestScenariosViewModel>));
         Locator.CurrentMutable.Register(() => 
             new TestRunnerView(), typeof(IViewFor<TestRunnerViewModel>));
-        
+
+        Locator.CurrentMutable.RegisterConstant(new KafkaTopicService(), typeof(IKafkaTopicService));
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var producerConfigRepository = Locator.Current.GetService<IConfigRepository<CustomProducerConfig>>()!;
@@ -69,6 +72,7 @@ public partial class App : Application
             //var kafkaFactory = Locator.Current.GetService<IKafkaClientFactory>()!;
             var testRunnerService = Locator.Current.GetService<ITestRunnerService>()!;
             var metricsService = Locator.Current.GetService<IMetricsService>()!;
+            var kafkaTopicService = Locator.Current.GetService<IKafkaTopicService>()!;
 
             desktop.MainWindow = new MainWindow
             {
@@ -78,7 +82,8 @@ public partial class App : Application
                     testScenarioRepository, 
                     //kafkaFactory,
                     testRunnerService,
-                    metricsService)
+                    metricsService,
+                    kafkaTopicService)
             };
         }
 

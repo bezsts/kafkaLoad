@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -15,31 +16,53 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
     private readonly ITestRunnerService _testRunner;
     private readonly IMetricsService _metricsService;
     private readonly IConfigRepository<TestScenario> _testScenarioRepository;
+    private readonly IKafkaTopicService _topicService;
 
     public ViewModelActivator Activator { get; } = new();
+
+    private bool? _isTopicFound;
+    public bool? IsTopicFound
+    {
+        get => _isTopicFound;
+        set => this.RaiseAndSetIfChanged(ref _isTopicFound, value);
+    }
+
+    private string _topicDisplayInfo = "None";
+    public string TopicDisplayInfo
+    {
+        get => _topicDisplayInfo;
+        set => this.RaiseAndSetIfChanged(ref _topicDisplayInfo, value);
+    }
+
+    private readonly ObservableAsPropertyHelper<bool> _canStart;
+    public bool CanStart => _canStart.Value;
 
     public TestRunnerViewModel(
         ITestRunnerService testRunner, 
         IMetricsService metricsService,
-        IConfigRepository<TestScenario> testScenarioRepository)
+        IConfigRepository<TestScenario> testScenarioRepository,
+        IKafkaTopicService topicService)
     {
         _testRunner = testRunner;
         _metricsService = metricsService;
         _testScenarioRepository = testScenarioRepository;
+        _topicService = topicService;
 
         var canStart = this.WhenAnyValue(
-            x => x.IsRunning, 
+            x => x.IsRunning,
             x => x.SelectedTestScenario,
-            (running, scenario) => !running && scenario != null
+            x => x.IsTopicFound,
+            (running, scenario, topicFound) =>
+                !running &&             
+                scenario != null &&     
+                topicFound == true       
         );
 
         StartTestCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             if (SelectedTestScenario == null) return;
-
             IsRunning = true;
             StatusText = "Initializing Workers...";
-            
             try
             {
                 await _testRunner.RunTestAsync(SelectedTestScenario);
@@ -62,6 +85,14 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         }, 
         this.WhenAnyValue(x => x.IsRunning));
 
+        RefreshTopicCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (SelectedTestScenario != null)
+            {
+                await CheckTopicAvailability(SelectedTestScenario);
+            }
+        }, this.WhenAnyValue(x => x.SelectedTestScenario).Select(x => x != null));
+
         this.WhenActivated((CompositeDisposable disposables) =>
         {
             _ = LoadConfigurationsAsync();
@@ -70,17 +101,15 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(snapshot =>
                 {
-                    System.Console.WriteLine($"[VM-UPDATE] TotalSent: {snapshot.Producer.TotalMsgsSent}");
-
                     Metrics = snapshot;
-                    
-                    if (IsRunning)
-                    {
-                        StatusText = $"Running: {snapshot.Duration:mm\\:ss}";
-                    }
+                    if (IsRunning) StatusText = $"Running: {snapshot.Duration:mm\\:ss}";
                 })
                 .DisposeWith(disposables);
         });
+
+        this.WhenAnyValue(x => x.SelectedTestScenario)
+            .Where(scenario => scenario != null)
+            .Subscribe(async scenario => await CheckTopicAvailability(scenario!));
     }
 
     private async Task LoadConfigurationsAsync()
@@ -89,6 +118,42 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
 
         var testScenariosList = await _testScenarioRepository.GetAllAsync();
         foreach (var t in testScenariosList) TestScenarios.Add(t);
+    }
+
+    private async Task CheckTopicAvailability(TestScenario? scenario)
+    {
+        if (scenario == null)
+        {
+            IsTopicFound = null;
+            TopicDisplayInfo = "None";
+            return;
+        }
+
+        IsTopicFound = null;
+        TopicDisplayInfo = $"Checking '{scenario.TopicName}'...";
+
+        string? servers = scenario.ProducerConfig?.BootstrapServers ??
+                          scenario.ConsumerConfig?.BootstrapServers;
+
+        if (string.IsNullOrEmpty(servers))
+        {
+            IsTopicFound = false;
+            TopicDisplayInfo = "Error: No Bootstrap Servers configured!";
+            return;
+        }
+
+        bool exists = await _topicService.TopicExistsAsync(servers, scenario.TopicName);
+
+        if (exists)
+        {
+            IsTopicFound = true;
+            TopicDisplayInfo = scenario.TopicName;
+        }
+        else
+        {
+            IsTopicFound = false;
+            TopicDisplayInfo = $"Error: '{scenario.TopicName}' not found!";
+        }
     }
 
     // --- Properties for UI Binding ---
@@ -130,6 +195,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
     }
 
     // --- Commands ---
-    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> StartTestCommand { get; }
-    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> StopTestCommand { get; }
+    public ReactiveCommand<Unit, Unit> StartTestCommand { get; }
+    public ReactiveCommand<Unit, Unit> StopTestCommand { get; }
+    public ReactiveCommand<Unit, Unit> RefreshTopicCommand { get; }
 }

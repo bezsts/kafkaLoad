@@ -46,22 +46,50 @@
             <Border Classes="card" Padding="15">
                 <Grid ColumnDefinitions="*, Auto">
                     <Grid Grid.Column="0" RowDefinitions="Auto,Auto">
+            
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="Status:" FontWeight="Bold" Foreground="{DynamicResource TextSecondary}"/>
                             <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
                         </StackPanel>
+            
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="Topic:" FontWeight="Bold" Foreground="{DynamicResource TextSecondary}"/>
-                            <TextBlock Text="{Binding SelectedTestScenario.TopicName}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"/>
+                            <TextBlock Text="Topic:" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
+                
+                            <TextBlock Text="{Binding TopicDisplayInfo}" FontWeight="SemiBold" VerticalAlignment="Center">
+                                <TextBlock.Styles>
+                                    <Style Selector="TextBlock">
+                                        <Setter Property="Foreground" Value="Gray"/>
+                                    </Style>
+                                    <Style Selector="TextBlock[Tag=True]">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/> 
+                                    </Style>
+                                    <Style Selector="TextBlock[Tag=False]">
+                                        <Setter Property="Foreground" Value="{DynamicResource DangerRed}"/>
+                                    </Style>
+                                </TextBlock.Styles>
+                                <TextBlock.Tag>
+                                    <Binding Path="IsTopicFound"/>
+                                </TextBlock.Tag>
+                            </TextBlock>
+
+                            <Button Command="{Binding RefreshTopicCommand}" 
+                                    ToolTip.Tip="Re-check topic availability"
+                                    Background="Transparent" 
+                                    Padding="5,2" 
+                                    BorderThickness="0"
+                                    Cursor="Hand">
+                                <TextBlock Text="↻" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
+                            </Button>
+
                         </StackPanel>
                     </Grid>
-                    
+        
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
                         <Button Command="{Binding StartTestCommand}" 
                                 Content="▶ START TEST" 
                                 Background="#10B981" Foreground="White" FontWeight="Bold"
                                 Padding="20,10" CornerRadius="4"/>
-                        
+            
                         <Button Command="{Binding StopTestCommand}" 
                                 Content="⏹ STOP" 
                                 Classes="delete" FontWeight="Bold"

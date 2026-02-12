@@ -21,7 +21,8 @@ public class MainViewModel : ReactiveValidationObject
         IConfigRepository<TestScenario> testScenarioRepository, 
         //IKafkaClientFactory kafkaClientFactory,
         ITestRunnerService testRunnerService,
-        IMetricsService metricsService)
+        IMetricsService metricsService,
+        IKafkaTopicService kafkaTopicService)
     {
         ProducerConfigViewModel = new ProducerConfigViewModel(producerConfigRepository);
         ConsumerConfigViewModel = new ConsumerConfigViewModel(consumerConfigRepository);
@@ -35,6 +36,6 @@ public class MainViewModel : ReactiveValidationObject
             testScenarioRepository,
             producerConfigRepository, 
             consumerConfigRepository);
-        TestRunnerViewModel = new TestRunnerViewModel(testRunnerService, metricsService, testScenarioRepository);
+        TestRunnerViewModel = new TestRunnerViewModel(testRunnerService, metricsService, testScenarioRepository, kafkaTopicService);
     }
 }
