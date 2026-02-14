@@ -1,7 +1,10 @@
+using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -16,6 +19,20 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     private readonly IConfigRepository<CustomProducerConfig> _producerConfigRepository;
     private readonly IConfigRepository<CustomConsumerConfig> _consumerConfigRepository;
 
+    private bool _isFixedContentVisible;
+    public bool IsFixedContentVisible
+    {
+        get => _isFixedContentVisible;
+        set => this.RaiseAndSetIfChanged(ref _isFixedContentVisible, value);
+    }
+
+    private bool _isMessageSizeVisible;
+    public bool IsMessageSizeVisible
+    {
+        get => _isMessageSizeVisible;
+        set => this.RaiseAndSetIfChanged(ref _isMessageSizeVisible, value);
+    }
+
     public TestScenarioEditorViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository,
         IConfigRepository<CustomConsumerConfig> consumerConfigRepository,
@@ -24,6 +41,13 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         _producerConfigRepository = producerConfigRepository;
         _consumerConfigRepository = consumerConfigRepository;
+
+        this.WhenAnyValue(x => x.ValueStrategy)
+            .Subscribe(strategy =>
+            {
+                IsFixedContentVisible = strategy == ValueGenerationStrategy.Fixed;
+                IsMessageSizeVisible = strategy != ValueGenerationStrategy.Fixed;
+            });
 
         this.WhenActivated((CompositeDisposable disposables) =>
         {
@@ -40,6 +64,28 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         this.ValidationRule(vm => vm.ProducerCount, c => c > 0, "Producer count > 0");
         this.ValidationRule(vm => vm.MessageSize, s => s > 0, "Message size > 0");
         this.ValidationRule(vm => vm.Duration, d => d > 0, "Duration > 0");
+
+        var fixedTemplateValid = this.WhenAnyValue(
+            x => x.FixedTemplate,
+            x => x.ValueStrategy,
+            (template, strategy) => strategy != ValueGenerationStrategy.Fixed || !string.IsNullOrWhiteSpace(template)
+        );
+
+        this.ValidationRule(
+            vm => vm.FixedTemplate,
+            fixedTemplateValid,
+            "Message content is required for Fixed strategy");
+
+        var messageSizeValid = this.WhenAnyValue(
+            x => x.MessageSize,
+            x => x.ValueStrategy,
+            (size, strategy) => strategy == ValueGenerationStrategy.Fixed || (size > 0)
+        );
+
+        this.ValidationRule(
+            vm => vm.MessageSize,
+            messageSizeValid,
+            "Message size > 0");
     }
 
     private async Task LoadConfigurationsAsync()
@@ -97,6 +143,26 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         get => Model.ConsumerCount;
         set => SetProperty(value, Model.ConsumerCount, v => Model.ConsumerCount = v);
+    }
+
+    public List<KeyGenerationStrategy> KeyStrategyOptions { get; } = Enum.GetValues<KeyGenerationStrategy>().ToList();
+    public KeyGenerationStrategy KeyStrategy
+    {
+        get => Model.KeyStrategy;
+        set => SetProperty(value, Model.KeyStrategy, v => Model.KeyStrategy = v);
+    }
+
+    public List<ValueGenerationStrategy> ValueStrategyOptions { get; } = Enum.GetValues<ValueGenerationStrategy>().ToList();
+    public ValueGenerationStrategy ValueStrategy
+    {
+        get => Model.ValueStrategy;
+        set => SetProperty(value, Model.ValueStrategy, v => Model.ValueStrategy = v);
+    }
+
+    public string? FixedTemplate
+    {
+        get => Model.FixedTemplate;
+        set => SetProperty(value, Model.FixedTemplate, v => Model.FixedTemplate = v);
     }
 
     public int? MessageSize

@@ -53,7 +53,38 @@
             </StackPanel>
 
             <Separator Height="20" Opacity="0"/>
-            <TextBlock Text="Load Parameters" FontSize="18" FontWeight="Bold"/>
+            <TextBlock Text="Data Generation" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>  
+            <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto">
+                
+                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Key Generation Strategy"/>
+                    <ComboBox ItemsSource="{Binding KeyStrategyOptions}"
+                              SelectedItem="{Binding KeyStrategy}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Value Generation Strategy"/>
+                    <ComboBox ItemsSource="{Binding ValueStrategyOptions}"
+                              SelectedItem="{Binding ValueStrategy}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Spacing="5" IsVisible="{Binding IsFixedContentVisible}">
+                <TextBlock Text="Message Content (JSON/Text) *" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                <TextBox Text="{Binding FixedTemplate}" 
+                         AcceptsReturn="True" 
+                         Height="100" 
+                         TextWrapping="Wrap"
+                         FontFamily="Cascadia Code, Consolas, Monospace"
+                         Watermark="{}{'id': 1, 'message': 'hello'}"/>
+                <TextBlock Text="Note: Message Size will be calculated automatically based on this content." 
+                           FontSize="12" Foreground="{DynamicResource TextSecondary}" FontStyle="Italic"/>
+            </StackPanel>
+
+            <Separator Height="20" Opacity="0"/>
+            <TextBlock Text="Load Parameters" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
 
             <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto">
                 
