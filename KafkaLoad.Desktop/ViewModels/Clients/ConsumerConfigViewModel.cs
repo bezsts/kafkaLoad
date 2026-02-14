@@ -40,20 +40,6 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
         set => SetProperty(value, Model.GroupId, v => Model.GroupId = v);
     }
 
-    public List<KeyDeserializerEnum> KeyDeserializerOptions { get; } = Enum.GetValues<KeyDeserializerEnum>().ToList();
-    public KeyDeserializerEnum SelectedKeyDeserializer
-    {
-        get => Model.KeyDeserializer;
-        set => SetProperty(value, Model.KeyDeserializer, v => Model.KeyDeserializer = v);
-    }
-
-    public List<ValueDeserializerEnum> ValueDeserializerOptions { get; } = Enum.GetValues<ValueDeserializerEnum>().ToList();
-    public ValueDeserializerEnum SelectedValueDeserializer
-    {
-        get => Model.ValueDeserializer;
-        set => SetProperty(value, Model.ValueDeserializer, v => Model.ValueDeserializer = v);
-    }
-
     public List<AutoOffsetResetEnum> AutoOffsetResetOptions { get; } = Enum.GetValues<AutoOffsetResetEnum>().ToList();
 
     public AutoOffsetResetEnum SelectedAutoOffsetReset

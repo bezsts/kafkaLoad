@@ -10,7 +10,13 @@ namespace KafkaLoad.Desktop.Services.Generators.Keys
         public byte[] Next()
         {
             int val = Interlocked.Increment(ref _counter);
-            return BitConverter.GetBytes(val);
+            byte[] bytes = BitConverter.GetBytes(val);
+
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            return bytes;
         }
     }
 }

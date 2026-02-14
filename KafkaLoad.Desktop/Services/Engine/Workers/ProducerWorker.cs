@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.Desktop.Services;
 
-//TODO: make producerworker generic
 public class ProducerWorker : BaseWorker
 {
     private readonly IKafkaProducer<byte[], byte[]> _producer;

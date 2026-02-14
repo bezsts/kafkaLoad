@@ -17,8 +17,6 @@ public class CustomConsumerConfig : IConfigModel
     // Unique identifier for the consumer group.
     // Consumers sharing the same GroupId divide the topic partitions among themselves.
     public string GroupId { get; set; } = string.Empty;
-    public KeyDeserializerEnum KeyDeserializer { get; set; }
-    public ValueDeserializerEnum ValueDeserializer { get; set; }
 
     // Determines the action when there is no initial offset in Kafka 
     // or if the current offset does not exist anymore (e.g., data deleted).

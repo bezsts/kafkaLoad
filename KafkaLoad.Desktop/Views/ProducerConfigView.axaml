@@ -23,21 +23,6 @@
             </StackPanel>
 
             <Separator Height="20" Opacity="0"/> 
-            
-            <Grid ColumnDefinitions="*, 10, *">
-                <StackPanel Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Key Serializer"/>
-                    <ComboBox ItemsSource="{Binding KeySerializerOptions}"
-                              SelectedItem="{Binding SelectedKeySerializer}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Value Serializer"/>
-                    <ComboBox ItemsSource="{Binding ValueSerializerOptions}"
-                              SelectedItem="{Binding SelectedValueSerializer}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
-            </Grid>
 
             <StackPanel Spacing="5">
                 <TextBlock Text="Acks (Durability)"/>

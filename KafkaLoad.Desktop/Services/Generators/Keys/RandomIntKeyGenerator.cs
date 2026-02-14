@@ -8,7 +8,13 @@ namespace KafkaLoad.Desktop.Services.Generators.Keys
 
         public byte[] Next()
         {
-            return BitConverter.GetBytes(_random.Next());
+            byte[] bytes = BitConverter.GetBytes(_random.Next());
+
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            return bytes;
         }
     }
 }

@@ -14,8 +14,6 @@ public class TestRunnerService : ITestRunnerService
     private readonly IKafkaClientFactory _clientFactory;
     private readonly IMetricsService _metricsService;
     private CancellationTokenSource? _cts;
-    //private readonly List<IKafkaProducer<byte[], byte[]>> _activeProducers = new();
-    //private readonly List<IConsumer<byte[], byte[]>> _activeConsumers = new();
 
     private readonly List<IDisposable> _activeClients = new();
 
@@ -38,7 +36,6 @@ public class TestRunnerService : ITestRunnerService
 
         var tasks = new List<Task>();
 
-        //TODO: implement generic serializers (json, string)
         var keySer = Serializers.ByteArray;
         var valSer = Serializers.ByteArray;
         var keyDeser = Deserializers.ByteArray;

@@ -28,21 +28,6 @@
             </StackPanel>
 
             <Separator Height="20" Opacity="0"/> 
-            
-            <Grid ColumnDefinitions="*, 10, *">
-                <StackPanel Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Key Deserializer"/>
-                    <ComboBox ItemsSource="{Binding KeyDeserializerOptions}"
-                              SelectedItem="{Binding SelectedKeyDeserializer}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Value Deserializer"/>
-                    <ComboBox ItemsSource="{Binding ValueDeserializerOptions}"
-                              SelectedItem="{Binding SelectedValueDeserializer}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
-            </Grid>
 
             <StackPanel Spacing="5">
                     <TextBlock Text="Auto offset reset"/>

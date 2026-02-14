@@ -12,7 +12,6 @@
     public enum ValueGenerationStrategy
     {
         Fixed,          // User provided string/json repeated
-        RandomBytes,    // Random noise
         RandomString,   // Random alphanumeric text of specific size
         RandomJson      // JSON with random data inside
     }

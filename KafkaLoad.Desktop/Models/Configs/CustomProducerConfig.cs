@@ -15,9 +15,6 @@ public class CustomProducerConfig : IConfigModel
     // Client identifier. Used to track the source of requests in broker logs and metrics.
     public string ClientID { get; set; } = string.Empty;
 
-    public KeySerializerEnum KeySerializer { get; set; }
-    public ValueSerializerEnum ValueSerializer { get; set; }
-
     // Determines how many brokers must acknowledge the message receipt.
     // None - Producer does not wait for any acknowledgment.
     // Leader - Only the partition leader must acknowledge.

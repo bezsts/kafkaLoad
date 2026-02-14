@@ -54,21 +54,6 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
         set => SetProperty(value, Model.BootstrapServers, v => Model.BootstrapServers = v);
     }
 
-    public List<KeySerializerEnum> KeySerializerOptions { get; } = Enum.GetValues<KeySerializerEnum>().ToList();
-
-    public KeySerializerEnum SelectedKeySerializer
-    {
-        get => Model.KeySerializer;
-        set => SetProperty(value, Model.KeySerializer, v => Model.KeySerializer = v);
-    }
-    public List<ValueSerializerEnum> ValueSerializerOptions { get; } = Enum.GetValues<ValueSerializerEnum>().ToList();
-
-    public ValueSerializerEnum SelectedValueSerializer
-    {
-        get => Model.ValueSerializer;
-        set => SetProperty(value, Model.ValueSerializer, v => Model.ValueSerializer = v);
-    }
-
     public List<AcksEnum> AcksOptions { get; } = Enum.GetValues<AcksEnum>().ToList();
 
     public AcksEnum SelectedAcks
