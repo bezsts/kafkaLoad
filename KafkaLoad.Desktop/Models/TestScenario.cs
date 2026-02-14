@@ -1,3 +1,4 @@
+using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models.Interfaces;
 using System;
 
@@ -8,6 +9,9 @@ public class TestScenario : IConfigModel
     public string Name { get; set;} = string.Empty;
     public CustomProducerConfig? ProducerConfig { get; set; }
     public CustomConsumerConfig? ConsumerConfig { get; set; }
+    public KeyGenerationStrategy KeyStrategy { get; set; } = KeyGenerationStrategy.RandomString;
+    public ValueGenerationStrategy ValueStrategy { get; set; } = ValueGenerationStrategy.RandomString;
+    public string? FixedTemplate { get; set; }
     public string TopicName { get; set; } = string.Empty;
     public int? ProducerCount { get; set; } = 1;
     public int? ConsumerCount { get; set; } = 1;

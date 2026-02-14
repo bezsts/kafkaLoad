@@ -6,6 +6,12 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaXaml Remove="Enums\Configs\**" />
+    <Compile Remove="Enums\Configs\**" />
+    <EmbeddedResource Remove="Enums\Configs\**" />
+    <None Remove="Enums\Configs\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.11" />
@@ -25,7 +31,6 @@
 
   <ItemGroup>
     <Folder Include="Converters/" />
-    <Folder Include="Enums/Configs/" />
   </ItemGroup>
 
   <ItemGroup>

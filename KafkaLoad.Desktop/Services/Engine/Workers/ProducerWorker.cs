@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using KafkaLoad.Desktop.Services.Engine.Workers;
+using KafkaLoad.Desktop.Services.Generators;
 using KafkaLoad.Desktop.Services.Interfaces;
 using System;
 using System.Diagnostics;
@@ -12,7 +13,9 @@ namespace KafkaLoad.Desktop.Services;
 public class ProducerWorker : BaseWorker
 {
     private readonly IKafkaProducer<byte[], byte[]> _producer;
-    private readonly byte[] _payload; //TODO: implement generation messages
+
+    private readonly IDataGenerator _keyGenerator;
+    private readonly IDataGenerator _valueGenerator;
 
     // How often to force a poll to trigger delivery callbacks
     private const int pollIntervalMessages = 1000;
@@ -21,14 +24,13 @@ public class ProducerWorker : BaseWorker
         IKafkaProducer<byte[], byte[]> producer,
         IMetricsService metrics,
         string topic,
-        int messageSize
+        IDataGenerator keyGenerator,
+        IDataGenerator valueGenerator
     ) : base(metrics, topic)
     {
         _producer = producer;
-
-        //HACK: temp payload before generating messages 
-        _payload = new byte[messageSize];
-        new Random().NextBytes(_payload);
+        _keyGenerator = keyGenerator;
+        _valueGenerator = valueGenerator;
     }
 
     public override async Task StartAsync(CancellationToken ct)
@@ -42,10 +44,13 @@ public class ProducerWorker : BaseWorker
         {
             try
             {
+                byte[]? key = _keyGenerator.Next();
+                byte[]? val = _valueGenerator.Next();
+
                 var stopwatch = Stopwatch.StartNew();
 
                 // Send message asynchronously
-                _producer.Produce(Topic, null, _payload,
+                _producer.Produce(Topic, key, val,
                     (deliveryReport) =>
                     {
                         stopwatch.Stop();
@@ -55,7 +60,8 @@ public class ProducerWorker : BaseWorker
                         }
                         else
                         {
-                            Metrics.RecordProducerSuccess(_payload.Length, stopwatch.Elapsed.TotalMilliseconds);
+                            int bytes = val?.Length ?? 0;
+                            Metrics.RecordProducerSuccess(bytes, stopwatch.Elapsed.TotalMilliseconds);
                         }
                     });
 

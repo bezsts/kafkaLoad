@@ -1,10 +1,11 @@
+using Confluent.Kafka;
+using KafkaLoad.Desktop.Models;
+using KafkaLoad.Desktop.Services.Generators;
+using KafkaLoad.Desktop.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Confluent.Kafka;
-using KafkaLoad.Desktop.Models;
-using KafkaLoad.Desktop.Services.Interfaces;
 
 namespace KafkaLoad.Desktop.Services;
 
@@ -53,11 +54,16 @@ public class TestRunnerService : ITestRunnerService
                 var wrapper = new KafkaProducer<byte[], byte[]>(nativeProducer);
                 _activeClients.Add(wrapper);
 
+                var keyGen = DataGeneratorFactory.CreateKeyGenerator(scenario);
+                var valGen = DataGeneratorFactory.CreateValueGenerator(scenario);
+
                 var worker = new ProducerWorker(
                     wrapper,
                     _metricsService,
                     scenario.TopicName,
-                    scenario.MessageSize ?? 1024);
+                    keyGen,
+                    valGen
+                );
 
                 tasks.Add(Task.Run(() => worker.StartAsync(_cts.Token)));
             }
