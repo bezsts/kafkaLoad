@@ -5,6 +5,7 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
              xmlns:conv="using:KafkaLoad.Desktop.Converters"
+             xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="KafkaLoad.Desktop.Views.TestRunnerView"
              x:DataType="vm:TestRunnerViewModel">
@@ -116,7 +117,7 @@
                                 <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
-                            </Style>
+                            </Style>                            
                         </Grid.Styles>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total messages sent:"/>
@@ -144,6 +145,10 @@
                         <TextBlock Grid.Row="6" Grid.Column="1" Classes="value metric-warn" 
                                    Text="{Binding Metrics.Producer.AvgLatMs, StringFormat='{}{0:N2} ms'}"/>
                     </Grid>
+
+                    <Border Height="250" Margin="0,15,0,0" CornerRadius="4" ClipToBounds="True">
+                        <sp:AvaPlot Name="ProducerChart"/>
+                    </Border>
                 </StackPanel>
             </Border>
 
@@ -190,6 +195,10 @@
                         <TextBlock Grid.Row="6" Grid.Column="1" Classes="value metric-warn" 
                                    Text="{Binding Metrics.Consumer.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
                     </Grid>
+
+                    <Border Height="250" Margin="0,15,0,0" CornerRadius="4" ClipToBounds="True">
+                        <sp:AvaPlot Name="ConsumerChart"/>
+                    </Border>
                 </StackPanel>
             </Border>
 

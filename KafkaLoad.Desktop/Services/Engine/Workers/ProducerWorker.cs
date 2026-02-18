@@ -74,6 +74,7 @@ public class ProducerWorker : BaseWorker
             }
             catch (ProduceException<byte[], byte[]> e)
             {
+                
                 // If the internal queue is full, wait a bit for the driver to catch up
                 if (e.Error.Code == ErrorCode.Local_QueueFull)
                 {

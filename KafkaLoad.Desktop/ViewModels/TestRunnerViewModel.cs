@@ -17,6 +17,8 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
     private readonly IMetricsService _metricsService;
     private readonly IConfigRepository<TestScenario> _testScenarioRepository;
     private readonly IKafkaTopicService _topicService;
+    
+    public RealTimeChartViewModel ChartViewModel { get; }
 
     public ViewModelActivator Activator { get; } = new();
 
@@ -48,6 +50,8 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         _testScenarioRepository = testScenarioRepository;
         _topicService = topicService;
 
+        ChartViewModel = new RealTimeChartViewModel(metricsService);
+
         var canStart = this.WhenAnyValue(
             x => x.IsRunning,
             x => x.SelectedTestScenario,
@@ -60,6 +64,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
 
         StartTestCommand = ReactiveCommand.CreateFromTask(async () =>
         {
+            ChartViewModel.Reset();
             if (SelectedTestScenario == null) return;
             IsRunning = true;
             StatusText = "Initializing Workers...";
