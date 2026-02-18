@@ -146,8 +146,23 @@
                                    Text="{Binding Metrics.Producer.AvgLatMs, StringFormat='{}{0:N2} ms'}"/>
                     </Grid>
 
-                    <Border Height="250" Margin="0,15,0,0" CornerRadius="4" ClipToBounds="True">
-                        <sp:AvaPlot Name="ProducerChart"/>
+                    <Border Grid.Column="0" Classes="card">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto" Margin="0,15,0,0">
+                                <TextBlock Grid.Column="0" Text="History Graph" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            
+                                <ComboBox Grid.Column="1" Name="ProducerMetricSelector" SelectedIndex="0" Width="150">
+                                    <ComboBoxItem>Throughput (MB/s)</ComboBoxItem>
+                                    <ComboBoxItem>Throughput (Msg/s)</ComboBoxItem>
+                                    <ComboBoxItem>Latency (ms)</ComboBoxItem>
+                                    <ComboBoxItem>Errors</ComboBoxItem>
+                                </ComboBox>
+                            </Grid>
+
+                            <Border Height="200" CornerRadius="4" ClipToBounds="True">
+                                <sp:AvaPlot Name="ProducerChart"/>
+                            </Border>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Border>
@@ -196,8 +211,22 @@
                                    Text="{Binding Metrics.Consumer.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
                     </Grid>
 
-                    <Border Height="250" Margin="0,15,0,0" CornerRadius="4" ClipToBounds="True">
-                        <sp:AvaPlot Name="ConsumerChart"/>
+                    <Border Grid.Column="2" Classes="card">
+                        <StackPanel Spacing="10">
+                             <Grid ColumnDefinitions="*, Auto" Margin="0,15,0,0">
+                                <TextBlock Grid.Column="0" Text="History Graph" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" Name="ConsumerMetricSelector" SelectedIndex="0" Width="150">
+                                    <ComboBoxItem>Throughput (MB/s)</ComboBoxItem>
+                                    <ComboBoxItem>Throughput (Msg/s)</ComboBoxItem>
+                                    <ComboBoxItem>Latency (ms)</ComboBoxItem>
+                                    <ComboBoxItem>Errors</ComboBoxItem>
+                                </ComboBox>
+                            </Grid>
+
+                            <Border Height="200" CornerRadius="4" ClipToBounds="True">
+                                <sp:AvaPlot Name="ConsumerChart"/>
+                            </Border>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Border>

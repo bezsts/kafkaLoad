@@ -15,10 +15,14 @@ namespace KafkaLoad.Desktop.ViewModels
         // Producer
         public MetricSeriesBuffer ProducerThroughput { get; }
         public MetricSeriesBuffer ProducerLatency { get; }
+        public MetricSeriesBuffer ProducerMsgRate { get; }
+        public MetricSeriesBuffer ProducerErrors { get; }
 
         // Consumer
         public MetricSeriesBuffer ConsumerThroughput { get; }
         public MetricSeriesBuffer ConsumerLatency { get; }
+        public MetricSeriesBuffer ConsumerMsgRate { get; }
+        public MetricSeriesBuffer ConsumerErrors { get; }
 
         private long _refreshCounter;
         public long RefreshCounter
@@ -36,6 +40,11 @@ namespace KafkaLoad.Desktop.ViewModels
             ConsumerThroughput = new MetricSeriesBuffer("Consumer MB/s");
             ConsumerLatency = new MetricSeriesBuffer("Consumer Latency (ms)");
 
+            ProducerMsgRate = new MetricSeriesBuffer("Producer Msg/s");
+            ProducerErrors = new MetricSeriesBuffer("Producer Errors");
+            ConsumerMsgRate = new MetricSeriesBuffer("Consumer Msg/s");
+            ConsumerErrors = new MetricSeriesBuffer("Consumer Errors");
+
             _subscription = _metricsService.MetricsStream
                 .Sample(TimeSpan.FromMilliseconds(500))
                 .ObserveOn(RxApp.MainThreadScheduler)
@@ -45,17 +54,23 @@ namespace KafkaLoad.Desktop.ViewModels
         private void OnMetricsReceived(GlobalMetricsSnapshot snapshot)
         {
             double time = snapshot.Duration.TotalSeconds;
+            if (time > 300_000_000) return;
 
-            if (time > 300_000_000)
-            {
-                return;
-            }
+            // 1. Throughput MB/s
+            ProducerThroughput.AddPoint(time, snapshot.Producer.ThroughputBytes / 1024.0 / 1024.0);
+            ConsumerThroughput.AddPoint(time, snapshot.Consumer.ThroughputBytes / 1024.0 / 1024.0);
 
-            ProducerThroughput.AddPoint(time, snapshot.Producer.ThroughputBytes / 1024.0 / 1024.0); // Convert to MB
+            // 2. Latency
             ProducerLatency.AddPoint(time, snapshot.Producer.AvgLatMs);
-
-            ConsumerThroughput.AddPoint(time, snapshot.Consumer.ThroughputBytes / 1024.0 / 1024.0); // Convert to MB
             ConsumerLatency.AddPoint(time, snapshot.Consumer.AvgLatencyMs);
+
+            // 3. Throughput Msg/s (Нове)
+            ProducerMsgRate.AddPoint(time, snapshot.Producer.ThroughputMsg);
+            ConsumerMsgRate.AddPoint(time, snapshot.Consumer.ThroughputMsg);
+
+            // 4. Errors
+            ProducerErrors.AddPoint(time, snapshot.Producer.ErrorMsgsSent);
+            ConsumerErrors.AddPoint(time, snapshot.Consumer.ErrorMsgsConsumed);
 
             RefreshCounter++;
         }

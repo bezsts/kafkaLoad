@@ -1,12 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using KafkaLoad.Desktop.Services.Visualization;
 using KafkaLoad.Desktop.ViewModels;
 using ReactiveUI;
 using ReactiveUI.Avalonia;
 using ScottPlot;
 using ScottPlot.Avalonia;
 using System;
-using System.Diagnostics;
+using KafkaLoad.Desktop.Configuration;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 
@@ -17,12 +18,18 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
     private AvaPlot? _producerChart;
     private AvaPlot? _consumerChart;
 
+    private ComboBox? _prodSelector;
+    private ComboBox? _consSelector;
+
     public TestRunnerView()
     {
         InitializeComponent();
 
         _producerChart = this.FindControl<AvaPlot>("ProducerChart");
         _consumerChart = this.FindControl<AvaPlot>("ConsumerChart");
+
+        _prodSelector = this.FindControl<ComboBox>("ProducerMetricSelector");
+        _consSelector = this.FindControl<ComboBox>("ConsumerMetricSelector");
 
         this.WhenActivated(disposables =>
         {
@@ -38,6 +45,7 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
                     SetupProducerChart();
                     SetupConsumerChart();
 
+
                     vm.ChartViewModel
                         .WhenAnyValue(x => x.RefreshCounter)
                         .ObserveOn(RxApp.MainThreadScheduler)
@@ -45,6 +53,16 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
                         .DisposeWith(disposables);
                 })
                 .DisposeWith(disposables);
+
+            if (_prodSelector != null)
+            {
+                _prodSelector.SelectionChanged += (s, e) => UpdateCharts();
+            }
+
+            if (_consSelector != null)
+            {
+                _consSelector.SelectionChanged += (s, e) => UpdateCharts();
+            }
         });
     }
 
@@ -59,10 +77,10 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
 
         _producerChart.Plot.Clear();
 
-        _producerChart.Plot.FigureBackground.Color = Color.FromHex("#1e1e1e");
-        _producerChart.Plot.DataBackground.Color = Color.FromHex("#252526");
-        _producerChart.Plot.Axes.Color(Color.FromHex("#d4d4d4"));
-        _producerChart.Plot.Grid.MajorLineColor = Color.FromHex("#404040");
+        _producerChart.Plot.FigureBackground.Color = ChartTheme.Background;
+        _producerChart.Plot.DataBackground.Color = ChartTheme.Background;
+        _producerChart.Plot.Axes.Color(ChartTheme.Text);
+        _producerChart.Plot.Grid.MajorLineColor = ChartTheme.GridLines;
 
         _producerChart.Plot.Title("Throughput History", size: 14);
         _producerChart.Plot.Axes.Left.Label.Text = "MB/s";
@@ -74,10 +92,10 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
 
         _consumerChart.Plot.Clear();
 
-        _consumerChart.Plot.FigureBackground.Color = Color.FromHex("#1e1e1e");
-        _consumerChart.Plot.DataBackground.Color = Color.FromHex("#252526");
-        _consumerChart.Plot.Axes.Color(Color.FromHex("#d4d4d4"));
-        _consumerChart.Plot.Grid.MajorLineColor = Color.FromHex("#404040");
+        _consumerChart.Plot.FigureBackground.Color = ChartTheme.Background;
+        _consumerChart.Plot.DataBackground.Color = ChartTheme.Background;
+        _consumerChart.Plot.Axes.Color(ChartTheme.Text);
+        _consumerChart.Plot.Grid.MajorLineColor = ChartTheme.GridLines;
 
         _consumerChart.Plot.Title("Throughput History", size: 14);
         _consumerChart.Plot.Axes.Left.Label.Text = "MB/s";
@@ -85,43 +103,72 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
 
     private void UpdateCharts()
     {
-        Debug.WriteLine("[VIEW] UpdateCharts called");
-
         if (ViewModel?.ChartViewModel == null) return;
         var charts = ViewModel.ChartViewModel;
 
-        if (_producerChart != null)
+        UpdateProducerChart(charts);
+        UpdateConsumerChart(charts);
+    }
+
+    private void UpdateProducerChart(RealTimeChartViewModel charts)
+    {
+        if (_producerChart == null || _prodSelector == null) return;
+
+        int index = _prodSelector.SelectedIndex;
+
+        var buffer = index switch
         {
-            _producerChart.Plot.PlottableList.Clear();
+            1 => charts.ProducerMsgRate,
+            2 => charts.ProducerLatency,
+            3 => charts.ProducerErrors,
+            _ => charts.ProducerThroughput
+        };
 
-            var prodScatter = _producerChart.Plot.Add.Scatter(
-                charts.ProducerThroughput.XValues.ToArray(),
-                charts.ProducerThroughput.YValues.ToArray()
-            );
+        var (color, label) = ChartTheme.GetMetricStyle(index);
 
-            prodScatter.Color = Color.FromHex("#3b82f6"); // Blue
-            prodScatter.LineWidth = 2;
-            prodScatter.MarkerSize = 0;
+        _producerChart.Plot.PlottableList.Clear();
 
-            _producerChart.Plot.Axes.AutoScale();
-            _producerChart.Refresh();
-        }
+        var scatter = _producerChart.Plot.Add.Scatter(
+            buffer.XValues.ToArray(),
+            buffer.YValues.ToArray()
+        );
 
-        if (_consumerChart != null)
+        scatter.Color = color;
+        scatter.LineWidth = 2;
+        scatter.MarkerSize = 0;
+
+        _producerChart.Plot.Axes.Left.Label.Text = label;
+        _producerChart.Plot.Title($"{buffer.Title}", size: 12);
+
+        _producerChart.Plot.Axes.AutoScale();
+        _producerChart.Refresh();
+    }
+
+    private void UpdateConsumerChart(RealTimeChartViewModel charts)
+    {
+        if (_consumerChart == null || _consSelector == null) return;
+
+        int index = _consSelector.SelectedIndex;
+
+        var buffer = index switch
         {
-            _consumerChart.Plot.PlottableList.Clear();
+            1 => charts.ConsumerMsgRate,
+            2 => charts.ConsumerLatency,
+            3 => charts.ConsumerErrors,
+            _ => charts.ConsumerThroughput
+        };
+        var (color, label) = ChartTheme.GetMetricStyle(index);
 
-            var consScatter = _consumerChart.Plot.Add.Scatter(
-                charts.ConsumerThroughput.XValues.ToArray(),
-                charts.ConsumerThroughput.YValues.ToArray()
-            );
+        _consumerChart.Plot.PlottableList.Clear();
+        var scatter = _consumerChart.Plot.Add.Scatter(buffer.XValues.ToArray(), buffer.YValues.ToArray());
+        scatter.Color = color;
+        scatter.LineWidth = 2;
+        scatter.MarkerSize = 0;
 
-            consScatter.Color = Color.FromHex("#10B981"); // Green
-            consScatter.LineWidth = 2;
-            consScatter.MarkerSize = 0;
+        _consumerChart.Plot.Axes.Left.Label.Text = label;
+        _consumerChart.Plot.Title($"{buffer.Title}", size: 12);
 
-            _consumerChart.Plot.Axes.AutoScale();
-            _consumerChart.Refresh();
-        }
+        _consumerChart.Plot.Axes.AutoScale();
+        _consumerChart.Refresh();
     }
 }
