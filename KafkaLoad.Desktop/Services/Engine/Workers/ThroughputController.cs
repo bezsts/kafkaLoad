@@ -86,38 +86,87 @@ public class ThroughputController
 
     private double CalculateCurrentRps(double currentSec)
     {
+        // Calculate test progress as a value from 0.0 to 1.0 (0% to 100%)
+        double p = currentSec / _durationSec;
+        if (p > 1.0) p = 1.0;
+
         switch (_testType)
         {
-            case TestType.Soak:
-                // Ramp-up linearly for the first 5% of the duration
-                double rampUpTime = _durationSec * 0.05;
-                if (currentSec < rampUpTime)
-                {
-                    return (_targetRps / rampUpTime) * currentSec;
-                }
-                // Then hold the plateau
-                return _targetRps;
+            case TestType.Load:
+                // Image 1: Classic Trapezoid (20% Ramp-up, 60% Hold, 20% Ramp-down)
+                if (p < 0.20)
+                    return _targetRps * (p / 0.20); // Ramp-up
+                else if (p <= 0.80)
+                    return _targetRps;              // Steady State
+                else
+                    return _targetRps * ((1.0 - p) / 0.20); // Ramp-down
 
             case TestType.Stress:
-                // Increase linearly from 0 to max throughout the entire test
-                return (_targetRps / _durationSec) * currentSec;
+                // Image 2: Step-up load (4 steps up, then ramp-down)
+                // 0% to 90% is for the 4 steps. 90% to 100% is for the final ramp-down.
+                if (p > 0.90)
+                {
+                    return _targetRps * ((1.0 - p) / 0.10); // Final Ramp-down
+                }
+
+                int totalSteps = 4;
+                double timePerStep = 0.90 / totalSteps; // 0.225 (22.5%) per step
+
+                int currentStep = (int)(p / timePerStep);
+                if (currentStep >= totalSteps) currentStep = totalSteps - 1;
+
+                // localP represents progress within the current step (0.0 to 1.0)
+                double localP = (p - (currentStep * timePerStep)) / timePerStep;
+
+                double prevTarget = _targetRps * currentStep / totalSteps;
+                double stepTarget = _targetRps * (currentStep + 1) / totalSteps;
+
+                // First half of the step is ramping up, second half is holding the value
+                if (localP < 0.50)
+                {
+                    // Ramping up to the next step
+                    return prevTarget + (stepTarget - prevTarget) * (localP / 0.50);
+                }
+                else
+                {
+                    // Holding the step
+                    return stepTarget;
+                }
 
             case TestType.Spike:
-                // Phase 1: Base load (0% to 20%)
-                // Phase 2: Spike load (20% to 30%)
-                // Phase 3: Base load (30% to 100%)
-                double phase1End = _durationSec * 0.20;
-                double phase2End = _durationSec * 0.30;
-
-                if (currentSec > phase1End && currentSec <= phase2End)
-                {
+                // Image 3: Base -> Fast Spike -> Base -> Down
+                // 0.00-0.05: Ramp up to Base
+                // 0.05-0.20: Hold Base
+                // 0.20-0.25: Sharp ramp up to Spike
+                // 0.25-0.55: Hold Spike (Peak)
+                // 0.55-0.60: Sharp ramp down to Base
+                // 0.60-0.95: Hold Base
+                // 0.95-1.00: Ramp down to 0
+                if (p < 0.05)
+                    return _baseRps * (p / 0.05);
+                else if (p < 0.20)
+                    return _baseRps;
+                else if (p < 0.25)
+                    return _baseRps + (_spikeRps - _baseRps) * ((p - 0.20) / 0.05);
+                else if (p < 0.55)
                     return _spikeRps;
-                }
-                return _baseRps;
+                else if (p < 0.60)
+                    return _spikeRps - (_spikeRps - _baseRps) * ((p - 0.55) / 0.05);
+                else if (p < 0.95)
+                    return _baseRps;
+                else
+                    return _baseRps * ((1.0 - p) / 0.05);
 
-            case TestType.Load:
+            case TestType.Soak:
+                // Image 4: Fast ramp-up, long plateau, fast ramp-down (2% / 96% / 2%)
+                if (p < 0.02)
+                    return _targetRps * (p / 0.02); // Fast Ramp-up
+                else if (p <= 0.98)
+                    return _targetRps;              // Long Plateau
+                else
+                    return _targetRps * ((1.0 - p) / 0.02); // Fast Ramp-down
+
             default:
-                // Constant throughput
                 return _targetRps;
         }
     }
