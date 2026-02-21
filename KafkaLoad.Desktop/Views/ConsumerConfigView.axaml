@@ -43,13 +43,13 @@
                 
                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
                     <TextBlock Text="Fetch min bytes"/>
-                    <NumericUpDown Value="{Binding FetchMinBytes}" 
+                    <NumericUpDown Value="{Binding FetchMinBytes, TargetNullValue={x:Null}}" 
                                    Minimum="1" Maximum="52428800" Increment="4096"
                                    FormatString="N0"/> </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
                     <TextBlock Text="Fetch max bytes"/>
-                    <NumericUpDown Value="{Binding FetchMaxBytes}" 
+                    <NumericUpDown Value="{Binding FetchMaxBytes, TargetNullValue={x:Null}}" 
                                    Minimum="1" Maximum="52428800" Increment="4096" 
                                    FormatString="N0"/>
                 </StackPanel>
@@ -58,13 +58,13 @@
                 
                 <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Fetch max wait"/>
-                    <NumericUpDown Value="{Binding FetchMaxWait}" 
+                    <NumericUpDown Value="{Binding FetchMaxWait, TargetNullValue={x:Null}}" 
                                    Minimum="1" Maximum="10000" Increment="5"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
                     <TextBlock Text="Max poll interval"/>
-                    <NumericUpDown Value="{Binding MaxPollInterval}" 
+                    <NumericUpDown Value="{Binding MaxPollInterval, TargetNullValue={x:Null}}" 
                                    Minimum="6000" Maximum="3600000" Increment="1000"/>
                 </StackPanel>
             </Grid>

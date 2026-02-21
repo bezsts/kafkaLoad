@@ -89,31 +89,83 @@
             <Separator Height="20" Opacity="0"/>
             <TextBlock Text="Load Parameters" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
 
-            <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto">
+            <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto, Auto, Auto">
                 
                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Producers Count *"/>
-                    <NumericUpDown Value="{Binding ProducerCount, TargetNullValue=''}" 
-                                   Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
+                    <TextBlock Text="Test Type *"/>
+                    <ComboBox ItemsSource="{Binding TestTypeOptions}"
+                              SelectedItem="{Binding TestType}"
+                              HorizontalAlignment="Stretch"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Consumers Count"/>
-                    <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue=''}" 
+                    <TextBlock Text="Duration (Seconds) *"/>
+                    <NumericUpDown Value="{Binding Duration, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="86400" Increment="10"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Spacing="5" Margin="0,15,0,0"
+                            IsVisible="{Binding IsTargetThroughputVisible}">
+                    <TextBlock Text="Target Throughput (Msg/sec) *"/>
+                    <NumericUpDown Value="{Binding TargetThroughput, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
+                    <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondary}" FontStyle="Italic">
+                        <TextBlock.Styles>
+                            <Style Selector="TextBlock[Tag=Load]">
+                                <Setter Property="Text" Value="System will linearly ramp up to this rate, then hold it."/>
+                            </Style>
+                            <Style Selector="TextBlock[Tag=Soak]">
+                                <Setter Property="Text" Value="System will quickly reach this rate and hold it for a long endurance test."/>
+                            </Style>
+                            <Style Selector="TextBlock[Tag=Stress]">
+                                <Setter Property="Text" Value="System will continuously scale up to this rate over the test duration."/>
+                            </Style>
+                        </TextBlock.Styles>
+                        <TextBlock.Tag>
+                            <Binding Path="TestType"/>
+                        </TextBlock.Tag>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,15,0,0"
+                            IsVisible="{Binding IsSpikeVisible}">
+                    <TextBlock Text="Base Throughput (Msg/sec) *"/>
+                    <NumericUpDown Value="{Binding BaseThroughput, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="5" Margin="0,15,0,0"
+                            IsVisible="{Binding IsSpikeVisible}">
+                    <TextBlock Text="Spike Throughput (Msg/sec) *"/>
+                    <NumericUpDown Value="{Binding SpikeThroughput, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="10000000" Increment="1000" FormatString="N0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,15,0,0">
+                    <TextBlock Text="Producers Count *"/>
+                    <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}" 
                                    Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,15,0,0">
-                    <TextBlock Text="Message Size (Bytes) *"/>
-                    <NumericUpDown Value="{Binding MessageSize, TargetNullValue=''}" 
-                                   Minimum="1" Maximum="10485760" Increment="128" FormatString="N0"/>
+                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5" Margin="0,15,0,0">
+                    <TextBlock Text="Consumers Count"/>
+                    <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="5" Margin="0,15,0,0">
-                    <TextBlock Text="Duration (Seconds) *"/>
-                    <NumericUpDown Value="{Binding Duration, TargetNullValue=''}" 
-                                   Minimum="1" Maximum="86400" Increment="10"/>
+                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,15,0,0"
+                            IsVisible="{Binding IsMessageSizeVisible}">
+                    <TextBlock Text="Message Size (Bytes) *"/>
+                    <NumericUpDown Value="{Binding MessageSize, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="10485760" Increment="128" FormatString="N0"/>
                 </StackPanel>
+                
+                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,15,0,0"
+                            IsVisible="{Binding IsFixedContentVisible}">
+                     <TextBlock Text="Message Size" Foreground="{DynamicResource TextSecondary}"/>
+                     <TextBlock Text="Auto-calculated from Fixed Content" FontWeight="Bold" Foreground="{DynamicResource TextSecondary}"/>
+                </StackPanel>
+
             </Grid>
 
             <Button Command="{Binding SaveCommand}" 
