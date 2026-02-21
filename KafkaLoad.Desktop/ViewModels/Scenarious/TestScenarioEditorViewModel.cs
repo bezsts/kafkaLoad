@@ -33,6 +33,20 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         set => this.RaiseAndSetIfChanged(ref _isMessageSizeVisible, value);
     }
 
+    private bool _isTargetThroughputVisible = true;
+    public bool IsTargetThroughputVisible
+    {
+        get => _isTargetThroughputVisible;
+        set => this.RaiseAndSetIfChanged(ref _isTargetThroughputVisible, value);
+    }
+
+    private bool _isSpikeVisible;
+    public bool IsSpikeVisible
+    {
+        get => _isSpikeVisible;
+        set => this.RaiseAndSetIfChanged(ref _isSpikeVisible, value);
+    }
+
     public TestScenarioEditorViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository,
         IConfigRepository<CustomConsumerConfig> consumerConfigRepository,
@@ -47,6 +61,13 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
             {
                 IsFixedContentVisible = strategy == ValueGenerationStrategy.Fixed;
                 IsMessageSizeVisible = strategy != ValueGenerationStrategy.Fixed;
+            });
+
+        this.WhenAnyValue(x => x.TestType)
+            .Subscribe(type =>
+            {
+                IsTargetThroughputVisible = type != TestType.Spike;
+                IsSpikeVisible = type == TestType.Spike;
             });
 
         this.WhenActivated((CompositeDisposable disposables) =>
@@ -86,6 +107,25 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
             vm => vm.MessageSize,
             messageSizeValid,
             "Message size > 0");
+
+        var targetValid = this.WhenAnyValue(
+            x => x.TestType,
+            x => x.TargetThroughput,
+            (type, target) => type == TestType.Spike || (target > 0)
+        );
+        this.ValidationRule(vm => vm.TargetThroughput, targetValid, "Target Throughput must be > 0");
+
+        var baseValid = this.WhenAnyValue(
+            x => x.TestType, x => x.BaseThroughput,
+            (type, baseTp) => type != TestType.Spike || (baseTp > 0)
+        );
+        this.ValidationRule(vm => vm.BaseThroughput, baseValid, "Base Throughput must be > 0");
+
+        var spikeValid = this.WhenAnyValue(
+            x => x.TestType, x => x.SpikeThroughput,
+            (type, spikeTp) => type != TestType.Spike || (spikeTp > 0)
+        );
+        this.ValidationRule(vm => vm.SpikeThroughput, spikeValid, "Spike Throughput must be > 0");
     }
 
     private async Task LoadConfigurationsAsync()
@@ -175,5 +215,31 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         get => Model.Duration;
         set => SetProperty(value, Model.Duration, v => Model.Duration = v);
+    }
+
+    public List<TestType> TestTypeOptions { get; } = Enum.GetValues<TestType>().ToList();
+
+    public TestType TestType
+    {
+        get => Model.TestType;
+        set => SetProperty(value, Model.TestType, v => Model.TestType = v);
+    }
+
+    public int? TargetThroughput
+    {
+        get => Model.TargetThroughput;
+        set => SetProperty(value, Model.TargetThroughput, v => Model.TargetThroughput = v);
+    }
+
+    public int? BaseThroughput
+    {
+        get => Model.BaseThroughput;
+        set => SetProperty(value, Model.BaseThroughput, v => Model.BaseThroughput = v);
+    }
+
+    public int? SpikeThroughput
+    {
+        get => Model.SpikeThroughput;
+        set => SetProperty(value, Model.SpikeThroughput, v => Model.SpikeThroughput = v);
     }
 }

@@ -18,7 +18,7 @@ public class TestScenario : IConfigModel
     public int? ConsumerCount { get; set; } = 1;
     public int? MessageSize { get; set; } = 1024; 
     public int? Duration { get; set; } = 60;
-    public double? TargetThroughput { get; set; }
-    public double? BaseThroughput { get; set; }
-    public double? SpikeThroughput { get; set; }
+    public int? TargetThroughput { get; set; }
+    public int? BaseThroughput { get; set; }
+    public int? SpikeThroughput { get; set; }
 }

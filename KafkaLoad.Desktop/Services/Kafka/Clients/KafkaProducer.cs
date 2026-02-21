@@ -30,4 +30,9 @@ public class KafkaProducer<TKey,TValue> : IKafkaProducer<TKey, TValue>
     {
         _producer?.Dispose();
     }
+
+    public void Flush(int seconds)
+    {
+        _producer?.Flush(TimeSpan.FromSeconds(2));
+    }
 }
