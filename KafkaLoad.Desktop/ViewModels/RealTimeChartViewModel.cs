@@ -69,6 +69,11 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         // Ignore invalid time during initialization
         if (time > 300_000_000) return;
 
+        if (time < _lastTimeSec)
+        {
+            Reset();
+        }
+
         double deltaSec = time - _lastTimeSec;
 
         // Skip the very first snapshot or if time hasn't moved forward
@@ -80,7 +85,6 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         }
 
         // --- CALCULATE INSTANTANEOUS RATES (DELTAS) ---
-        // This makes the graphs look exactly like Grafana K6 (showing current speed)
 
         double prodMbSec = ((snapshot.Producer.TotalBytesSent - _lastProdBytes) / 1024.0 / 1024.0) / deltaSec;
         double prodMsgSec = (snapshot.Producer.TotalMsgsSent - _lastProdMsgs) / deltaSec;
@@ -142,7 +146,6 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         ConsumerMsgRate.Clear();
         ConsumerErrors.Clear();
 
-        // Reset the delta states!
         _lastTimeSec = 0;
         _lastProdBytes = 0;
         _lastProdMsgs = 0;
