@@ -78,54 +78,83 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
 
     protected override void InitializeValidation()
     {
+        // ==========================================
+        // 1. BASIC FIELD REQUIREMENTS
+        // ==========================================
         this.ValidationRule(vm => vm.Name, n => !string.IsNullOrWhiteSpace(n), "Name is required");
         this.ValidationRule(vm => vm.TopicName, t => !string.IsNullOrWhiteSpace(t), "Topic is required");
         this.ValidationRule(vm => vm.SelectedProducer, p => p is not null, "Producer is required");
         this.ValidationRule(vm => vm.SelectedConsumer, c => c is not null, "Consumer is required");
-        this.ValidationRule(vm => vm.ProducerCount, c => c > 0, "Producer count > 0");
-        this.ValidationRule(vm => vm.MessageSize, s => s > 0, "Message size > 0");
-        this.ValidationRule(vm => vm.Duration, d => d > 0, "Duration > 0");
+        this.ValidationRule(vm => vm.ProducerCount, c => c > 0, "Producer count must be > 0");
 
+        // ==========================================
+        // 2. DATA GENERATION STRATEGY
+        // ==========================================
         var fixedTemplateValid = this.WhenAnyValue(
             x => x.FixedTemplate,
             x => x.ValueStrategy,
             (template, strategy) => strategy != ValueGenerationStrategy.Fixed || !string.IsNullOrWhiteSpace(template)
         );
-
-        this.ValidationRule(
-            vm => vm.FixedTemplate,
-            fixedTemplateValid,
-            "Message content is required for Fixed strategy");
+        this.ValidationRule(vm => vm.FixedTemplate, fixedTemplateValid, "Message content is required for Fixed strategy");
 
         var messageSizeValid = this.WhenAnyValue(
             x => x.MessageSize,
             x => x.ValueStrategy,
             (size, strategy) => strategy == ValueGenerationStrategy.Fixed || (size > 0)
         );
+        this.ValidationRule(vm => vm.MessageSize, messageSizeValid, "Message size must be > 0");
 
-        this.ValidationRule(
-            vm => vm.MessageSize,
-            messageSizeValid,
-            "Message size > 0");
+        // ==========================================
+        // 3. TEST DURATION LOGIC
+        // ==========================================
+        var durationValid = this.WhenAnyValue(
+            x => x.TestType,
+            x => x.Duration,
+            (type, duration) =>
+            {
+                if (!duration.HasValue) return false;
 
+                return type switch
+                {
+                    TestType.Soak => duration.Value >= 60,   // Minimum 1 minute for Soak
+                    TestType.Stress => duration.Value >= 30, // Minimum 30s to draw 4 steps properly
+                    _ => duration.Value >= 10                // Minimum 10s for Load/Spike to ramp up
+                };
+            }
+        );
+        this.ValidationRule(vm => vm.Duration, durationValid,
+            "Invalid duration: >= 60s for Soak, >= 30s for Stress, >= 10s for others");
+
+        // ==========================================
+        // 4. THROUGHPUT LOGIC
+        // ==========================================
         var targetValid = this.WhenAnyValue(
             x => x.TestType,
             x => x.TargetThroughput,
-            (type, target) => type == TestType.Spike || (target > 0)
+            (type, target) => type == TestType.Spike || (target.HasValue && target.Value > 0)
         );
         this.ValidationRule(vm => vm.TargetThroughput, targetValid, "Target Throughput must be > 0");
 
         var baseValid = this.WhenAnyValue(
-            x => x.TestType, x => x.BaseThroughput,
-            (type, baseTp) => type != TestType.Spike || (baseTp > 0)
+            x => x.TestType,
+            x => x.BaseThroughput,
+            (type, baseTp) => type != TestType.Spike || (baseTp.HasValue && baseTp.Value > 0)
         );
         this.ValidationRule(vm => vm.BaseThroughput, baseValid, "Base Throughput must be > 0");
 
         var spikeValid = this.WhenAnyValue(
-            x => x.TestType, x => x.SpikeThroughput,
-            (type, spikeTp) => type != TestType.Spike || (spikeTp > 0)
+            x => x.TestType,
+            x => x.BaseThroughput,
+            x => x.SpikeThroughput,
+            (type, baseTp, spikeTp) =>
+            {
+                if (type != TestType.Spike) return true;
+                if (!spikeTp.HasValue || !baseTp.HasValue) return false;
+
+                return spikeTp.Value > baseTp.Value;
+            }
         );
-        this.ValidationRule(vm => vm.SpikeThroughput, spikeValid, "Spike Throughput must be > 0");
+        this.ValidationRule(vm => vm.SpikeThroughput, spikeValid, "Spike rate must be strictly greater than Base rate");
     }
 
     private async Task LoadConfigurationsAsync()
