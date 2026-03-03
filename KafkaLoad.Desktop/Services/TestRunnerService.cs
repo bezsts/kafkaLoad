@@ -1,7 +1,9 @@
 using Confluent.Kafka;
 using KafkaLoad.Desktop.Models;
+using KafkaLoad.Desktop.Models.Reports;
 using KafkaLoad.Desktop.Services.Generators;
 using KafkaLoad.Desktop.Services.Interfaces;
+using KafkaLoad.Desktop.Services.Reports.Interfaces;
 using KafkaLoad.Desktop.Services.Workers;
 using System;
 using System.Collections.Generic;
@@ -16,16 +18,21 @@ public class TestRunnerService : ITestRunnerService
     private readonly IKafkaClientFactory _clientFactory;
     private readonly IMetricsService _metricsService;
     private CancellationTokenSource? _cts;
+    private readonly ITestReportRepository _reportRepository;
 
     private readonly List<IDisposable> _activeClients = new();
     private readonly object _clientsLock = new();
 
     public bool IsRunning => _cts != null && !_cts.IsCancellationRequested;
 
-    public TestRunnerService(IKafkaClientFactory clientFactory, IMetricsService metricsService)
+    public TestRunnerService(
+        IKafkaClientFactory clientFactory, 
+        IMetricsService metricsService,
+        ITestReportRepository reportRepository)
     {
         _clientFactory = clientFactory;
         _metricsService = metricsService;
+        _reportRepository = reportRepository;
     }
 
     public async Task RunTestAsync(TestScenario scenario)
@@ -126,10 +133,71 @@ public class TestRunnerService : ITestRunnerService
                 }
 
                 _metricsService.Stop();
+
+                // --- GENERATE AND SAVE REPORT ---
+                try
+                {
+                    
+                }
+                catch (Exception)
+                {
+                    Debug.WriteLine($"Failed to save report: {ex.Message}");
+                }
                 CleanupClients();
                 _cts = null;
             }
         });
+    }
+
+    private async Task GenerateAndSaveReportAsync(TestScenario scenario)
+    {
+        // Get the final snapshot
+        var snapshot = _metricsService.CurrentSnapshot;
+        if (snapshot == null) return;
+
+        // Initialize the base report model
+        var report = new TestReport
+        {
+            ScenarioName = scenario.Name ?? "Unnamed Scenario",
+            TestType = scenario.TestType,
+            DurationSeconds = scenario.Duration ?? 0,
+
+            TotalMessagesSent = snapshot.Producer.TotalMsgsSent,
+            TotalErrors = snapshot.Producer.ErrorMsgsSent,
+
+            ConfigSnapshot = new TestScenarioConfigSnapshot
+            {
+                TopicName = scenario.TopicName,
+                ProducersCount = scenario.ProducerCount ?? 1,
+                ConsumersCount = scenario.ConsumerCount ?? 0,
+                MessageSize = scenario.MessageSize ?? 0,
+                TargetThroughput = scenario.TargetThroughput
+            }
+        };
+
+        // Producer metrics
+        report.ExtendedMetrics.Add("Producer_TotalBytesSent", snapshot.Producer.TotalBytesSent);
+        report.ExtendedMetrics.Add("Producer_SuccessMsgsSent", snapshot.Producer.SuccessMsgsSent);
+        report.ExtendedMetrics.Add("Producer_AvgLatencyMs", snapshot.Producer.AvgLatMs);
+        report.ExtendedMetrics.Add("Producer_ThroughputMsgSec", snapshot.Producer.ThroughputMsg);
+        report.ExtendedMetrics.Add("Producer_ThroughputBytesSec", snapshot.Producer.ThroughputBytes);
+
+        // Consumer metrics
+        if (scenario.ConsumerCount > 0)
+        {
+            report.ExtendedMetrics.Add("Consumer_TotalMsgs", snapshot.Consumer.TotalMsgConsumed);
+            report.ExtendedMetrics.Add("Consumer_TotalBytes", snapshot.Consumer.TotalBytesConsumed);
+            report.ExtendedMetrics.Add("Consumer_SuccessMsgs", snapshot.Consumer.SuccessMsgsConsumed);
+            report.ExtendedMetrics.Add("Consumer_ErrorMsgs", snapshot.Consumer.ErrorMsgsConsumed);
+            report.ExtendedMetrics.Add("Consumer_AvgLatencyMs", snapshot.Consumer.AvgLatencyMs);
+            report.ExtendedMetrics.Add("Consumer_ThroughputMsgSec", snapshot.Consumer.ThroughputMsg);
+            report.ExtendedMetrics.Add("Consumer_ThroughputBytesSec", snapshot.Consumer.ThroughputBytes);
+        }
+
+        if (_reportRepository != null)
+        {
+            await _reportRepository.SaveReportAsync(report);
+        }
     }
 
     public void StopTest()

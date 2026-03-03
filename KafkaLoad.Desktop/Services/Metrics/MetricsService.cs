@@ -15,6 +15,8 @@ public class MetricsService : IMetricsService
         Observable.Interval(TimeSpan.FromSeconds(1))
                   .Select(_ => CreateSnapshot());
 
+    public GlobalMetricsSnapshot CurrentSnapshot => CreateSnapshot();
+
     public void RecordProducerSuccess(int bytes, double latencyMs) =>
         _producerAccumulator.AddSuccess(bytes, latencyMs);
     public void RecordConsumerSuccess(int bytes, double latencyMs) =>
