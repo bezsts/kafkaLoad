@@ -1,9 +1,11 @@
-﻿using System;
-using System.Reactive.Linq;
-using KafkaLoad.Desktop.Models;
+﻿using KafkaLoad.Desktop.Models;
+using KafkaLoad.Desktop.Models.Reports;
 using KafkaLoad.Desktop.Services.Interfaces;
 using KafkaLoad.Desktop.Services.Visualization;
 using ReactiveUI;
+using System;
+using System.Collections.Generic;
+using System.Reactive.Linq;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
@@ -132,6 +134,38 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         _lastConsBytes = snapshot.Consumer.TotalBytesConsumed;
         _lastConsMsgs = snapshot.Consumer.TotalMsgConsumed;
         _lastConsErrors = snapshot.Consumer.ErrorMsgsConsumed;
+    }
+
+    public Dictionary<string, List<TimeSeriesPoint>> GetTimeSeriesData()
+    {
+        var result = new Dictionary<string, List<TimeSeriesPoint>>();
+
+        void AddSeries(string key, MetricSeriesBuffer buffer)
+        {
+            var points = new List<TimeSeriesPoint>();
+            var xs = buffer.XValues.ToArray();
+            var ys = buffer.YValues.ToArray();
+
+            int count = Math.Min(xs.Length, ys.Length);
+
+            for (int i = 0; i < count; i++)
+            {
+                points.Add(new TimeSeriesPoint(xs[i], ys[i]));
+            }
+            result.Add(key, points);
+        }
+
+        AddSeries("Producer_MsgRate", ProducerMsgRate);
+        AddSeries("Producer_ThroughputMB", ProducerThroughput);
+        AddSeries("Producer_Latency", ProducerLatency);
+        AddSeries("Producer_Errors", ProducerErrors);
+
+        AddSeries("Consumer_MsgRate", ConsumerMsgRate);
+        AddSeries("Consumer_ThroughputMB", ConsumerThroughput);
+        AddSeries("Consumer_Latency", ConsumerLatency);
+        AddSeries("Consumer_Errors", ConsumerErrors);
+
+        return result;
     }
 
     public void Reset()

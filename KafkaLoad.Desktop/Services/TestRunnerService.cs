@@ -134,22 +134,13 @@ public class TestRunnerService : ITestRunnerService
 
                 _metricsService.Stop();
 
-                // --- GENERATE AND SAVE REPORT ---
-                try
-                {
-                    
-                }
-                catch (Exception)
-                {
-                    Debug.WriteLine($"Failed to save report: {ex.Message}");
-                }
                 CleanupClients();
                 _cts = null;
             }
         });
     }
 
-    private async Task GenerateAndSaveReportAsync(TestScenario scenario)
+    public async Task GenerateAndSaveReportAsync(TestScenario scenario, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData)
     {
         // Get the final snapshot
         var snapshot = _metricsService.CurrentSnapshot;
@@ -172,7 +163,9 @@ public class TestRunnerService : ITestRunnerService
                 ConsumersCount = scenario.ConsumerCount ?? 0,
                 MessageSize = scenario.MessageSize ?? 0,
                 TargetThroughput = scenario.TargetThroughput
-            }
+            },
+
+            TimeSeriesData = timeSeriesData
         };
 
         // Producer metrics

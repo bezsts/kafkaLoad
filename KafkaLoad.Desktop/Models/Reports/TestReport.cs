@@ -17,5 +17,19 @@ namespace KafkaLoad.Desktop.Models.Reports
 
         public Dictionary<string, double> ExtendedMetrics { get; set; } = new();
         public TestScenarioConfigSnapshot ConfigSnapshot { get; set; } = new();
+
+        public Dictionary<string, List<TimeSeriesPoint>> TimeSeriesData { get; set; } = new();
+    }
+
+    public class TimeSeriesPoint
+    {
+        public double TimeSeconds { get; set; }
+        public double Value { get; set; }
+
+        public TimeSeriesPoint(double time, double value)
+        {
+            TimeSeconds = Math.Round(time, 2);
+            Value = Math.Round(value, 2);
+        }
     }
 }

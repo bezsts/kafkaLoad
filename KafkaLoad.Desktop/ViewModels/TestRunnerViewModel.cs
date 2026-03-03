@@ -1,13 +1,15 @@
+using KafkaLoad.Desktop.Models;
+using KafkaLoad.Desktop.Models.Reports;
+using KafkaLoad.Desktop.Services.Interfaces;
+using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using KafkaLoad.Desktop.Models;
-using KafkaLoad.Desktop.Services.Interfaces;
-using ReactiveUI;
 
 namespace KafkaLoad.Desktop.ViewModels;
 
@@ -17,7 +19,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
     private readonly IMetricsService _metricsService;
     private readonly IConfigRepository<TestScenario> _testScenarioRepository;
     private readonly IKafkaTopicService _topicService;
-    
+
     public RealTimeChartViewModel ChartViewModel { get; }
 
     public ViewModelActivator Activator { get; } = new();
@@ -40,7 +42,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
     public bool CanStart => _canStart.Value;
 
     public TestRunnerViewModel(
-        ITestRunnerService testRunner, 
+        ITestRunnerService testRunner,
         IMetricsService metricsService,
         IConfigRepository<TestScenario> testScenarioRepository,
         IKafkaTopicService topicService)
@@ -57,9 +59,9 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             x => x.SelectedTestScenario,
             x => x.IsTopicFound,
             (running, scenario, topicFound) =>
-                !running &&             
-                scenario != null &&     
-                topicFound == true       
+                !running &&
+                scenario != null &&
+                topicFound == true
         );
 
         StartTestCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -71,6 +73,12 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             try
             {
                 await _testRunner.RunTestAsync(SelectedTestScenario);
+
+                var chartData = ChartViewModel?.GetTimeSeriesData() ?? new Dictionary<string, List<TimeSeriesPoint>>();
+
+                await _testRunner.GenerateAndSaveReportAsync(SelectedTestScenario, chartData);
+
+                StatusText = "Completed & Report Saved";
             }
             catch (Exception ex)
             {
@@ -87,7 +95,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         {
             StatusText = "Stopping...";
             _testRunner.StopTest();
-        }, 
+        },
         this.WhenAnyValue(x => x.IsRunning));
 
         RefreshTopicCommand = ReactiveCommand.CreateFromTask(async () =>
