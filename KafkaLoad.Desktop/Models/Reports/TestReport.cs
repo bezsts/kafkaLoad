@@ -26,6 +26,10 @@ namespace KafkaLoad.Desktop.Models.Reports
         public double TimeSeconds { get; set; }
         public double Value { get; set; }
 
+        public TimeSeriesPoint()
+        {
+        }
+
         public TimeSeriesPoint(double time, double value)
         {
             TimeSeconds = Math.Round(time, 2);

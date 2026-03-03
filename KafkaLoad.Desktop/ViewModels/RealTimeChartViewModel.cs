@@ -5,6 +5,7 @@ using KafkaLoad.Desktop.Services.Visualization;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reactive.Linq;
 
 namespace KafkaLoad.Desktop.ViewModels;
@@ -143,14 +144,21 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         void AddSeries(string key, MetricSeriesBuffer buffer)
         {
             var points = new List<TimeSeriesPoint>();
-            var xs = buffer.XValues.ToArray();
-            var ys = buffer.YValues.ToArray();
-
-            int count = Math.Min(xs.Length, ys.Length);
-
-            for (int i = 0; i < count; i++)
+            try
             {
-                points.Add(new TimeSeriesPoint(xs[i], ys[i]));
+                var xs = buffer.XValues.ToArray();
+                var ys = buffer.YValues.ToArray();
+
+                int count = Math.Min(xs.Length, ys.Length);
+
+                for (int i = 0; i < count; i++)
+                {
+                    points.Add(new TimeSeriesPoint(xs[i], ys[i]));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error extracting chart {key}: {ex.Message}");
             }
             result.Add(key, points);
         }

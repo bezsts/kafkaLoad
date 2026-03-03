@@ -5,6 +5,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -72,6 +73,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             StatusText = "Initializing Workers...";
             try
             {
+                Debug.WriteLine("Test Started");
                 await _testRunner.RunTestAsync(SelectedTestScenario);
 
                 var chartData = ChartViewModel?.GetTimeSeriesData() ?? new Dictionary<string, List<TimeSeriesPoint>>();

@@ -2,6 +2,7 @@
 using KafkaLoad.Desktop.Services.Reports.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -59,9 +60,9 @@ namespace KafkaLoad.Desktop.Services.Reports
                         reports.Add(report);
                     }
                 }
-                catch
+                catch(Exception ex)
                 {
-                    // Skip corrupted files
+                    Debug.WriteLine($"[JSON ERROR] {file}: {ex.Message}");
                 }
             }
 
