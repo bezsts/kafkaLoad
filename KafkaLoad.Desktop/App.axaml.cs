@@ -5,7 +5,10 @@ using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services;
 using KafkaLoad.Desktop.Services.Interfaces;
 using KafkaLoad.Desktop.Services.Kafka;
+using KafkaLoad.Desktop.Services.Reports;
+using KafkaLoad.Desktop.Services.Reports.Interfaces;
 using KafkaLoad.Desktop.ViewModels;
+using KafkaLoad.Desktop.ViewModels.Reports;
 using KafkaLoad.Desktop.Views;
 using ReactiveUI;
 using Splat;
@@ -50,11 +53,13 @@ public partial class App : Application
         Locator.CurrentMutable.RegisterConstant(new MetricsService(), typeof(IMetricsService));
         Locator.CurrentMutable.RegisterConstant(new KafkaClientFactory(), typeof(IKafkaClientFactory));
         Locator.CurrentMutable.RegisterConstant(new KafkaTopicService(), typeof(IKafkaTopicService));
+        Locator.CurrentMutable.RegisterConstant(new JsonTestReportRepository(), typeof(ITestReportRepository));
 
         Locator.CurrentMutable.RegisterLazySingleton(() =>
             new TestRunnerService(
                 Locator.Current.GetService<IKafkaClientFactory>()!,
-                Locator.Current.GetService<IMetricsService>()!
+                Locator.Current.GetService<IMetricsService>()!,
+                Locator.Current.GetService<ITestReportRepository>()!
             ),
             typeof(ITestRunnerService));
     }
@@ -89,6 +94,8 @@ public partial class App : Application
         Locator.CurrentMutable.Register(() => new TestScenariosView(), typeof(IViewFor<TestScenariosViewModel>));
 
         Locator.CurrentMutable.Register(() => new TestRunnerView(), typeof(IViewFor<TestRunnerViewModel>));
+
+        Locator.CurrentMutable.Register(() => new ReportsView(), typeof(IViewFor<ReportsViewModel>));
     }
 
     /// <summary>
@@ -106,7 +113,8 @@ public partial class App : Application
                 resolver.GetService<IConfigRepository<TestScenario>>()!,
                 resolver.GetService<ITestRunnerService>()!,
                 resolver.GetService<IMetricsService>()!,
-                resolver.GetService<IKafkaTopicService>()!
+                resolver.GetService<IKafkaTopicService>()!,
+                resolver.GetService<ITestReportRepository>()!
             )
         };
     }

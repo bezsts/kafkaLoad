@@ -1,0 +1,106 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rxui="http://reactiveui.net"
+             xmlns:vm="using:KafkaLoad.Desktop.ViewModels.Reports"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="KafkaLoad.Desktop.Views.ReportsView"
+             x:DataType="vm:ReportsViewModel">
+    <Grid ColumnDefinitions="300, 20, *">
+        
+        <Border Grid.Column="0" Classes="card" Padding="10">
+            <Grid RowDefinitions="Auto, *">
+                
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                    <TextBlock Text="Test History" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
+                    <Button Command="{Binding LoadReportsCommand}" Content="↻" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip.Tip="Refresh"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="1" Text="Loading..." IsVisible="{Binding IsLoading}" HorizontalAlignment="Center" Margin="20"/>
+                
+                <ListBox Grid.Row="1" ItemsSource="{Binding Reports}" SelectedItem="{Binding SelectedReport}" Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="{Binding ScenarioName}" FontWeight="Bold" FontSize="16"/>
+                                <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding TestType}" Foreground="#10B981" FontWeight="SemiBold" FontSize="12"/>
+                                    <TextBlock Text="{Binding DurationSeconds, StringFormat='{}{0} sec'}" Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="2" Classes="card" Padding="20" IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ScrollViewer>
+                <StackPanel Spacing="20">
+                    
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <TextBlock Text="{Binding SelectedReport.ScenarioName}" FontSize="28" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding SelectedReport.CreatedAt, StringFormat='Run on: {0:yyyy-MM-dd HH:mm:ss}'}" Foreground="{DynamicResource TextSecondary}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="delete" Content="Delete Report" 
+                                Command="{Binding DeleteReportCommand}" 
+                                CommandParameter="{Binding SelectedReport.Id}"
+                                VerticalAlignment="Top"/>
+                    </Grid>
+
+                    <Separator Height="1" Background="{DynamicResource BorderColor}"/>
+
+                    <TextBlock Text="Configuration" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
+                    <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto" Margin="10,0,0,0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Topic:" Foreground="{DynamicResource TextSecondary}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedReport.ConfigSnapshot.TopicName}" FontWeight="SemiBold"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Producers / Consumers:" Foreground="{DynamicResource TextSecondary}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="SemiBold">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} / {1}">
+                                    <Binding Path="SelectedReport.ConfigSnapshot.ProducersCount"/>
+                                    <Binding Path="SelectedReport.ConfigSnapshot.ConsumersCount"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Target Throughput:" Foreground="{DynamicResource TextSecondary}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedReport.ConfigSnapshot.TargetThroughput}" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Separator Height="1" Background="{DynamicResource BorderColor}"/>
+
+                    <TextBlock Text="Detailed Metrics" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
+                    
+                    <ItemsControl ItemsSource="{Binding SelectedReport.ExtendedMetrics}" Margin="10,0,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="250, *" Margin="0,0,0,5">
+                                    <TextBlock Grid.Column="0" Text="{Binding Key}" Foreground="{DynamicResource TextSecondary}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Value, StringFormat='{}{0:N2}'}" FontWeight="Bold"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Separator Height="1" Background="{DynamicResource BorderColor}"/>
+                    <TextBlock Text="Performance Graph (Coming Soon)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
+                    <Border Height="250" Background="#F8FAFC" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4">
+                        <TextBlock Text="Graph visualization will be placed here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <StackPanel Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                    IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNull}}">
+            <TextBlock Text="Select a report from the list to view details" FontSize="18" Foreground="{DynamicResource TextSecondary}"/>
+        </StackPanel>
+
+    </Grid>
+</rxui:ReactiveUserControl>
