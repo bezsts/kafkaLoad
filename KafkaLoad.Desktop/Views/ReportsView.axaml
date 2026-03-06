@@ -5,7 +5,8 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.Desktop.ViewModels.Reports"
              xmlns:conv="using:KafkaLoad.Desktop.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="KafkaLoad.Desktop.Views.ReportsView"
              x:DataType="vm:ReportsViewModel">
 
@@ -30,6 +31,7 @@
         <Style Selector="TextBlock.value">
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
     </UserControl.Styles>
 
@@ -65,8 +67,8 @@
         <Border Grid.Column="2" Classes="card" Padding="20" 
                 DataContext="{Binding SelectedReport}"
                 IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}}">
-            <ScrollViewer>
-                <StackPanel Spacing="20">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="20" Margin="0,0,20,0">
                     
                     <Grid ColumnDefinitions="*, Auto">
                         <StackPanel Grid.Column="0" Spacing="5">
@@ -82,12 +84,12 @@
                     <Separator Height="1" Background="{DynamicResource BorderColor}"/>
 
                     <TextBlock Text="Configuration" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
-                    <Grid ColumnDefinitions="180, *" RowDefinitions="Auto,Auto,Auto" Margin="10,0,0,0">
+                    <Grid ColumnDefinitions="180, Auto, 40, 180, Auto" RowDefinitions="Auto,Auto">
                         <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Topic:"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ConfigSnapshot.TopicName}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ConfigSnapshot.TopicName}" HorizontalAlignment="Left"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Producers / Consumers:"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value">
+                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" HorizontalAlignment="Left">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} / {1}">
                                     <Binding Path="ConfigSnapshot.ProducersCount"/>
@@ -96,87 +98,114 @@
                             </TextBlock.Text>
                         </TextBlock>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Target Throughput:"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding ConfigSnapshot.TargetThroughput}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="3" Classes="label" Text="Target Throughput:"/>
+                        <TextBlock Grid.Row="0" Grid.Column="4" Classes="value" Text="{Binding ConfigSnapshot.TargetThroughput}" HorizontalAlignment="Left"/>
                     </Grid>
 
                     <Separator Height="1" Background="{DynamicResource BorderColor}"/>
 
-                    <TextBlock Text="Producer Metrics" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
-                    <Grid ColumnDefinitions="180, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="10,0,0,0">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total Attempted:"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.TotalMessagesAttempted, StringFormat='{}{0:N0}'}"/>
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Successful Sent:"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value metric-success" Text="{Binding ProducerMetrics.SuccessMessagesSent, StringFormat='{}{0:N0}'}"/>
-
-                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Errors:"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Classes="value metric-error" Text="{Binding ProducerMetrics.ErrorMessages, StringFormat='{}{0:N0}'}"/>
-
-                        <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Error Rate:"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" Classes="value metric-error" Text="{Binding ProducerMetrics.ErrorRatePercent, StringFormat='{}{0:N2} %'}"/>
-
-                        <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Total Data Sent:"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
-
-                        <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Throughput (Msg/sec):"/>
-                        <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1}'}"/>
-
-                        <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Throughput (MB/sec):"/>
-                        <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
-
-                        <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Avg Latency:"/>
-                        <TextBlock Grid.Row="7" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
-
-                        <TextBlock Grid.Row="8" Grid.Column="0" Classes="label" Text="Max Latency:"/>
-                        <TextBlock Grid.Row="8" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.MaxLatencyMs, StringFormat='{}{0:N2} ms'}"/>
-
-                        <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="P95 Latency:"/>
-                        <TextBlock Grid.Row="9" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.P95Lat, StringFormat='{}{0:N2} ms'}"/>
-                    </Grid>
-
-                    <StackPanel IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="20">
-                        <Separator Height="1" Background="{DynamicResource BorderColor}"/>
-                        <TextBlock Text="Consumer Metrics" FontSize="18" FontWeight="SemiBold" Foreground="#10B981"/>
+                    <Grid ColumnDefinitions="*, 20, *">
                         
-                        <Grid ColumnDefinitions="180, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="10,0,0,0">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total Received:"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.TotalMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+                        <StackPanel Grid.Column="0" Spacing="15">
+                            <TextBlock Text="PRODUCER METRICS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
+                            
+                            <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total Attempted:"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.TotalMessagesAttempted, StringFormat='{}{0:N0}'}"/>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Successful Received:"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Classes="value metric-success" Text="{Binding ConsumerMetrics.SuccessMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Successful Sent:"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value metric-success" Text="{Binding ProducerMetrics.SuccessMessagesSent, StringFormat='{}{0:N0}'}"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Errors:"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Classes="value metric-error" Text="{Binding ConsumerMetrics.ErrorMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Errors:"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value metric-error" Text="{Binding ProducerMetrics.ErrorMessages, StringFormat='{}{0:N0}'}"/>
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Total Data Received:"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Error Rate:"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Classes="value metric-error" Text="{Binding ProducerMetrics.ErrorRatePercent, StringFormat='{}{0:N2} %'}"/>
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Throughput (Msg/sec):"/>
-                            <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1}'}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Total Data Sent:"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
 
-                            <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Throughput (MB/sec):"/>
-                            <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Throughput (Msg/sec):"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1}'}"/>
 
-                            <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Avg E2E Latency:"/>
-                            <TextBlock Grid.Row="6" Grid.Column="1" Classes="value metric-warn" Text="{Binding ConsumerMetrics.AvgEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+                                <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Throughput (MB/sec):"/>
+                                <TextBlock Grid.Row="6" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
 
-                            <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Max E2E Latency:"/>
-                            <TextBlock Grid.Row="7" Grid.Column="1" Classes="value metric-warn" Text="{Binding ConsumerMetrics.MaxEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+                                <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Avg Latency:"/>
+                                <TextBlock Grid.Row="7" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
 
-                            <TextBlock Grid.Row="8" Grid.Column="0" Classes="label" Text="Current Lag:"/>
-                            <TextBlock Grid.Row="8" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.FinalConsumerLag, StringFormat='{}{0:N0}'}"/>
+                                <TextBlock Grid.Row="8" Grid.Column="0" Classes="label" Text="Max Latency:"/>
+                                <TextBlock Grid.Row="8" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.MaxLatencyMs, StringFormat='{}{0:N2} ms'}"/>
 
-                            <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="Max Lag:"/>
-                            <TextBlock Grid.Row="9" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.MaxConsumerLag, StringFormat='{}{0:N0}'}"/>
-                        </Grid>
-                    </StackPanel>
+                                <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="P95 Latency:"/>
+                                <TextBlock Grid.Row="9" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.P95Lat, StringFormat='{}{0:N2} ms'}"/>
+                            </Grid>
 
-                    <Separator Height="1" Background="{DynamicResource BorderColor}"/>
-                    <TextBlock Text="Performance Graph (Coming Soon)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"/>
-                    <Border Height="250" Background="#F8FAFC" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4">
-                        <TextBlock Text="Graph visualization will be placed here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
-                    </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdThroughputMbChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdThroughputMsgChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdLatencyChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdErrorsChart" Height="180"/>
+                            </Border>
+
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="15" IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <TextBlock Text="CONSUMER METRICS" FontSize="18" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center"/>
+                            
+                            <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total Received:"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.TotalMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Successful Received:"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Classes="value metric-success" Text="{Binding ConsumerMetrics.SuccessMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Errors:"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Classes="value metric-error" Text="{Binding ConsumerMetrics.ErrorMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="Total Data Recv:"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="Throughput (Msg/sec):"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1}'}"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="Throughput (MB/sec):"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Classes="label" Text="Avg E2E Latency:"/>
+                                <TextBlock Grid.Row="6" Grid.Column="1" Classes="value metric-warn" Text="{Binding ConsumerMetrics.AvgEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0" Classes="label" Text="Max E2E Latency:"/>
+                                <TextBlock Grid.Row="7" Grid.Column="1" Classes="value metric-warn" Text="{Binding ConsumerMetrics.MaxEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                <TextBlock Grid.Row="8" Grid.Column="0" Classes="label" Text="Current Lag:"/>
+                                <TextBlock Grid.Row="8" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.FinalConsumerLag, StringFormat='{}{0:N0}'}"/>
+
+                                <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="Max Lag:"/>
+                                <TextBlock Grid.Row="9" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.MaxConsumerLag, StringFormat='{}{0:N0}'}"/>
+                            </Grid>
+
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ConsThroughputMbChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ConsThroughputMsgChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ConsLatencyChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ConsErrorsChart" Height="180"/>
+                            </Border>
+
+                        </StackPanel>
+                    </Grid>
 
                 </StackPanel>
             </ScrollViewer>
