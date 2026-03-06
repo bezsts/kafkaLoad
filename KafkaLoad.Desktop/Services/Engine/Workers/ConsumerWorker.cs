@@ -44,7 +44,7 @@ public class ConsumerWorker : BaseWorker
                         // Sanity check for clock skew
                         if (latencyMs < 0) latencyMs = 0;
 
-                        int bytes = result.Message.Value?.Length ?? 0;
+                        int bytes = (result.Message.Key?.Length ?? 0) + (result.Message.Value?.Length ?? 0);
                         Metrics.RecordConsumerSuccess(bytes, latencyMs);
 
                         if (++iterations % 100 == 0)
