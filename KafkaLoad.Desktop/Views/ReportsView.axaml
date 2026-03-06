@@ -84,15 +84,30 @@
                                           PlaceholderText="Select report..." Width="200">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding ScenarioName}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding ScenarioName}" FontWeight="SemiBold"/>
+                
+                                                <TextBlock Text="{Binding CreatedAt, StringFormat='{} - {0:MM.dd HH:mm:ss}'}" 
+                                                           Foreground="{DynamicResource TextSecondary}" 
+                                                           FontSize="12" 
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
+
+                                <Button Content="✖" 
+                                        Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ClearComparisonCommand}"
+                                        IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Background="Transparent" 
+                                        Foreground="{DynamicResource DangerRed}"
+                                        FontSize="16"
+                                        Cursor="Hand" 
+                                        ToolTip.Tip="Cancel comparison"
+                                        BorderThickness="0"
+                                        Padding="5,0"/>
                             </StackPanel>
-                            
-                            <Button Classes="delete" Content="Delete Report" 
-                                    Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).DeleteReportCommand}" 
-                                    CommandParameter="{Binding Id}"/>
+                           
                         </StackPanel>
                     </Grid>
 
@@ -201,6 +216,10 @@
                                 <sp:AvaPlot Name="ProdErrorsChart" Height="180"/>
                             </Border>
 
+                            <Button Classes="delete" Content="Delete Report" 
+                                    Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).DeleteReportCommand}" 
+                                    CommandParameter="{Binding Id}"/>
+
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Spacing="15" IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -250,10 +269,9 @@
                             <Border Classes="card" Background="#FAFAFA" Padding="10">
                                 <sp:AvaPlot Name="ConsErrorsChart" Height="180"/>
                             </Border>
-
                         </StackPanel>
                     </Grid>
-
+                    
                 </StackPanel>
             </ScrollViewer>
         </Border>

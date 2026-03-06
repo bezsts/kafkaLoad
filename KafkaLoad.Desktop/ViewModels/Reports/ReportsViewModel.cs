@@ -19,7 +19,11 @@ namespace KafkaLoad.Desktop.ViewModels.Reports
         public TestReport? SelectedReport
         {
             get => _selectedReport;
-            set => this.RaiseAndSetIfChanged(ref _selectedReport, value);
+            set 
+            { 
+                this.RaiseAndSetIfChanged(ref _selectedReport, value);
+                CompareWithReport = null;
+            }
         }
 
         private bool _isLoading;
@@ -45,6 +49,7 @@ namespace KafkaLoad.Desktop.ViewModels.Reports
 
         public ReactiveCommand<Unit, Unit> LoadReportsCommand { get; }
         public ReactiveCommand<string, Unit> DeleteReportCommand { get; }
+        public ReactiveCommand<Unit, Unit> ClearComparisonCommand { get; }
 
         public ReportsViewModel(ITestReportRepository reportRepository)
         {
@@ -55,6 +60,7 @@ namespace KafkaLoad.Desktop.ViewModels.Reports
             DeleteReportCommand = ReactiveCommand.CreateFromTask<string>(DeleteReportAsync);
 
             LoadReportsCommand.Execute().Subscribe();
+            ClearComparisonCommand = ReactiveCommand.Create(() => { CompareWithReport = null; });
         }
 
         private async Task LoadReportsAsync()
