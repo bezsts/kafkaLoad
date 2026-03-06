@@ -165,12 +165,11 @@
                                    IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ConsumerComparison.Count}"/>
                         <ItemsControl ItemsSource="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ConsumerComparison}" ItemTemplate="{StaticResource DiffTemplate}"/>
                     </StackPanel>
-                    <Grid ColumnDefinitions="*, 20, *"
+                    <Grid ColumnDefinitions="*, 20, *" 
                           IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
                         
                         <StackPanel Grid.Column="0" Spacing="15">
                             <TextBlock Text="PRODUCER METRICS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
-                            
                             <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                                 <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total Attempted:"/>
                                 <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ProducerMetrics.TotalMessagesAttempted, StringFormat='{}{0:N0}'}"/>
@@ -202,29 +201,10 @@
                                 <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="P95 Latency:"/>
                                 <TextBlock Grid.Row="9" Grid.Column="1" Classes="value metric-warn" Text="{Binding ProducerMetrics.P95Lat, StringFormat='{}{0:N2} ms'}"/>
                             </Grid>
-
-                            <Border Classes="card" Background="#FAFAFA" Padding="10">
-                                <sp:AvaPlot Name="ProdThroughputMbChart" Height="180"/>
-                            </Border>
-                            <Border Classes="card" Background="#FAFAFA" Padding="10">
-                                <sp:AvaPlot Name="ProdThroughputMsgChart" Height="180"/>
-                            </Border>
-                            <Border Classes="card" Background="#FAFAFA" Padding="10">
-                                <sp:AvaPlot Name="ProdLatencyChart" Height="180"/>
-                            </Border>
-                            <Border Classes="card" Background="#FAFAFA" Padding="10">
-                                <sp:AvaPlot Name="ProdErrorsChart" Height="180"/>
-                            </Border>
-
-                            <Button Classes="delete" Content="Delete Report" 
-                                    Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).DeleteReportCommand}" 
-                                    CommandParameter="{Binding Id}"/>
-
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Spacing="15" IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
                             <TextBlock Text="CONSUMER METRICS" FontSize="18" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center"/>
-                            
                             <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                                 <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Total Received:"/>
                                 <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.TotalMessagesConsumed, StringFormat='{}{0:N0}'}"/>
@@ -256,7 +236,26 @@
                                 <TextBlock Grid.Row="9" Grid.Column="0" Classes="label" Text="Max Lag:"/>
                                 <TextBlock Grid.Row="9" Grid.Column="1" Classes="value" Text="{Binding ConsumerMetrics.MaxConsumerLag, StringFormat='{}{0:N0}'}"/>
                             </Grid>
+                        </StackPanel>
+                    </Grid>
 
+                    <Grid ColumnDefinitions="*, 20, *" Margin="0,10,0,0">
+                        <StackPanel Grid.Column="0" Spacing="15">
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdThroughputMbChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdThroughputMsgChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdLatencyChart" Height="180"/>
+                            </Border>
+                            <Border Classes="card" Background="#FAFAFA" Padding="10">
+                                <sp:AvaPlot Name="ProdErrorsChart" Height="180"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="15" IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
                             <Border Classes="card" Background="#FAFAFA" Padding="10">
                                 <sp:AvaPlot Name="ConsThroughputMbChart" Height="180"/>
                             </Border>
@@ -271,7 +270,9 @@
                             </Border>
                         </StackPanel>
                     </Grid>
-                    
+                    <Button Classes="delete" Content="Delete Report" 
+                                    Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).DeleteReportCommand}" 
+                                    CommandParameter="{Binding Id}"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
@@ -283,3 +284,5 @@
 
     </Grid>
 </rxui:ReactiveUserControl>
+
+

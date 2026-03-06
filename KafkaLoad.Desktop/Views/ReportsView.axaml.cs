@@ -38,7 +38,6 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
 
         this.WhenActivated(disposables =>
         {
-            // Initialize basic styles for all 8 charts
             SetupChartStyle(_prodThrMb);
             SetupChartStyle(_prodThrMsg);
             SetupChartStyle(_prodLat);
@@ -49,9 +48,15 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
             SetupChartStyle(_consLat);
             SetupChartStyle(_consErr);
 
-            // Redraw everything when a new report is selected
-            this.WhenAnyValue(x => x.ViewModel.SelectedReport)
-                .Subscribe(report => UpdateAllCharts(report))
+            this.WhenAnyValue(x => x.ViewModel.SelectedReport, x => x.ViewModel.CompareWithReport)
+                .Subscribe(tuple =>
+                {
+                    var (report, compare) = tuple;
+                    if (compare == null)
+                        UpdateAllCharts(report); // Single mode
+                    else
+                        UpdateAllComparisonCharts(report, compare); // Comparison mode
+                })
                 .DisposeWith(disposables);
         });
     }
@@ -78,12 +83,14 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
         };
     }
 
+    // ==========================================================
+    // SINGLE REPORT MODE
+    // ==========================================================
     private void UpdateAllCharts(TestReport? report)
     {
         if (report == null) return;
 
         // Draw Producer Charts
-        // Theme indexes matching ChartTheme.GetMetricStyle: 0=MB/s, 1=Msg/s, 2=Latency, 3=Errors
         DrawChart(_prodThrMb, report, "Producer_ThroughputMB", "MB/s", 0);
         DrawChart(_prodThrMsg, report, "Producer_MsgRate", "Msg/s", 1);
         DrawChart(_prodLat, report, "Producer_Latency", "ms", 2);
@@ -101,16 +108,13 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
     {
         if (chart == null) return;
 
-        // Clear previous lines
         chart.Plot.PlottableList.Clear();
 
         if (report.TimeSeriesData != null && report.TimeSeriesData.TryGetValue(dictionaryKey, out var points) && points.Count > 0)
         {
-            // Extract X and Y arrays
             var xs = points.Select(p => p.TimeSeconds).ToArray();
             var ys = points.Select(p => p.Value).ToArray();
 
-            // Get standard color from the theme
             var (color, _) = ChartTheme.GetMetricStyle(themeIndex);
 
             var scatter = chart.Plot.Add.Scatter(xs, ys);
@@ -119,12 +123,125 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
             scatter.MarkerSize = 0;
         }
 
-        // Apply titles and labels
         chart.Plot.Axes.Left.Label.Text = yLabel;
 
-        // Remove underscore for the title (e.g., "Producer_Latency" -> "Producer Latency")
         chart.Plot.Title(dictionaryKey.Replace("_", " "), size: 12);
 
+        chart.Plot.HideLegend();
+        chart.Plot.Axes.AutoScale();
+        chart.Refresh();
+    }
+
+    // ==========================================================
+    // COMPARISON MODE
+    // ==========================================================
+    private void UpdateAllComparisonCharts(TestReport? r1, TestReport? r2)
+    {
+        if (r1 == null || r2 == null) return;
+
+        DrawComparisonChart(_prodThrMb, r1, r2, "Producer_ThroughputMB", "MB/s", lowerIsBetter: false, 0);
+        DrawComparisonChart(_prodThrMsg, r1, r2, "Producer_MsgRate", "Msg/s", lowerIsBetter: false, 1);
+        DrawComparisonChart(_prodLat, r1, r2, "Producer_Latency", "ms", lowerIsBetter: true, 2);
+        DrawComparisonChart(_prodErr, r1, r2, "Producer_Errors", "Errors/s", lowerIsBetter: true, 3);
+
+        DrawComparisonChart(_consThrMb, r1, r2, "Consumer_ThroughputMB", "MB/s", lowerIsBetter: false, 0);
+        DrawComparisonChart(_consThrMsg, r1, r2, "Consumer_MsgRate", "Msg/s", lowerIsBetter: false, 1);
+        DrawComparisonChart(_consLat, r1, r2, "Consumer_Latency", "ms", lowerIsBetter: true, 2);
+        DrawComparisonChart(_consErr, r1, r2, "Consumer_Errors", "Errors/s", lowerIsBetter: true, 3);
+    }
+
+    private void DrawComparisonChart(AvaPlot? chart, TestReport r1, TestReport r2, string key, string yLabel, bool lowerIsBetter, int themeIndex)
+    {
+        if (chart == null) return;
+        chart.Plot.PlottableList.Clear();
+
+        if (r1.TimeSeriesData == null || r2.TimeSeriesData == null ||
+            !r1.TimeSeriesData.TryGetValue(key, out var p1) || !r2.TimeSeriesData.TryGetValue(key, out var p2) ||
+            p1.Count == 0 || p2.Count == 0)
+        {
+            chart.Refresh();
+            return;
+        }
+
+        int count = Math.Min(p1.Count, p2.Count);
+
+        var xs = new double[count];
+        var ysOriginal = new double[count];
+        var ysCompared = new double[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            xs[i] = p1[i].TimeSeconds;
+            ysOriginal[i] = p1[i].Value;
+            ysCompared[i] = p2[i].Value;
+        }
+
+        var colorGreen = ScottPlot.Color.FromHex("#16A34A40");
+        var colorRed = ScottPlot.Color.FromHex("#EF444440");
+
+        void AddPolygon(double x1, double x2, double y1_orig, double y2_orig, double y1_comp, double y2_comp, double diff)
+        {
+            if (Math.Abs(diff) < 0.0001) return;
+
+            bool isBetter = lowerIsBetter ? diff < 0 : diff > 0;
+
+            var poly = chart.Plot.Add.Polygon(new ScottPlot.Coordinates[] {
+                new(x1, y1_orig),
+                new(x2, y2_orig),
+                new(x2, y2_comp),
+                new(x1, y1_comp)
+            });
+            poly.FillColor = isBetter ? colorGreen : colorRed;
+            poly.LineWidth = 0;
+        }
+
+        for (int i = 0; i < count - 1; i++)
+        {
+            double x1 = xs[i], x2 = xs[i + 1];
+            double y1_orig = ysOriginal[i], y2_orig = ysOriginal[i + 1];
+            double y1_comp = ysCompared[i], y2_comp = ysCompared[i + 1];
+
+            double diff1 = y1_comp - y1_orig;
+            double diff2 = y2_comp - y2_orig;
+
+            if ((diff1 > 0 && diff2 < 0) || (diff1 < 0 && diff2 > 0))
+            {
+                double t = diff1 / (diff1 - diff2);
+                double xInt = x1 + t * (x2 - x1);
+                double yInt = y1_orig + t * (y2_orig - y1_orig);
+
+                AddPolygon(x1, xInt, y1_orig, yInt, y1_comp, yInt, diff1);
+
+                AddPolygon(xInt, x2, yInt, y2_orig, yInt, y2_comp, diff2);
+            }
+            else
+            {
+                AddPolygon(x1, x2, y1_orig, y2_orig, y1_comp, y2_comp, diff1 != 0 ? diff1 : diff2);
+            }
+        }
+
+        var scatter1 = chart.Plot.Add.Scatter(xs, ysOriginal);
+        scatter1.Color = ScottPlot.Color.FromHex("#9CA3AF"); // Neutral Gray
+        scatter1.LineWidth = 2f;
+        scatter1.MarkerSize = 0;
+        scatter1.LegendText = "Original";
+
+        var (mainColor, _) = ChartTheme.GetMetricStyle(themeIndex);
+
+        if (key.Contains("Errors"))
+        {
+            mainColor = ScottPlot.Color.FromHex("#8B5CF6"); // Deep Purple
+        }
+
+        var scatter2 = chart.Plot.Add.Scatter(xs, ysCompared);
+        scatter2.Color = mainColor;
+        scatter2.LineWidth = 2.5f;
+        scatter2.MarkerSize = 0;
+        scatter2.LegendText = "Compared";
+
+        chart.Plot.ShowLegend(ScottPlot.Alignment.UpperRight);
+        chart.Plot.Axes.Left.Label.Text = yLabel;
+        chart.Plot.Title(key.Replace("_", " ") + " Diff", size: 12);
         chart.Plot.Axes.AutoScale();
         chart.Refresh();
     }
