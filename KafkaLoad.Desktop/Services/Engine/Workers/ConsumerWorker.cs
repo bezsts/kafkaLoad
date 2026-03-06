@@ -23,6 +23,7 @@ public class ConsumerWorker : BaseWorker
     public override async Task StartAsync(CancellationToken ct)
     {
         await Task.Yield();
+        int iterations = 0;
 
         try
         {
@@ -45,6 +46,18 @@ public class ConsumerWorker : BaseWorker
 
                         int bytes = result.Message.Value?.Length ?? 0;
                         Metrics.RecordConsumerSuccess(bytes, latencyMs);
+
+                        if (++iterations % 100 == 0)
+                        {
+                            var watermark = _consumer.GetWatermarkOffsets(result.TopicPartition);
+                            if (watermark != null)
+                            {
+                                long lag = watermark.High.Value - result.Offset.Value;
+                                if (lag < 0) lag = 0;
+
+                                Metrics.RecordConsumerLag(lag);
+                            }
+                        }
                     }
                 }
                 catch (OperationCanceledException)

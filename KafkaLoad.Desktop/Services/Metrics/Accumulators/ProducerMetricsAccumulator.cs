@@ -6,23 +6,41 @@ namespace KafkaLoad.Desktop.Services;
 
 public class ProducerMetricsAccumulator : BaseMetricsAccumulator
 {
-    // TODO: Implement P95 calculation logic
+    private long _recordQueueTimeSumMs;
+    private long _recordQueueTimeCount;
     public ProducerMetricsSnapshot GetSnapshot(double elapsedSeconds)
     {
+        long queueTimeCount = Interlocked.Read(ref _recordQueueTimeCount);
+        long queueTimeSum = Interlocked.Read(ref _recordQueueTimeSumMs);
+
         return new ProducerMetricsSnapshot(
-            Interlocked.Read(ref TotalMessages),
-            Interlocked.Read(ref TotalBytes),
-            Interlocked.Read(ref SuccessMessages),
-            Interlocked.Read(ref ErrorMessages),
-            CalculateThroughputMsg(elapsedSeconds),
-            CalculateThroughputBytes(elapsedSeconds),
-            CalculateAvgLatency(),
-            0 //HACK: P95 placeholder
+            TotalMessagesAttempted: Interlocked.Read(ref TotalMessages),
+            SuccessMessagesSent: Interlocked.Read(ref SuccessMessages),
+            ErrorMessages: Interlocked.Read(ref ErrorMessages),
+            TotalBytesSent: Interlocked.Read(ref TotalBytes),
+
+            ErrorRatePercent: CalculateErrorRatePercent(),
+
+            ThroughputMsgSec: CalculateThroughputMsg(elapsedSeconds),
+            ThroughputBytesSec: CalculateThroughputBytes(elapsedSeconds),
+
+            AvgLatencyMs: CalculateAvgLatency(),
+            MaxLatencyMs: MaxLatencyMs,
+
+            P95Lat: CalculateP95Latency()
         );
+    }
+
+    public void AddQueueTime(double queueTimeMs)
+    {
+        Interlocked.Add(ref _recordQueueTimeSumMs, (long)queueTimeMs);
+        Interlocked.Increment(ref _recordQueueTimeCount);
     }
 
     public override void Reset()
     {
         base.Reset();
+        Interlocked.Exchange(ref _recordQueueTimeSumMs, 0);
+        Interlocked.Exchange(ref _recordQueueTimeCount, 0);
     }
 }

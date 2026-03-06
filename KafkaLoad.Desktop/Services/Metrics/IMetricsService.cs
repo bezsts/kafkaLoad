@@ -9,6 +9,8 @@ public interface IMetricsService
     void RecordConsumerSuccess(int bytes, double latencyMs);
     void RecordProducerError();
     void RecordConsumerError();
+    void RecordProducerQueueTime(double queueTimeMs);
+    void RecordConsumerLag(long currentLag);
     void Reset();
     void Stop();
 

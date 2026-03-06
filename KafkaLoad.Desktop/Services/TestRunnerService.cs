@@ -57,7 +57,7 @@ public class TestRunnerService : ITestRunnerService
             var replenisherTask = Task.Run(() => throughputController.RunReplenisherAsync(_cts.Token));
             tasks.Add(replenisherTask);
 
-            // --- 1. Start Producers ---
+            // --- Start Producers ---
             if (scenario.ProducerConfig != null)
             {
                 int pCount = scenario.ProducerCount ?? 1;
@@ -88,7 +88,7 @@ public class TestRunnerService : ITestRunnerService
                 }
             }
 
-            // --- 2. Start Consumers ---
+            // --- Start Consumers ---
             if (scenario.ConsumerConfig != null)
             {
                 int cCount = scenario.ConsumerCount ?? 0;
@@ -110,7 +110,7 @@ public class TestRunnerService : ITestRunnerService
                 }
             }
 
-            // --- 3. Wait for Test Duration ---
+            // --- Wait for Test Duration ---
             try
             {
                 int durationMs = (scenario.Duration ?? 60) * 1000;
@@ -142,19 +142,14 @@ public class TestRunnerService : ITestRunnerService
 
     public async Task GenerateAndSaveReportAsync(TestScenario scenario, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData)
     {
-        // Get the final snapshot
         var snapshot = _metricsService.CurrentSnapshot;
         if (snapshot == null) return;
 
-        // Initialize the base report model
         var report = new TestReport
         {
             ScenarioName = scenario.Name ?? "Unnamed Scenario",
             TestType = scenario.TestType,
             DurationSeconds = scenario.Duration ?? 0,
-
-            TotalMessagesSent = snapshot.Producer.TotalMsgsSent,
-            TotalErrors = snapshot.Producer.ErrorMsgsSent,
 
             ConfigSnapshot = new TestScenarioConfigSnapshot
             {
@@ -165,26 +160,38 @@ public class TestRunnerService : ITestRunnerService
                 TargetThroughput = scenario.TargetThroughput
             },
 
+            ProducerMetrics = new ProducerReportMetrics
+            {
+                TotalMessagesAttempted = snapshot.Producer.TotalMessagesAttempted,
+                SuccessMessagesSent = snapshot.Producer.SuccessMessagesSent,
+                ErrorMessages = snapshot.Producer.ErrorMessages,
+                TotalBytesSent = snapshot.Producer.TotalBytesSent,
+                ErrorRatePercent = snapshot.Producer.ErrorRatePercent,
+                ThroughputMsgSec = snapshot.Producer.ThroughputMsgSec,
+                ThroughputBytesSec = snapshot.Producer.ThroughputBytesSec,
+                AvgLatencyMs = snapshot.Producer.AvgLatencyMs,
+                MaxLatencyMs = snapshot.Producer.MaxLatencyMs,
+                P95Lat = snapshot.Producer.P95Lat
+            },
+
             TimeSeriesData = timeSeriesData
         };
 
-        // Producer metrics
-        report.ExtendedMetrics.Add("Producer_TotalBytesSent", snapshot.Producer.TotalBytesSent);
-        report.ExtendedMetrics.Add("Producer_SuccessMsgsSent", snapshot.Producer.SuccessMsgsSent);
-        report.ExtendedMetrics.Add("Producer_AvgLatencyMs", snapshot.Producer.AvgLatMs);
-        report.ExtendedMetrics.Add("Producer_ThroughputMsgSec", snapshot.Producer.ThroughputMsg);
-        report.ExtendedMetrics.Add("Producer_ThroughputBytesSec", snapshot.Producer.ThroughputBytes);
-
-        // Consumer metrics
-        if (scenario.ConsumerCount > 0)
+        if (scenario.ConsumerCount > 0 && snapshot.Consumer != null)
         {
-            report.ExtendedMetrics.Add("Consumer_TotalMsgs", snapshot.Consumer.TotalMsgConsumed);
-            report.ExtendedMetrics.Add("Consumer_TotalBytes", snapshot.Consumer.TotalBytesConsumed);
-            report.ExtendedMetrics.Add("Consumer_SuccessMsgs", snapshot.Consumer.SuccessMsgsConsumed);
-            report.ExtendedMetrics.Add("Consumer_ErrorMsgs", snapshot.Consumer.ErrorMsgsConsumed);
-            report.ExtendedMetrics.Add("Consumer_AvgLatencyMs", snapshot.Consumer.AvgLatencyMs);
-            report.ExtendedMetrics.Add("Consumer_ThroughputMsgSec", snapshot.Consumer.ThroughputMsg);
-            report.ExtendedMetrics.Add("Consumer_ThroughputBytesSec", snapshot.Consumer.ThroughputBytes);
+            report.ConsumerMetrics = new ConsumerReportMetrics
+            {
+                TotalMessagesConsumed = snapshot.Consumer.TotalMessagesConsumed,
+                TotalBytesConsumed = snapshot.Consumer.TotalBytesConsumed,
+                SuccessMessagesConsumed = snapshot.Consumer.SuccessMessagesConsumed,
+                ErrorMessagesConsumed = snapshot.Consumer.ErrorMessagesConsumed,
+                ThroughputMsgSec = snapshot.Consumer.ThroughputMsgSec,
+                ThroughputBytesSec = snapshot.Consumer.ThroughputBytesSec,
+                AvgEndToEndLatencyMs = snapshot.Consumer.AvgEndToEndLatencyMs,
+                MaxEndToEndLatencyMs = snapshot.Consumer.MaxEndToEndLatencyMs,
+                MaxConsumerLag = snapshot.Consumer.MaxConsumerLag,
+                FinalConsumerLag = snapshot.Consumer.FinalConsumerLag
+            };
         }
 
         if (_reportRepository != null)

@@ -1,12 +1,18 @@
 namespace KafkaLoad.Desktop.Models;
 
 public record ProducerMetricsSnapshot(
-    long TotalMsgsSent,
+    long TotalMessagesAttempted,
+    long SuccessMessagesSent,
+    long ErrorMessages,
     long TotalBytesSent,
-    long SuccessMsgsSent,
-    long ErrorMsgsSent,
-    double ThroughputMsg,
-    double ThroughputBytes, 
-    double AvgLatMs,
+
+    double ErrorRatePercent,
+
+    double ThroughputMsgSec,
+    double ThroughputBytesSec,
+    
+    double AvgLatencyMs,
+    double MaxLatencyMs,
+
     double P95Lat
 );

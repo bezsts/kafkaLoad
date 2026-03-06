@@ -1,11 +1,17 @@
 namespace KafkaLoad.Desktop.Models;
 
 public record ConsumerMetricsSnapshot(
-    long TotalMsgConsumed,
+    long TotalMessagesConsumed,
     long TotalBytesConsumed,
-    long SuccessMsgsConsumed,
-    long ErrorMsgsConsumed,
-    double ThroughputMsg,
-    double ThroughputBytes,
-    double AvgLatencyMs
+    long SuccessMessagesConsumed,
+    long ErrorMessagesConsumed,
+
+    double ThroughputMsgSec,
+    double ThroughputBytesSec,
+
+    double AvgEndToEndLatencyMs,
+    double MaxEndToEndLatencyMs,
+
+    long MaxConsumerLag,
+    long FinalConsumerLag
 );

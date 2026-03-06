@@ -24,6 +24,11 @@ public class MetricsService : IMetricsService
 
     public void RecordProducerError() => _producerAccumulator.AddError();
     public void RecordConsumerError() => _consumerAccumulator.AddError();
+    public void RecordProducerQueueTime(double queueTimeMs) =>
+        _producerAccumulator.AddQueueTime(queueTimeMs);
+
+    public void RecordConsumerLag(long currentLag) =>
+        _consumerAccumulator.UpdateLag(currentLag);
 
     private GlobalMetricsSnapshot CreateSnapshot()
     {

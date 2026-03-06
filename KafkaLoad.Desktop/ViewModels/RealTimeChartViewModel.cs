@@ -90,12 +90,12 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         // --- CALCULATE INSTANTANEOUS RATES (DELTAS) ---
 
         double prodMbSec = ((snapshot.Producer.TotalBytesSent - _lastProdBytes) / 1024.0 / 1024.0) / deltaSec;
-        double prodMsgSec = (snapshot.Producer.TotalMsgsSent - _lastProdMsgs) / deltaSec;
-        double prodErrSec = (snapshot.Producer.ErrorMsgsSent - _lastProdErrors) / deltaSec;
+        double prodMsgSec = (snapshot.Producer.SuccessMessagesSent - _lastProdMsgs) / deltaSec;
+        double prodErrSec = (snapshot.Producer.ErrorMessages - _lastProdErrors) / deltaSec;
 
         double consMbSec = ((snapshot.Consumer.TotalBytesConsumed - _lastConsBytes) / 1024.0 / 1024.0) / deltaSec;
-        double consMsgSec = (snapshot.Consumer.TotalMsgConsumed - _lastConsMsgs) / deltaSec;
-        double consErrSec = (snapshot.Consumer.ErrorMsgsConsumed - _lastConsErrors) / deltaSec;
+        double consMsgSec = (snapshot.Consumer.SuccessMessagesConsumed - _lastConsMsgs) / deltaSec;
+        double consErrSec = (snapshot.Consumer.ErrorMessagesConsumed - _lastConsErrors) / deltaSec;
 
         // Prevent negative values in case of counter resets
         prodMbSec = Math.Max(0, prodMbSec);
@@ -111,13 +111,13 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         ProducerThroughput.AddPoint(time, prodMbSec);
         ProducerMsgRate.AddPoint(time, prodMsgSec);
         ProducerErrors.AddPoint(time, prodErrSec);
-        ProducerLatency.AddPoint(time, snapshot.Producer.AvgLatMs); // Latency is already an average, so we keep it
+        ProducerLatency.AddPoint(time, snapshot.Producer.AvgLatencyMs);
 
         // Consumer
         ConsumerThroughput.AddPoint(time, consMbSec);
         ConsumerMsgRate.AddPoint(time, consMsgSec);
         ConsumerErrors.AddPoint(time, consErrSec);
-        ConsumerLatency.AddPoint(time, snapshot.Consumer.AvgLatencyMs);
+        ConsumerLatency.AddPoint(time, snapshot.Consumer.AvgEndToEndLatencyMs);
 
         // --- SAVE STATE FOR NEXT CALCULATION ---
         UpdateLastValues(snapshot);
@@ -129,12 +129,12 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
     private void UpdateLastValues(GlobalMetricsSnapshot snapshot)
     {
         _lastProdBytes = snapshot.Producer.TotalBytesSent;
-        _lastProdMsgs = snapshot.Producer.TotalMsgsSent;
-        _lastProdErrors = snapshot.Producer.ErrorMsgsSent;
+        _lastProdMsgs = snapshot.Producer.SuccessMessagesSent;
+        _lastProdErrors = snapshot.Producer.ErrorMessages;
 
         _lastConsBytes = snapshot.Consumer.TotalBytesConsumed;
-        _lastConsMsgs = snapshot.Consumer.TotalMsgConsumed;
-        _lastConsErrors = snapshot.Consumer.ErrorMsgsConsumed;
+        _lastConsMsgs = snapshot.Consumer.SuccessMessagesConsumed;
+        _lastConsErrors = snapshot.Consumer.ErrorMessagesConsumed;
     }
 
     public Dictionary<string, List<TimeSeriesPoint>> GetTimeSeriesData()
