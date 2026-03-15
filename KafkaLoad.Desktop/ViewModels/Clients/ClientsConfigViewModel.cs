@@ -2,12 +2,14 @@
 using KafkaLoad.Desktop.Models.Interfaces;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI;
+using Serilog;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace KafkaLoad.Desktop.ViewModels
 {
@@ -71,9 +73,12 @@ namespace KafkaLoad.Desktop.ViewModels
             _producerRepo = producerRepo;
             _consumerRepo = consumerRepo;
 
-            // --- Producer Commands Setup ---
+            // ---Producer Commands Setup ---
             CreateProducerCommand = ReactiveCommand.Create(() =>
-                OpenEditorFor(() => new ProducerConfigViewModel(_producerRepo), "Producer"));
+            {
+                Log.Information("User clicked Create New Producer Configuration.");
+                OpenEditorFor(() => new ProducerConfigViewModel(_producerRepo), "Producer");
+            });
 
             DuplicateProducerCommand = ReactiveCommand.CreateFromTask(() =>
                 DuplicateItemAsync(_producerRepo, SelectedProducer, Producers, p => SelectedProducer = p, "Producer"),
@@ -83,10 +88,12 @@ namespace KafkaLoad.Desktop.ViewModels
                 DeleteItemAsync(_producerRepo, SelectedProducer, "Producer"),
                 this.WhenAnyValue(x => x.SelectedProducer).Select(x => x != null));
 
-
             // --- Consumer Commands Setup ---
             CreateConsumerCommand = ReactiveCommand.Create(() =>
-                OpenEditorFor(() => new ConsumerConfigViewModel(_consumerRepo), "Consumer"));
+            {
+                Log.Information("User clicked Create New Consumer Configuration.");
+                OpenEditorFor(() => new ConsumerConfigViewModel(_consumerRepo), "Consumer");
+            });
 
             DuplicateConsumerCommand = ReactiveCommand.CreateFromTask(() =>
                 DuplicateItemAsync(_consumerRepo, SelectedConsumer, Consumers, c => SelectedConsumer = c, "Consumer"),
@@ -118,6 +125,7 @@ namespace KafkaLoad.Desktop.ViewModels
 
             vm.SaveCommand.ThrownExceptions.Subscribe(ex =>
             {
+                Log.Error(ex, "Error occurred while trying to save {TypeName} configuration from UI.", typeName);
                 ShowNotification($"Error: {ex.Message}");
             });
 
@@ -135,7 +143,6 @@ namespace KafkaLoad.Desktop.ViewModels
 
             var copy = Clone(selectedItem);
 
-            // Smart Naming Logic
             string baseName = $"{selectedItem.Name}_Copy";
             string uniqueName = baseName;
             int counter = 1;
@@ -145,6 +152,8 @@ namespace KafkaLoad.Desktop.ViewModels
                 uniqueName = $"{baseName}_{counter}";
                 counter++;
             }
+
+            Log.Information("User duplicating {TypeName} configuration from '{OriginalName}' to '{NewName}'", typeName, selectedItem.Name, uniqueName);
 
             copy.Name = uniqueName;
             await repo.SaveAsync(copy);
@@ -164,18 +173,30 @@ namespace KafkaLoad.Desktop.ViewModels
         {
             if (selectedItem == null) return;
 
-            await repo.DeleteAsync(selectedItem.Name);
-            await RefreshLists();
+            Log.Information("User requested deletion of {TypeName} configuration: '{ConfigName}'", typeName, selectedItem.Name);
 
-            SelectedProducer = null;
-            SelectedConsumer = null;
-            CurrentEditor = null;
+            try
+            {
+                await repo.DeleteAsync(selectedItem.Name);
+                await RefreshLists();
 
-            ShowNotification($"{typeName} configuration deleted successfully!");
+                SelectedProducer = null;
+                SelectedConsumer = null;
+                CurrentEditor = null;
+
+                ShowNotification($"{typeName} configuration deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to delete {TypeName} configuration '{ConfigName}' from UI.", typeName, selectedItem.Name);
+                ShowNotification($"Failed to delete: {ex.Message}");
+            }
         }
 
         private async Task RefreshLists()
         {
+            Log.Debug("Refreshing UI config lists.");
+
             Producers.Clear();
             var pList = await _producerRepo.GetAllAsync();
             foreach (var p in pList) Producers.Add(p);

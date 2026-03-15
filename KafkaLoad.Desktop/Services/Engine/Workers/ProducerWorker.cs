@@ -3,6 +3,7 @@ using KafkaLoad.Desktop.Services.Engine.Workers;
 using KafkaLoad.Desktop.Services.Generators;
 using KafkaLoad.Desktop.Services.Interfaces;
 using KafkaLoad.Desktop.Services.Workers;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -45,6 +46,8 @@ public class ProducerWorker : BaseWorker
 
         try
         {
+            Log.Information("ProducerWorker starting on topic: {Topic}", Topic);
+
             while (!ct.IsCancellationRequested)
             {
                 await _throughputController.WaitForTokenAsync(ct);
@@ -61,6 +64,7 @@ public class ProducerWorker : BaseWorker
                         stopwatch.Stop();
                         if (deliveryReport.Error.IsError)
                         {
+                            Log.Warning("Message delivery failed. Error: {Reason} (Code: {Code})", deliveryReport.Error.Reason, deliveryReport.Error.Code);
                             Metrics.RecordProducerError();
                         }
                         else
@@ -80,36 +84,25 @@ public class ProducerWorker : BaseWorker
         }
         catch (OperationCanceledException)
         {
-            Debug.WriteLine("[WORKER] Producer cancelled cleanly.");
+            Log.Information("ProducerWorker cancelled cleanly on topic: {Topic}", Topic);
         }
-        //catch (ProduceException<byte[], byte[]> e)
-        //{
-
-        //    // If the internal queue is full, wait a bit for the driver to catch up
-        //    if (e.Error.Code == ErrorCode.Local_QueueFull)
-        //    {
-        //        _producer.Poll(TimeSpan.FromMilliseconds(10));
-        //    }
-        //    else
-        //    {
-        //        //TODO: log kafka error 
-        //        Metrics.RecordProducerError();
-        //    }
-        //}
         catch (Exception ex)
         {
-            Debug.WriteLine($"[WORKER ERROR] {ex.Message}");
+            Log.Error(ex, "Unexpected error in ProducerWorker loop on topic: {Topic}", Topic);
         }
         finally
         {
             try
             {
+                Log.Debug("Flushing producer buffer for topic: {Topic}", Topic);
                 _producer.Flush(2);
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[WORKER FLUSH ERROR] {e.Message}");
+                Log.Error(e, "Error occurred while flushing ProducerWorker on topic: {Topic}", Topic);
             }
+
+            Log.Information("ProducerWorker stopped on topic: {Topic}", Topic);
         }
     }
 }

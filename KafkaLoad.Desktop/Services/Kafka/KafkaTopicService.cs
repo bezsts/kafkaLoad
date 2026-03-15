@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using KafkaLoad.Desktop.Services.Interfaces;
+using Serilog;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ namespace KafkaLoad.Desktop.Services.Kafka
             {
                 try
                 {
+                    Log.Debug("Checking if topic '{TopicName}' exists on brokers: {Brokers}", topicName, bootstrapServers);
+
                     var config = new AdminClientConfig { BootstrapServers = bootstrapServers };
 
                     using var adminClient = new AdminClientBuilder(config).Build();
@@ -23,11 +26,19 @@ namespace KafkaLoad.Desktop.Services.Kafka
 
                     var topic = metadata.Topics.FirstOrDefault(t => t.Topic == topicName);
 
-                    return topic != null && topic.Error.Code == ErrorCode.NoError;
+                    bool exists = topic != null && topic.Error.Code == ErrorCode.NoError;
+
+                    if (!exists)
+                    {
+                        Log.Warning("Topic '{TopicName}' does not exist or returned an error. Kafka Error Code: {ErrorCode}", topicName, topic?.Error.Code);
+                    }
+
+                    return exists;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // Connection error or topic not found
+                    Log.Error(ex, "Failed to fetch metadata for topic '{TopicName}' from brokers: {Brokers}", topicName, bootstrapServers);
                     return false;
                 }
             });

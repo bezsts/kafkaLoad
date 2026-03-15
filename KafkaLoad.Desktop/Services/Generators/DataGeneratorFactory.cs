@@ -2,6 +2,7 @@
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Generators.Keys;
 using KafkaLoad.Desktop.Services.Generators.Value;
+using Serilog;
 
 namespace KafkaLoad.Desktop.Services.Generators
 {
@@ -9,6 +10,8 @@ namespace KafkaLoad.Desktop.Services.Generators
     {
         public static IDataGenerator CreateKeyGenerator(TestScenario scenario)
         {
+            Log.Information("Initializing Key Generator with strategy: {Strategy}", scenario.KeyStrategy);
+
             return scenario.KeyStrategy switch
             {
                 KeyGenerationStrategy.SequentialInt => new SequentialIntKeyGenerator(),
@@ -22,6 +25,8 @@ namespace KafkaLoad.Desktop.Services.Generators
         public static IDataGenerator CreateValueGenerator(TestScenario scenario)
         {
             int size = scenario.MessageSize ?? 1024;
+
+            Log.Information("Initializing Value Generator with strategy: {Strategy}, Payload Size: {Size} bytes", scenario.ValueStrategy, size);
 
             return scenario.ValueStrategy switch
             {

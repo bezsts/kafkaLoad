@@ -1,7 +1,8 @@
-using System;
 using Confluent.Kafka;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
+using Serilog;
+using System;
 
 namespace KafkaLoad.Desktop.Services;
 
@@ -12,6 +13,8 @@ public class KafkaClientFactory : IKafkaClientFactory
         ISerializer<TKey> keySerializer, 
         ISerializer<TValue> valueSerializer)
     {
+        Log.Information("Creating Kafka Producer for BootstrapServers: {Servers}, ClientId: {ClientId}", config.BootstrapServers, config.ClientID);
+
         // 1. Map ViewModel config to Confluent's ProducerConfig
         var producerConfig = new ProducerConfig
         {
@@ -35,10 +38,13 @@ public class KafkaClientFactory : IKafkaClientFactory
         return new ProducerBuilder<TKey, TValue>(producerConfig)
             .SetKeySerializer(keySerializer)
             .SetValueSerializer(valueSerializer)
-            .SetErrorHandler((_, e) => 
+            .SetErrorHandler((_, e) =>
             {
-                // TODO: Connect this to your logging service
-                Console.WriteLine($"Error: {e.Reason}");
+                Log.Error("Kafka Producer internal error: {Reason} (Code: {Code}, IsFatal: {IsFatal})", e.Reason, e.Code, e.IsFatal);
+            })
+            .SetLogHandler((_, logMessage) =>
+            {
+                Log.Debug("librdkafka [Producer]: {Message}", logMessage.Message);
             })
             .Build();
     }
@@ -48,8 +54,10 @@ public class KafkaClientFactory : IKafkaClientFactory
         IDeserializer<TKey> keyDeserializer, 
         IDeserializer<TValue> valueDeserializer)
     {
+        Log.Information("Creating Kafka Consumer for BootstrapServers: {Servers}, GroupId: {GroupId}", config.BootstrapServers, config.GroupId);
+
         // Map ViewModel config to Confluent's ConsumerConfig
-        var consumerConfig = new Confluent.Kafka.ConsumerConfig
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = config.BootstrapServers,
             GroupId = config.GroupId,
@@ -68,7 +76,14 @@ public class KafkaClientFactory : IKafkaClientFactory
         return new ConsumerBuilder<TKey, TValue>(consumerConfig)
             .SetKeyDeserializer(keyDeserializer)
             .SetValueDeserializer(valueDeserializer)
-            .SetErrorHandler((_, e) => Console.WriteLine($"Error: {e.Reason}"))
+            .SetErrorHandler((_, e) =>
+            {
+                Log.Error("Kafka Consumer internal error: {Reason} (Code: {Code}, IsFatal: {IsFatal})", e.Reason, e.Code, e.IsFatal);
+            })
+            .SetLogHandler((_, logMessage) =>
+            {
+                Log.Debug("librdkafka [Consumer]: {Message}", logMessage.Message);
+            })
             .Build();
     }
 }

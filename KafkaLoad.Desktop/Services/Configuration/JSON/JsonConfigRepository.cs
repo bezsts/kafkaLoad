@@ -1,8 +1,9 @@
+using KafkaLoad.Desktop.Services.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using KafkaLoad.Desktop.Services.Interfaces;
 
 namespace KafkaLoad.Desktop.Services;
 
@@ -18,6 +19,7 @@ public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
         
         if (!Directory.Exists(_folderPath))
         {
+            Log.Information("Creating base configuration directory: {FolderPath}", _folderPath);
             Directory.CreateDirectory(_folderPath);
         }
     }
@@ -30,6 +32,8 @@ public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
+        Log.Information("Loading all {ConfigType} configurations from {FolderPath}", typeof(T).Name, _folderPath);
+
         var files = Directory.GetFiles(_folderPath, "*.json");
         var configs = new List<T>();
 
@@ -40,7 +44,13 @@ public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
             {
                 configs.Add(config);
             }
+            else
+            {
+                Log.Warning("Skipped loading configuration from file '{File}' because it returned null.", file);
+            }
         }
+
+        Log.Information("Successfully loaded {Count} {ConfigType} configurations.", configs.Count, typeof(T).Name);
         return configs;
     }
 
@@ -50,21 +60,40 @@ public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
         string fileName = $"{dynamicConfig.Name}.json";
         string fullPath = Path.Combine(_folderPath, fileName);
 
+        Log.Information("Saving {ConfigType} configuration: {ConfigName}", typeof(T).Name, dynamicConfig.Name);
         await _fileManager.SaveAsync(config, fullPath);
     }
 
     public async Task DeleteAsync(string name)
     {
         string fullPath = Path.Combine(_folderPath, $"{name}.json");
+
+        Log.Information("Attempting to delete {ConfigType} configuration: {ConfigName}", typeof(T).Name, name);
+
         if (File.Exists(fullPath))
         {
-            await Task.Run(() => File.Delete(fullPath));
+            try
+            {
+                await Task.Run(() => File.Delete(fullPath));
+                Log.Information("Successfully deleted configuration: {ConfigName}", name);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to delete configuration file: {FullPath}", fullPath);
+                throw;
+            }
+        }
+        else
+        {
+            Log.Warning("Tried to delete configuration '{ConfigName}', but the file was not found.", name);
         }
     }
 
     public Task<T?> GetByNameAsync(string name)
     {
         string fullPath = Path.Combine(_folderPath, $"{name}.json");
+        Log.Debug("Fetching configuration by name: {ConfigName}", name);
+
         return _fileManager.LoadAsync<T>(fullPath);
     }
 }

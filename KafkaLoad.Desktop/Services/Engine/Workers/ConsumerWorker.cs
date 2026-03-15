@@ -1,13 +1,13 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Confluent.Kafka;
 using KafkaLoad.Desktop.Services.Engine.Workers;
 using KafkaLoad.Desktop.Services.Interfaces;
+using Serilog;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace KafkaLoad.Desktop.Services;
 
-//TODO make consumerworker generic
 public class ConsumerWorker : BaseWorker
 {
     private readonly IConsumer<byte[], byte[]> _consumer;
@@ -27,6 +27,7 @@ public class ConsumerWorker : BaseWorker
 
         try
         {
+            Log.Information("ConsumerWorker starting. Subscribing to topic: {Topic}", Topic);
             _consumer.Subscribe(Topic);
 
             while (!ct.IsCancellationRequested)
@@ -62,22 +63,24 @@ public class ConsumerWorker : BaseWorker
                 }
                 catch (OperationCanceledException)
                 {
+                    Log.Information("ConsumerWorker cancelled cleanly on topic: {Topic}", Topic);
                     break;
                 }
-                catch (ConsumeException)
+                catch (ConsumeException ex)
                 {
-                    //TODO: log consumer exception
+                    Log.Error(ex, "Kafka ConsumeException on topic {Topic}. Reason: {Reason}", Topic, ex.Error.Reason);
                     Metrics.RecordConsumerError();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //TODO: log exception
+                    Log.Error(ex, "Unexpected error in ConsumerWorker loop on topic {Topic}", Topic);
                     Metrics.RecordConsumerError();
                 }
             }
         }
         finally
         {
+            Log.Information("ConsumerWorker shutting down on topic: {Topic}", Topic);
             _consumer.Close();
         }
     }

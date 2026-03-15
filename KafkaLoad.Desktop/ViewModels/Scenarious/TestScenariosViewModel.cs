@@ -1,6 +1,7 @@
 ﻿using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace KafkaLoad.Desktop.ViewModels
@@ -58,7 +60,11 @@ namespace KafkaLoad.Desktop.ViewModels
             _producerRepo = producerRepo;
             _consumerRepo = consumerRepo;
 
-            CreateCommand = ReactiveCommand.Create(() => OpenEditor(null));
+            CreateCommand = ReactiveCommand.Create(() =>
+            {
+                Log.Information("User clicked Create New Test Scenario.");
+                OpenEditor(null);
+            });
 
             DuplicateCommand = ReactiveCommand.CreateFromTask(async () =>
             {
@@ -74,6 +80,8 @@ namespace KafkaLoad.Desktop.ViewModels
                     uniqueName = $"{baseName}_{counter}";
                     counter++;
                 }
+
+                Log.Information("User duplicating Test Scenario from '{Original}' to '{New}'", SelectedScenario.Name, uniqueName);
                 copy.Name = uniqueName;
 
                 await _scenarioRepo.SaveAsync(copy);
@@ -89,13 +97,23 @@ namespace KafkaLoad.Desktop.ViewModels
                 if (SelectedScenario == null) return;
                 string name = SelectedScenario.Name;
 
-                await _scenarioRepo.DeleteAsync(name);
-                await RefreshList();
+                Log.Information("User requested deletion of Test Scenario: '{Name}'", name);
 
-                SelectedScenario = null;
-                CurrentEditor = null;
+                try
+                {
+                    await _scenarioRepo.DeleteAsync(name);
+                    await RefreshList();
 
-                ShowNotification($"Scenario '{name}' deleted!");
+                    SelectedScenario = null;
+                    CurrentEditor = null;
+
+                    ShowNotification($"Scenario '{name}' deleted!");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to delete Test Scenario '{Name}' from UI.", name);
+                    ShowNotification($"Failed to delete: {ex.Message}");
+                }
 
             }, this.WhenAnyValue(x => x.SelectedScenario).Select(x => x != null));
 
@@ -118,6 +136,7 @@ namespace KafkaLoad.Desktop.ViewModels
 
             vm.SaveCommand.ThrownExceptions.Subscribe(ex =>
             {
+                Log.Error(ex, "Error occurred while trying to save Test Scenario from UI.");
                 ShowNotification($"Error: {ex.Message}");
             });
 
@@ -140,8 +159,8 @@ namespace KafkaLoad.Desktop.ViewModels
 
         private TestScenario Clone(TestScenario source)
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(source);
-            return System.Text.Json.JsonSerializer.Deserialize<TestScenario>(json)!;
+            var json = JsonSerializer.Serialize(source);
+            return JsonSerializer.Deserialize<TestScenario>(json)!;
         }
     }
 }

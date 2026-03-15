@@ -11,7 +11,10 @@ using KafkaLoad.Desktop.ViewModels;
 using KafkaLoad.Desktop.ViewModels.Reports;
 using KafkaLoad.Desktop.Views;
 using ReactiveUI;
+using Serilog;
 using Splat;
+using System;
+using System.Reactive;
 
 namespace KafkaLoad.Desktop;
 
@@ -24,6 +27,13 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+        {
+            Log.Error(ex, "An unhandled exception occurred in a UI command.");
+
+            // TODO: Here you could trigger a global Event/Message to show a nice Error Dialog to the user
+        });
+
         RegisterDependencies();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

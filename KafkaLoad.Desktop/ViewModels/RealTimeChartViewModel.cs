@@ -3,6 +3,7 @@ using KafkaLoad.Desktop.Models.Reports;
 using KafkaLoad.Desktop.Services.Interfaces;
 using KafkaLoad.Desktop.Services.Visualization;
 using ReactiveUI;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -172,7 +173,7 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error extracting chart {key}: {ex.Message}");
+                Log.Error(ex, "Error extracting real-time chart data for series: {SeriesKey}", key);
             }
             result.Add(key, points);
         }

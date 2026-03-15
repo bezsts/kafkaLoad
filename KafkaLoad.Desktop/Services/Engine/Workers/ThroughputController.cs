@@ -1,5 +1,6 @@
 ﻿using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -28,6 +29,9 @@ public class ThroughputController
         _spikeRps = scenario.SpikeThroughput ?? (_targetRps * 5);
 
         _currentTokens = 0;
+
+        Log.Information("ThroughputController initialized for {TestType} test. Duration: {Duration}s. Target: {TargetRps} msg/s. Base: {BaseRps} msg/s. Spike: {SpikeRps} msg/s.",
+            _testType, _durationSec, _targetRps, _baseRps, _spikeRps);
     }
 
     public async Task WaitForTokenAsync(CancellationToken ct)
@@ -54,35 +58,54 @@ public class ThroughputController
 
     public async Task RunReplenisherAsync(CancellationToken ct)
     {
+        Log.Information("Throughput token replenisher started.");
+
         _stopwatch = Stopwatch.StartNew();
         double lastTickSec = 0;
 
-        // Run until cancelled or test duration expires
-        while (!ct.IsCancellationRequested && _stopwatch.Elapsed.TotalSeconds <= _durationSec)
+        try
         {
-            double currentSec = _stopwatch.Elapsed.TotalSeconds;
-            double deltaTime = currentSec - lastTickSec;
-            lastTickSec = currentSec;
-
-            double currentTargetRps = CalculateCurrentRps(currentSec);
-
-            lock (_lockObj)
+            // Run until cancelled or test duration expires
+            while (!ct.IsCancellationRequested && _stopwatch.Elapsed.TotalSeconds <= _durationSec)
             {
-                // Add new tokens based on the elapsed time and current RPS
-                _currentTokens += currentTargetRps * deltaTime;
+                double currentSec = _stopwatch.Elapsed.TotalSeconds;
+                double deltaTime = currentSec - lastTickSec;
+                lastTickSec = currentSec;
 
-                // Cap the bucket size to 1 second of throughput to prevent massive bursts
-                // if workers are momentarily slower than the token generation
-                if (_currentTokens > currentTargetRps)
+                double currentTargetRps = CalculateCurrentRps(currentSec);
+
+                lock (_lockObj)
                 {
-                    _currentTokens = currentTargetRps;
-                }
-            }
+                    // Add new tokens based on the elapsed time and current RPS
+                    _currentTokens += currentTargetRps * deltaTime;
 
-            // Refill the bucket every 10ms for a smooth data flow
-            await Task.Delay(10, ct);
+                    // Cap the bucket size to 1 second of throughput to prevent massive bursts
+                    // if workers are momentarily slower than the token generation
+                    if (_currentTokens > currentTargetRps)
+                    {
+                        _currentTokens = currentTargetRps;
+                    }
+                }
+
+                // Refill the bucket every 10ms for a smooth data flow
+                await Task.Delay(10, ct);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("Throughput token replenisher cancelled cleanly.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Unexpected error in Throughput token replenisher loop.");
+        }
+        finally
+        {
+            _stopwatch.Stop();
+            Log.Information("Throughput token replenisher stopped. Total time run: {ElapsedSeconds:N2}s", _stopwatch.Elapsed.TotalSeconds);
         }
     }
+
 
     private double CalculateCurrentRps(double currentSec)
     {

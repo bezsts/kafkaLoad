@@ -5,6 +5,7 @@ using KafkaLoad.Desktop.Services.Generators;
 using KafkaLoad.Desktop.Services.Interfaces;
 using KafkaLoad.Desktop.Services.Reports.Interfaces;
 using KafkaLoad.Desktop.Services.Workers;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,7 +38,14 @@ public class TestRunnerService : ITestRunnerService
 
     public async Task RunTestAsync(TestScenario scenario)
     {
-        if (IsRunning) return;
+        if (IsRunning)
+        {
+            Log.Warning("Attempted to start a test while another test is already running.");
+            return;
+        }
+
+        Log.Information("Starting Test Scenario: '{ScenarioName}'. Type: {TestType}, Topic: {Topic}, Duration: {Duration}s",
+            scenario.Name, scenario.TestType, scenario.TopicName, scenario.Duration);
 
         _cts = new CancellationTokenSource();
         _metricsService.Reset();
@@ -61,11 +69,12 @@ public class TestRunnerService : ITestRunnerService
             if (scenario.ProducerConfig != null)
             {
                 int pCount = scenario.ProducerCount ?? 1;
+                Log.Information("Initializing {Count} Producer(s)...", pCount);
+
                 for (int i = 0; i < pCount; i++)
                 {
                     var nativeProducer = _clientFactory.CreateProducer(scenario.ProducerConfig, keySer, valSer);
                     var wrapper = new KafkaProducer<byte[], byte[]>(nativeProducer);
-                    _activeClients.Add(wrapper);
 
                     lock (_clientsLock)
                     {
@@ -92,6 +101,12 @@ public class TestRunnerService : ITestRunnerService
             if (scenario.ConsumerConfig != null)
             {
                 int cCount = scenario.ConsumerCount ?? 0;
+
+                if (cCount > 0)
+                {
+                    Log.Information("Initializing {Count} Consumer(s)...", cCount);
+                }
+
                 for (int i = 0; i < cCount; i++)
                 {
                     var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, keyDeser, valDeser);
@@ -110,15 +125,18 @@ public class TestRunnerService : ITestRunnerService
                 }
             }
 
+            Log.Information("All workers initialized. Test is now running...");
+
             // --- Wait for Test Duration ---
             try
             {
                 int durationMs = (scenario.Duration ?? 60) * 1000;
                 await Task.Delay(durationMs, _cts.Token);
+                Log.Information("Test duration completed naturally.");
             }
             catch (TaskCanceledException)
             {
-
+                Log.Information("Test was manually stopped by the user.");
             }
             finally
             {
@@ -126,24 +144,34 @@ public class TestRunnerService : ITestRunnerService
 
                 try
                 {
+                    Log.Debug("Waiting for all worker tasks to finish cleanly...");
                     await Task.WhenAll(tasks);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Log.Error(ex, "One or more worker tasks threw an exception during shutdown.");
                 }
 
                 _metricsService.Stop();
 
                 CleanupClients();
                 _cts = null;
+
+                Log.Information("Test Scenario '{ScenarioName}' fully stopped and resources released.", scenario.Name);
             }
         });
     }
 
     public async Task GenerateAndSaveReportAsync(TestScenario scenario, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData)
     {
+        Log.Information("Generating final report for Scenario: '{ScenarioName}'", scenario.Name);
+
         var snapshot = _metricsService.CurrentSnapshot;
-        if (snapshot == null) return;
+        if (snapshot == null)
+        {
+            Log.Warning("Cannot generate report: Metrics snapshot is null.");
+            return;
+        }
 
         var report = new TestReport
         {
@@ -197,11 +225,13 @@ public class TestRunnerService : ITestRunnerService
         if (_reportRepository != null)
         {
             await _reportRepository.SaveReportAsync(report);
+            Log.Debug("Report successfully generated and passed to repository.");
         }
     }
 
     public void StopTest()
     {
+        Log.Information("StopTest() called. Requesting cancellation...");
         _cts?.Cancel();
     }
 
@@ -209,6 +239,11 @@ public class TestRunnerService : ITestRunnerService
     {
         lock (_clientsLock)
         {
+            int count = _activeClients.Count;
+            if (count == 0) return;
+
+            Log.Debug("Cleaning up {Count} active Kafka clients...", count);
+
             foreach (var client in _activeClients)
             {
                 try
@@ -217,11 +252,12 @@ public class TestRunnerService : ITestRunnerService
                 }
                 catch (Exception e)
                 {
-                    //TODO: log errors
-                    Debug.WriteLine($"Error disposing client: {e.Message}");
+                    Log.Error(e, "Error disposing Kafka client during cleanup.");
                 }
             }
             _activeClients.Clear();
+
+            Log.Debug("Cleanup complete.");
         }
     }
 }

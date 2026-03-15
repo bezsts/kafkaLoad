@@ -2,6 +2,7 @@ using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Models.Reports;
 using KafkaLoad.Desktop.Services.Interfaces;
 using ReactiveUI;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -69,6 +70,9 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         {
             ChartViewModel.Reset();
             if (SelectedTestScenario == null) return;
+
+            Log.Information("User clicked 'Start Test' for scenario: '{ScenarioName}'", SelectedTestScenario.Name);
+
             IsRunning = true;
             StatusText = "Initializing Workers...";
             try
@@ -81,10 +85,12 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
                 await _testRunner.GenerateAndSaveReportAsync(SelectedTestScenario, chartData);
 
                 StatusText = "Completed & Report Saved";
+                Log.Information("Test scenario '{ScenarioName}' completed naturally and report was saved.", SelectedTestScenario.Name);
             }
             catch (Exception ex)
             {
                 StatusText = $"Error: {ex.Message}";
+                Log.Error(ex, "A fatal error occurred in the UI layer while running test scenario '{ScenarioName}'.", SelectedTestScenario.Name);
             }
             finally
             {
@@ -95,6 +101,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
 
         StopTestCommand = ReactiveCommand.Create(() =>
         {
+            Log.Information("User clicked 'Stop Test' button.");
             StatusText = "Stopping...";
             _testRunner.StopTest();
         },
@@ -104,6 +111,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         {
             if (SelectedTestScenario != null)
             {
+                Log.Debug("User clicked 'Refresh Topic' button.");
                 await CheckTopicAvailability(SelectedTestScenario);
             }
         }, this.WhenAnyValue(x => x.SelectedTestScenario).Select(x => x != null));
@@ -154,6 +162,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         {
             IsTopicFound = false;
             TopicDisplayInfo = "Error: No Bootstrap Servers configured!";
+            Log.Warning("Topic check failed for scenario '{ScenarioName}': No Bootstrap Servers configured in Producer or Consumer.", scenario.Name);
             return;
         }
 
@@ -163,11 +172,13 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         {
             IsTopicFound = true;
             TopicDisplayInfo = scenario.TopicName;
+            Log.Debug("Topic '{TopicName}' verified successfully on brokers.", scenario.TopicName);
         }
         else
         {
             IsTopicFound = false;
             TopicDisplayInfo = $"Error: '{scenario.TopicName}' not found!";
+            Log.Warning("Topic verification failed: '{TopicName}' not found or unreachable on '{Servers}'.", scenario.TopicName, servers);
         }
     }
 

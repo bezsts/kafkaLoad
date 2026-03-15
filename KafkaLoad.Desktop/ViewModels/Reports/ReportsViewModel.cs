@@ -1,6 +1,7 @@
 ﻿using KafkaLoad.Desktop.Models.Reports;
 using KafkaLoad.Desktop.Services.Reports.Interfaces;
 using ReactiveUI;
+using Serilog;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -56,16 +57,17 @@ namespace KafkaLoad.Desktop.ViewModels.Reports
             _reportRepository = reportRepository;
 
             LoadReportsCommand = ReactiveCommand.CreateFromTask(LoadReportsAsync);
-
             DeleteReportCommand = ReactiveCommand.CreateFromTask<string>(DeleteReportAsync);
+            ClearComparisonCommand = ReactiveCommand.Create(() => { CompareWithReport = null; });
 
             LoadReportsCommand.Execute().Subscribe();
-            ClearComparisonCommand = ReactiveCommand.Create(() => { CompareWithReport = null; });
         }
 
         private async Task LoadReportsAsync()
         {
+            Log.Information("User requested to load/refresh test reports.");
             IsLoading = true;
+            
             try
             {
                 var reports = await _reportRepository.GetAllReportsAsync();
@@ -75,10 +77,12 @@ namespace KafkaLoad.Desktop.ViewModels.Reports
                 {
                     Reports.Add(report);
                 }
+
+                Log.Debug("Successfully loaded {Count} reports into the UI.", Reports.Count);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error loading reports: {ex.Message}");
+                Log.Error(ex, "Failed to load reports for the UI.");
             }
             finally
             {
@@ -88,14 +92,24 @@ namespace KafkaLoad.Desktop.ViewModels.Reports
 
         private async Task DeleteReportAsync(string id)
         {
-            await _reportRepository.DeleteReportAsync(id);
+            Log.Information("User requested deletion of report ID: {ReportId}", id);
 
-            if (SelectedReport?.Id == id)
+            try
             {
-                SelectedReport = null;
-            }
+                await _reportRepository.DeleteReportAsync(id);
 
-            await LoadReportsAsync();
+                if (SelectedReport?.Id == id)
+                {
+                    SelectedReport = null;
+                }
+
+                Log.Information("Report {ReportId} was successfully deleted from UI.", id);
+                await LoadReportsAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while user tried to delete report {ReportId}.", id);
+            }
         }
 
         private void GenerateComparison()

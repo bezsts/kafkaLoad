@@ -1,7 +1,8 @@
-using System;
-using System.Reactive.Linq;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
+using Serilog;
+using System;
+using System.Reactive.Linq;
 
 namespace KafkaLoad.Desktop.Services;
 
@@ -47,6 +48,8 @@ public class MetricsService : IMetricsService
 
     public void Reset()
     {
+        Log.Information("Metrics collection reset. Starting new recording session.");
+
         _startTime = DateTime.UtcNow;
         _endTime = null;
         _producerAccumulator.Reset();
@@ -58,6 +61,8 @@ public class MetricsService : IMetricsService
         if (_endTime == null)
         {
             _endTime = DateTime.UtcNow;
+            TimeSpan totalDuration = _endTime.Value - _startTime;
+            Log.Information("Metrics collection stopped. Total recording duration: {Duration:N2}s", totalDuration.TotalSeconds);
         }
     }
 }
