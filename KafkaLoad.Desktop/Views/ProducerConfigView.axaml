@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.Desktop.ViewModels"
+             xmlns:views="using:KafkaLoad.Desktop.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="KafkaLoad.Desktop.Views.ProducerConfigView"
              x:DataType="vm:ProducerConfigViewModel">
@@ -78,6 +79,11 @@
                           SelectedItem="{Binding SelectedCompressionType}"
                           HorizontalAlignment="Stretch"/>
             </StackPanel>
+
+            <Separator Height="1" Background="{DynamicResource BorderColor}" Margin="0,15,0,5"/>
+                <TextBlock Text="SECURITY SETTINGS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
+                
+                <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
 
             <Button Command="{Binding SaveCommand}" 
                     Content="Save Configuration"

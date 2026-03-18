@@ -1,4 +1,5 @@
 using KafkaLoad.Desktop.Enums;
+using KafkaLoad.Desktop.Models.Configs;
 using KafkaLoad.Desktop.Models.Interfaces;
 using System;
 
@@ -21,4 +22,6 @@ public class TestScenario : IConfigModel
     public int? TargetThroughput { get; set; }
     public int? BaseThroughput { get; set; }
     public int? SpikeThroughput { get; set; }
+
+    //public CustomSecurityConfig Security { get; set; } = null!;
 }

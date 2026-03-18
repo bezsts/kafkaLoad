@@ -1,6 +1,7 @@
 using KafkaLoad.Desktop.Enums;
 using KafkaLoad.Desktop.Models;
 using KafkaLoad.Desktop.Services.Interfaces;
+using KafkaLoad.Desktop.ViewModels.Clients;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 using System;
@@ -11,9 +12,11 @@ namespace KafkaLoad.Desktop.ViewModels;
 
 public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
 {
+    public SecurityConfigViewModel SecurityVM { get; }
     public ProducerConfigViewModel(IConfigRepository<CustomProducerConfig> repository, CustomProducerConfig? modelToEdit = null)
         : base(repository, modelToEdit)
     {
+        SecurityVM = new SecurityConfigViewModel(Model.Security);
     }
 
     protected override void InitializeValidation()

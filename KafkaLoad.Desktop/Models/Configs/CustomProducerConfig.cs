@@ -1,4 +1,5 @@
 using KafkaLoad.Desktop.Enums;
+using KafkaLoad.Desktop.Models.Configs;
 using KafkaLoad.Desktop.Models.Interfaces;
 
 namespace KafkaLoad.Desktop.Models;
@@ -48,5 +49,6 @@ public class CustomProducerConfig : IConfigModel
     public int MaxInFlightRequestsPerConnection { get; set; } = DefaultMaxInFlightRequests;
 
     public bool AutoCreateTopicsEnable { get; } = false;
+    public CustomSecurityConfig Security { get; set; } = new CustomSecurityConfig();
     public override string ToString() => Name;
 }

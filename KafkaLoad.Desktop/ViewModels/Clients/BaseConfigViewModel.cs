@@ -1,5 +1,6 @@
 ﻿using KafkaLoad.Desktop.Models.Interfaces;
 using KafkaLoad.Desktop.Services.Interfaces;
+using KafkaLoad.Desktop.ViewModels.Clients;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;

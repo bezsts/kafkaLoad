@@ -1,4 +1,5 @@
 using KafkaLoad.Desktop.Enums;
+using KafkaLoad.Desktop.Models.Configs;
 using KafkaLoad.Desktop.Models.Interfaces;
 
 namespace KafkaLoad.Desktop.Models;
@@ -44,5 +45,7 @@ public class CustomConsumerConfig : IConfigModel
     // If you take longer than this to process messages, the broker will consider 
     // this consumer dead and trigger a rebalance (kicking you out of the group).
     public int MaxPollInterval { get; set; } = DefaultMaxPollIntervalMs;
+
+    public CustomSecurityConfig Security { get; set; } = new CustomSecurityConfig();
     public override string ToString() => Name;
 }

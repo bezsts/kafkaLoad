@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using KafkaLoad.Desktop.Models;
+using KafkaLoad.Desktop.Models.Configs;
 using KafkaLoad.Desktop.Services.Interfaces;
 using Serilog;
 using System;
@@ -33,6 +34,8 @@ public class KafkaClientFactory : IKafkaClientFactory
             EnableIdempotence = config.EnableIdempotence,
             MaxInFlight = config.MaxInFlightRequestsPerConnection
         };
+
+        ApplySecurityConfig(producerConfig, config.Security);
 
         // Build the producer
         return new ProducerBuilder<TKey, TValue>(producerConfig)
@@ -72,6 +75,8 @@ public class KafkaClientFactory : IKafkaClientFactory
             EnableAutoCommit = true 
         };
 
+        ApplySecurityConfig(consumerConfig, config.Security);
+
         // Build the consumer
         return new ConsumerBuilder<TKey, TValue>(consumerConfig)
             .SetKeyDeserializer(keyDeserializer)
@@ -85,5 +90,43 @@ public class KafkaClientFactory : IKafkaClientFactory
                 Log.Debug("librdkafka [Consumer]: {Message}", logMessage.Message);
             })
             .Build();
+    }
+
+    private void ApplySecurityConfig(ClientConfig clientConfig, CustomSecurityConfig securityConfig)
+    {
+        if (securityConfig == null) return;
+
+        clientConfig.SecurityProtocol = (SecurityProtocol)securityConfig.SecurityProtocol;
+
+        // Map SASL Authentication
+        if (clientConfig.SecurityProtocol == SecurityProtocol.SaslPlaintext ||
+            clientConfig.SecurityProtocol == SecurityProtocol.SaslSsl)
+        {
+            clientConfig.SaslMechanism = (SaslMechanism)securityConfig.SaslMechanism;
+
+            if (!string.IsNullOrWhiteSpace(securityConfig.SaslUsername))
+                clientConfig.SaslUsername = securityConfig.SaslUsername;
+
+            if (!string.IsNullOrWhiteSpace(securityConfig.SaslPassword))
+                clientConfig.SaslPassword = securityConfig.SaslPassword;
+        }
+
+        // Map SSL Certificates
+        if (clientConfig.SecurityProtocol == SecurityProtocol.Ssl ||
+            clientConfig.SecurityProtocol == SecurityProtocol.SaslSsl)
+        {
+            if (!string.IsNullOrWhiteSpace(securityConfig.SslCaLocation))
+                clientConfig.SslCaLocation = securityConfig.SslCaLocation;
+
+            if (!string.IsNullOrWhiteSpace(securityConfig.SslCertificateLocation) &&
+                !string.IsNullOrWhiteSpace(securityConfig.SslKeyLocation))
+            {
+                clientConfig.SslCertificateLocation = securityConfig.SslCertificateLocation;
+                clientConfig.SslKeyLocation = securityConfig.SslKeyLocation;
+
+                if (!string.IsNullOrWhiteSpace(securityConfig.SslKeyPassword))
+                    clientConfig.SslKeyPassword = securityConfig.SslKeyPassword;
+            }
+        }
     }
 }
