@@ -1,0 +1,97 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rxui="http://reactiveui.net"
+             xmlns:vm="using:KafkaLoad.UI.ViewModels"
+             xmlns:views="using:KafkaLoad.UI.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="KafkaLoad.UI.Views.ProducerConfigView"
+             x:DataType="vm:ProducerConfigViewModel">
+  <ScrollViewer>
+        <StackPanel Spacing="15" Margin="20">
+            
+            <TextBlock Text="Producer Configuration" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
+                <TextBox Name = "NameTextBox" Text="{Binding Name}"/>
+            </StackPanel>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Bootstrap Servers *" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding BootstrapServers}"/>
+            </StackPanel>
+
+            <Separator Height="20" Opacity="0"/> 
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Acks (Durability)"/>
+                <ComboBox Name="AcksComboBox"
+                          ItemsSource="{Binding AcksOptions}"
+                          SelectedItem="{Binding SelectedAcks}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <CheckBox IsChecked="{Binding EnableIdempotence}" 
+                      Content="Enable Idempotence (Strict Order, No Duplicates)"/>
+
+            <Grid ColumnDefinitions="*, 15, *" RowDefinitions="Auto, Auto, Auto, Auto">
+                
+                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Batch Size (Bytes)"/>
+                    <NumericUpDown Value="{Binding BatchSize, TargetNullValue={x:Null}}" 
+                                   Minimum="0" Maximum="52428800" Increment="4096"
+                                   FormatString="N0"/> </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Linger (ms)"/>
+                    <NumericUpDown Value="{Binding Linger, TargetNullValue={x:Null}}" 
+                                   Minimum="0" Maximum="10000" Increment="5"/>
+                </StackPanel>
+
+                <Border Grid.Row="1" Height="15"/>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Buffer Memory (Bytes)"/>
+                    <NumericUpDown Value="{Binding BufferMemory, TargetNullValue={x:Null}}" 
+                                   Minimum="0" Increment="1048576" 
+                                   FormatString="N0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Retries"/>
+                    <NumericUpDown Value="{Binding Retries, TargetNullValue={x:Null}}" 
+                                   Minimum="0" Maximum = "2147483647" Increment="1"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Max In-Flight Requests"/>
+                <NumericUpDown Value="{Binding MaxInFlightRequestsPerConnection, TargetNullValue={x:Null}}" 
+                               Minimum="1" Maximum="100" Increment="1"
+                               Watermark="Default: 5"/>
+            </StackPanel>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Compression Type"/>
+                <ComboBox ItemsSource="{Binding CompressionTypeOptions, TargetNullValue={x:Null}}"
+                          SelectedItem="{Binding SelectedCompressionType}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <Separator Height="1" Background="{DynamicResource BorderColor}" Margin="0,15,0,5"/>
+                <TextBlock Text="SECURITY SETTINGS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
+                
+                <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
+
+            <Button Command="{Binding SaveCommand}" 
+                    Content="Save Configuration"
+                    Classes="accent" 
+                    HorizontalAlignment="Right"
+                    Padding="20, 10"
+                    Margin="0,20,0,0"/>
+            
+        </StackPanel>
+    </ScrollViewer>
+</rxui:ReactiveUserControl>

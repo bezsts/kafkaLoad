@@ -1,0 +1,41 @@
+<rxui:ReactiveWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="using:KafkaLoad.UI"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:rxui="http://reactiveui.net"
+        xmlns:vm="using:KafkaLoad.UI.ViewModels"
+        xmlns:views="using:KafkaLoad.UI.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:DataType="vm:MainViewModel"
+        x:TypeArguments="vm:MainViewModel"
+        x:Class="KafkaLoad.UI.MainWindow"
+        Title="KafkaLoad">
+
+        <Design.DataContext>
+                <vm:MainViewModel/>
+        </Design.DataContext>
+
+        <Panel>
+                <TabControl Margin="5">
+
+                <TabItem Header="Run test" FontSize="16">
+                        <views:TestRunnerView DataContext="{Binding TestRunnerViewModel}"/>
+                </TabItem>
+
+                <TabItem Header="Test scenarios" FontSize="16">
+                        <views:TestScenariosView DataContext="{Binding TestScenariosViewModel}"/>
+                </TabItem>
+                
+                <TabItem Header="Clients Configuration" FontSize="16">
+                        <views:ClientsConfigView DataContext="{Binding ClientsConfigViewModel}"/>
+                </TabItem>
+
+                <TabItem Header="Reports" FontSize="16">
+                        <views:ReportsView DataContext="{Binding ReportsViewModel}"/>
+                </TabItem>
+                
+                </TabControl>
+        </Panel>
+        
+</rxui:ReactiveWindow>

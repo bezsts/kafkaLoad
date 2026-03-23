@@ -1,0 +1,87 @@
+<rxui:ReactiveUserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rxui="http://reactiveui.net"
+             xmlns:vm="using:KafkaLoad.UI.ViewModels"
+             xmlns:views="using:KafkaLoad.UI.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="KafkaLoad.UI.Views.ConsumerConfigView"
+             x:DataType="vm:ConsumerConfigViewModel">
+  <ScrollViewer>
+        <StackPanel Spacing="15" Margin="20">
+            
+            <TextBlock Text="Consumer Configuration" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Name}"/>
+            </StackPanel>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Bootstrap Servers *" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding BootstrapServers}"/>
+            </StackPanel>
+
+            <StackPanel Spacing="5">
+                <TextBlock Text="Group id *" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding GroupId}"/>
+            </StackPanel>
+
+            <Separator Height="20" Opacity="0"/> 
+
+            <StackPanel Spacing="5">
+                    <TextBlock Text="Auto offset reset"/>
+                    <ComboBox ItemsSource="{Binding AutoOffsetResetOptions}"
+                              SelectedItem="{Binding SelectedAutoOffsetReset}"
+                              HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+            <!-- <CheckBox IsChecked="{Binding EnableAutoCommit}" 
+                      Content="Enable auto commit"/> -->
+
+            <Grid ColumnDefinitions="*, 15, *" RowDefinitions="Auto, Auto, Auto, Auto">
+                
+                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Fetch min bytes"/>
+                    <NumericUpDown Value="{Binding FetchMinBytes, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="52428800" Increment="4096"
+                                   FormatString="N0"/> </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Fetch max bytes"/>
+                    <NumericUpDown Value="{Binding FetchMaxBytes, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="52428800" Increment="4096" 
+                                   FormatString="N0"/>
+                </StackPanel>
+
+                <Border Grid.Row="1" Height="15"/>
+                
+                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Fetch max wait"/>
+                    <NumericUpDown Value="{Binding FetchMaxWait, TargetNullValue={x:Null}}" 
+                                   Minimum="1" Maximum="10000" Increment="5"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Max poll interval"/>
+                    <NumericUpDown Value="{Binding MaxPollInterval, TargetNullValue={x:Null}}" 
+                                   Minimum="6000" Maximum="3600000" Increment="1000"/>
+                </StackPanel>
+            </Grid>
+
+            <Separator Height="1" Background="{DynamicResource BorderColor}" Margin="0,15,0,5"/>
+                <TextBlock Text="SECURITY SETTINGS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
+                
+                <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
+
+            <Button Command="{Binding SaveCommand}" 
+                    Content="Save Configuration"
+                    Classes="accent" 
+                    HorizontalAlignment="Right"
+                    Padding="20, 10"
+                    Margin="0,20,0,0"/>
+            
+        </StackPanel>
+  </ScrollViewer>
+</rxui:ReactiveUserControl>

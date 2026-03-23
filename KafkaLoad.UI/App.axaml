@@ -1,0 +1,82 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:KafkaLoad.UI"
+             x:Class="KafkaLoad.UI.App"
+             RequestedThemeVariant="Light">
+             <Application.DataTemplates>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="PrimaryBlue">#0078D7</SolidColorBrush>
+        <SolidColorBrush x:Key="PrimaryBlueHover">#1084E3</SolidColorBrush>
+        <SolidColorBrush x:Key="DangerRed">#D32F2F</SolidColorBrush>
+        <SolidColorBrush x:Key="DangerRedHover">#E53935</SolidColorBrush>
+        <SolidColorBrush x:Key="AppBackground">#F3F4F6</SolidColorBrush> <SolidColorBrush x:Key="CardBackground">#FFFFFF</SolidColorBrush> <SolidColorBrush x:Key="TextPrimary">#1F2937</SolidColorBrush>
+        <SolidColorBrush x:Key="TextSecondary">#6B7280</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderColor">#E5E7EB</SolidColorBrush>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+        </Style>
+        
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BoxShadow" Value="0 1 3 0 #20000000"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="15"/>
+        </Style>
+
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="15,8"/>
+        </Style>
+        <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource PrimaryBlueHover}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="Button.tool">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.tool:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F9FAFB"/>
+            <Setter Property="BorderBrush" Value="#A0A0A0"/>
+        </Style>
+
+        <Style Selector="Button.delete">
+            <Setter Property="Background" Value="{DynamicResource DangerRed}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.delete:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource DangerRedHover}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,2"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E0F2FE"/> <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/>
+        </Style>
+
+    </Application.Styles>
+</Application>

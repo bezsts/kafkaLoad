@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
+    <PackageReference Include="Confluent.Kafka" Version="2.13.2" />
+    <PackageReference Include="ReactiveUI" Version="23.1.8" />
+    <PackageReference Include="ReactiveUI.Avalonia" Version="11.4.12" />
+    <PackageReference Include="ReactiveUI.Validation" Version="7.0.5" />
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.57" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KafkaLoad.Core\KafkaLoad.Core.csproj" />
+    <ProjectReference Include="..\KafkaLoad.Infrastructure\KafkaLoad.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views/ConsumerConfigView.axaml.cs">
+      <DependentUpon>ConsumerConfigView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views/ProducerConfigView.axaml.cs">
+      <DependentUpon>ProducerConfigView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views/TestRunnerView.axaml.cs">
+      <DependentUpon>TestRunnerView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\ClientsConfigView.axaml.cs">
+      <DependentUpon>ClientsConfigView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\TestScenarioEditorView.axaml.cs">
+      <DependentUpon>TestScenarioEditorView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>
