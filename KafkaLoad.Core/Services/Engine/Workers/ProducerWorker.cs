@@ -61,23 +61,37 @@ public class ProducerWorker : BaseWorker
                     Value = val
                 };
 
-                // Send message asynchronously
-                _producer.Produce(Topic, kafkaMessage,
-                    (deliveryReport) =>
-                    {
-                        stopwatch.Stop();
-                        if (deliveryReport.Error.IsError)
+                try
+                {
+                    // Send message asynchronously
+                    _producer.Produce(Topic, kafkaMessage,
+                        (deliveryReport) =>
                         {
-                            Log.Warning("Message delivery failed. Error: {Reason} (Code: {Code})", deliveryReport.Error.Reason, deliveryReport.Error.Code);
-                            Metrics.RecordProducerError();
-                        }
-                        else
-                        {
-                            int bytes = (deliveryReport.Message.Key?.Length ?? 0) +
-                                     (deliveryReport.Message.Value?.Length ?? 0);
-                            Metrics.RecordProducerSuccess(bytes, stopwatch.Elapsed.TotalMilliseconds);
-                        }
-                    });
+                            stopwatch.Stop();
+                            if (deliveryReport.Error.IsError)
+                            {
+                                Log.Warning("Message delivery failed. Error: {Reason} (Code: {Code})", deliveryReport.Error.Reason, deliveryReport.Error.Code);
+                                Metrics.RecordProducerError();
+                            }
+                            else
+                            {
+                                int bytes = (deliveryReport.Message.Key?.Length ?? 0) +
+                                         (deliveryReport.Message.Value?.Length ?? 0);
+                                Metrics.RecordProducerSuccess(bytes, stopwatch.Elapsed.TotalMilliseconds);
+                            }
+                        });
+                }
+                catch (ProduceException<byte[], byte[]> ex) when (ex.Error.Code == ErrorCode.Local_QueueFull)
+                {
+                    //Metrics.RecordProducerError();
+
+                    await Task.Delay(10, ct);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Produce error on topic: {Topic}", Topic);
+                    Metrics.RecordProducerError();
+                }
 
                 // Periodically poll to process delivery reports
                 if (++iterations % 100 == 0)

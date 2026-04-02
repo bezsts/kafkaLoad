@@ -21,18 +21,20 @@ public class KafkaClientFactory : IKafkaClientFactory
         {
             BootstrapServers = config.BootstrapServers,
             ClientId = config.ClientID,
-            
+
             // Mapping Enums
-            Acks = (Acks)config.Acks, 
+            Acks = (Acks)config.Acks,
             CompressionType = (CompressionType)config.CompressionType,
-            
+
             // Numeric settings
             BatchSize = config.BatchSize,
             LingerMs = config.Linger,
             QueueBufferingMaxKbytes = (int)(config.BufferMemory / 1024),
             MessageSendMaxRetries = config.Retries,
             EnableIdempotence = config.EnableIdempotence,
-            MaxInFlight = config.MaxInFlightRequestsPerConnection
+            MaxInFlight = config.MaxInFlightRequestsPerConnection,
+
+            QueueBufferingMaxMessages = 1_000_000
         };
 
         ApplySecurityConfig(producerConfig, config.Security);
