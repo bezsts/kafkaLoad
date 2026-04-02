@@ -4,17 +4,19 @@ using Avalonia.Markup.Xaml;
 using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Services;
 using KafkaLoad.Core.Services.Interfaces;
+using KafkaLoad.Infrastructure.Database;
+using KafkaLoad.Infrastructure.Database.Repositories;
 using KafkaLoad.Infrastructure.Kafka;
 using KafkaLoad.UI.ViewModels;
 using KafkaLoad.UI.ViewModels.Reports;
 using KafkaLoad.UI.Views;
+using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Serilog;
 using Splat;
 using System;
+using System.IO;
 using System.Reactive;
-using KafkaLoad.Infrastructure.Configuration.Json;
-using KafkaLoad.Infrastructure.Reports;
 
 namespace KafkaLoad.UI;
 
@@ -56,14 +58,33 @@ public partial class App : Application
         RegisterViews();
     }
 
+    private static KafkaLoadDbContext CreateDbContext()
+    {
+        var dbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "KafkaLoad",
+            "kafkaload.db");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+
+        var options = new DbContextOptionsBuilder<KafkaLoadDbContext>()
+            .UseSqlite($"Data Source={dbPath}")
+            .Options;
+
+        var db = new KafkaLoadDbContext(options);
+        db.Database.Migrate();
+        return db;
+    }
+
     private void RegisterAppServices()
     {
-        // Core services
-        Locator.CurrentMutable.RegisterConstant(new JsonConfigManager(), typeof(IFileManager));
+        var db = CreateDbContext();
+        Locator.CurrentMutable.RegisterConstant(db, typeof(KafkaLoadDbContext));
+
         Locator.CurrentMutable.RegisterConstant(new MetricsService(), typeof(IMetricsService));
         Locator.CurrentMutable.RegisterConstant(new KafkaClientFactory(), typeof(IKafkaClientFactory));
         Locator.CurrentMutable.RegisterConstant(new KafkaTopicService(), typeof(IKafkaTopicService));
-        Locator.CurrentMutable.RegisterConstant(new JsonTestReportRepository(), typeof(ITestReportRepository));
+        Locator.CurrentMutable.RegisterConstant(new PostgresTestReportRepository(db), typeof(ITestReportRepository));
 
         Locator.CurrentMutable.RegisterLazySingleton(() =>
             new TestRunnerService(
@@ -76,21 +97,18 @@ public partial class App : Application
 
     private void RegisterRepositories()
     {
-        var fileManager = Locator.Current.GetService<IFileManager>();
+        var db = Locator.Current.GetService<KafkaLoadDbContext>()!;
 
-        // Producers
         Locator.CurrentMutable.RegisterConstant(
-            new JsonConfigRepository<CustomProducerConfig>(fileManager!, "Producers"),
+            new PostgresProducerConfigRepository(db),
             typeof(IConfigRepository<CustomProducerConfig>));
 
-        // Consumers
         Locator.CurrentMutable.RegisterConstant(
-            new JsonConfigRepository<CustomConsumerConfig>(fileManager!, "Consumers"),
+            new PostgresConsumerConfigRepository(db),
             typeof(IConfigRepository<CustomConsumerConfig>));
 
-        // Scenarios
         Locator.CurrentMutable.RegisterConstant(
-            new JsonConfigRepository<TestScenario>(fileManager!, "TestScenarios"),
+            new PostgresTestScenarioRepository(db),
             typeof(IConfigRepository<TestScenario>));
     }
 
