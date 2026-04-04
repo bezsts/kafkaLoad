@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.Core.Services.Engine;
 
-public class ThroughputController
+public class ThroughputController : IDisposable
 {
     private readonly TestType _testType;
     private readonly int _durationSec;
@@ -16,8 +16,8 @@ public class ThroughputController
     private readonly double _baseRps;
     private readonly double _spikeRps;
 
-    private double _currentTokens;
-    private readonly object _lockObj = new();
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(0);
+    private double _fractionalTokens;
     private Stopwatch? _stopwatch;
 
     public ThroughputController(TestScenario scenario)
@@ -28,32 +28,13 @@ public class ThroughputController
         _baseRps = scenario.BaseThroughput ?? 100;
         _spikeRps = scenario.SpikeThroughput ?? (_targetRps * 5);
 
-        _currentTokens = 0;
-
         Log.Information("ThroughputController initialized for {TestType} test. Duration: {Duration}s. Target: {TargetRps} msg/s. Base: {BaseRps} msg/s. Spike: {SpikeRps} msg/s.",
             _testType, _durationSec, _targetRps, _baseRps, _spikeRps);
     }
 
     public async Task WaitForTokenAsync(CancellationToken ct)
     {
-        while (true)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            lock (_lockObj)
-            {
-                if (_currentTokens >= 1.0)
-                {
-                    // Take one token and allow the worker to send the message
-                    _currentTokens -= 1.0;
-                    return;
-                }
-            }
-
-            // Wait 10ms before trying again. 
-            // This prevents ThreadPool starvation and UI freezing.
-            await Task.Delay(10, ct);
-        }
+        await _semaphore.WaitAsync(ct);
     }
 
     public async Task RunReplenisherAsync(CancellationToken ct)
@@ -74,17 +55,18 @@ public class ThroughputController
 
                 double currentTargetRps = CalculateCurrentRps(currentSec);
 
-                lock (_lockObj)
-                {
-                    // Add new tokens based on the elapsed time and current RPS
-                    _currentTokens += currentTargetRps * deltaTime;
+                double accumulated = currentTargetRps * deltaTime + _fractionalTokens;
+                int tokensToAdd = (int)accumulated;
+                _fractionalTokens = accumulated - tokensToAdd;
 
-                    // Cap the bucket size to 1 second of throughput to prevent massive bursts
-                    // if workers are momentarily slower than the token generation
-                    if (_currentTokens > currentTargetRps)
-                    {
-                        _currentTokens = currentTargetRps;
-                    }
+                if (tokensToAdd > 0)
+                {
+                    int currentCount = _semaphore.CurrentCount;
+                    int maxTokens = (int)Math.Ceiling(currentTargetRps);
+                    int allowed = Math.Min(tokensToAdd, Math.Max(0, maxTokens - currentCount));
+
+                    if (allowed > 0)
+                        _semaphore.Release(allowed);
                 }
 
                 // Refill the bucket every 10ms for a smooth data flow
@@ -106,6 +88,11 @@ public class ThroughputController
         }
     }
 
+
+    public void Dispose()
+    {
+        _semaphore.Dispose();
+    }
 
     private double CalculateCurrentRps(double currentSec)
     {

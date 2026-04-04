@@ -2,11 +2,15 @@
 using ReactiveUI.Avalonia;
 using Serilog;
 using System;
+using System.Runtime.InteropServices;
 
 namespace KafkaLoad.UI;
 
 class Program
 {
+    [DllImport("winmm.dll")] private static extern uint timeBeginPeriod(uint uMilliseconds);
+    [DllImport("winmm.dll")] private static extern uint timeEndPeriod(uint uMilliseconds);
+
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
@@ -23,6 +27,8 @@ class Program
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
+        timeBeginPeriod(1);
+
         try
         {
             Log.Information("Starting KafkaLoad Desktop Application...");
@@ -35,6 +41,7 @@ class Program
         }
         finally
         {
+            timeEndPeriod(1);
             Log.Information("Application shutting down cleanly.");
             Log.CloseAndFlush();
         }

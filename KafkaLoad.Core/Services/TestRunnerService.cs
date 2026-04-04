@@ -152,6 +152,8 @@ public class TestRunnerService : ITestRunnerService
                     Log.Error(ex, "One or more worker tasks threw an exception during shutdown.");
                 }
 
+                throughputController.Dispose();
+
                 _metricsService.Stop();
 
                 CleanupClients();

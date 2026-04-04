@@ -49,6 +49,17 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
     private long _lastConsErrors = 0;
     private double _lastConsLatSum = 0;
 
+    // --- SLIDING WINDOW SMOOTHING (8 samples × 500ms = 4 seconds) ---
+    private const int SmoothingSamples = 8;
+    private readonly SlidingWindowRate _swProdMsgRate   = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swProdMbRate    = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swProdErrRate   = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swProdLatency   = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swConsMsgRate   = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swConsMbRate    = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swConsErrRate   = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swConsLatency   = new(SmoothingSamples);
+
     public RealTimeChartViewModel(IMetricsService metricsService)
     {
         _metricsService = metricsService;
@@ -120,19 +131,35 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         consMsgSec = Math.Max(0, consMsgSec);
         consErrSec = Math.Max(0, consErrSec);
 
+        // --- SMOOTH RATES OVER A 4-SECOND SLIDING WINDOW ---
+
+        double smoothProdMsgSec  = _swProdMsgRate.Add(prodMsgSec  * deltaSec, deltaSec);
+        double smoothProdMbSec   = _swProdMbRate .Add(prodMbSec   * deltaSec, deltaSec);
+        double smoothProdErrSec  = _swProdErrRate.Add(prodErrSec  * deltaSec, deltaSec);
+        double smoothConsMsgSec  = _swConsMsgRate.Add(consMsgSec  * deltaSec, deltaSec);
+        double smoothConsMbSec   = _swConsMbRate .Add(consMbSec   * deltaSec, deltaSec);
+        double smoothConsErrSec  = _swConsErrRate.Add(consErrSec  * deltaSec, deltaSec);
+
+        double smoothProdLatency = deltaProdMsgs > 0
+            ? _swProdLatency.Add(instProdLat * deltaProdMsgs, deltaProdMsgs)
+            : _swProdLatency.Add(0, 0);
+        double smoothConsLatency = deltaConsMsgs > 0
+            ? _swConsLatency.Add(instConsLat * deltaConsMsgs, deltaConsMsgs)
+            : _swConsLatency.Add(0, 0);
+
         // --- UPDATE BUFFERS ---
 
         // Producer
-        ProducerThroughput.AddPoint(time, prodMbSec);
-        ProducerMsgRate.AddPoint(time, prodMsgSec);
-        ProducerErrors.AddPoint(time, prodErrSec);
-        ProducerLatency.AddPoint(time, instProdLat);
+        ProducerThroughput.AddPoint(time, smoothProdMbSec);
+        ProducerMsgRate.AddPoint(time, smoothProdMsgSec);
+        ProducerErrors.AddPoint(time, smoothProdErrSec);
+        ProducerLatency.AddPoint(time, smoothProdLatency);
 
         // Consumer
-        ConsumerThroughput.AddPoint(time, consMbSec);
-        ConsumerMsgRate.AddPoint(time, consMsgSec);
-        ConsumerErrors.AddPoint(time, consErrSec);
-        ConsumerLatency.AddPoint(time, instConsLat);
+        ConsumerThroughput.AddPoint(time, smoothConsMbSec);
+        ConsumerMsgRate.AddPoint(time, smoothConsMsgSec);
+        ConsumerErrors.AddPoint(time, smoothConsErrSec);
+        ConsumerLatency.AddPoint(time, smoothConsLatency);
 
         // --- SAVE STATE FOR NEXT CALCULATION ---
         UpdateLastValues(snapshot);
@@ -212,6 +239,15 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         _lastConsBytes = 0;
         _lastConsMsgs = 0;
         _lastConsErrors = 0;
+
+        _swProdMsgRate.Reset();
+        _swProdMbRate.Reset();
+        _swProdErrRate.Reset();
+        _swProdLatency.Reset();
+        _swConsMsgRate.Reset();
+        _swConsMbRate.Reset();
+        _swConsErrRate.Reset();
+        _swConsLatency.Reset();
 
         RefreshCounter = 0;
     }
