@@ -6,13 +6,20 @@ namespace KafkaLoad.Core.Services.Interfaces
 {
     public interface ITestReportRepository
     {
-        // Saves a new report to the storage (File/DB)
         Task SaveReportAsync(TestReport report);
 
-        // Retrieves all reports for the History view
+        // Retrieves all reports without time series data (for the list view)
         Task<IEnumerable<TestReport>> GetAllReportsAsync();
 
-        // Deletes a report
+        // Loads time series data for a single report on demand (for chart rendering)
+        Task<Dictionary<string, List<TimeSeriesPoint>>> GetTimeSeriesDataAsync(string reportId);
+
         Task DeleteReportAsync(string id);
+
+        // Removes reports older than the given number of days
+        Task<int> DeleteOldReportsAsync(int olderThanDays);
+
+        // Returns per-scenario run counts and average throughput (uses SQL aggregation)
+        Task<IEnumerable<ScenarioRunSummary>> GetScenarioStatisticsAsync();
     }
 }

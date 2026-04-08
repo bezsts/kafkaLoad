@@ -96,6 +96,42 @@ namespace KafkaLoad.Infrastructure.Reports
             return reports.OrderByDescending(r => r.CreatedAt);
         }
 
+        public Task<Dictionary<string, List<TimeSeriesPoint>>> GetTimeSeriesDataAsync(string reportId)
+        {
+            // JSON-based reports store time series inline — return empty; caller reads the full report via GetAllReportsAsync
+            return Task.FromResult(new Dictionary<string, List<TimeSeriesPoint>>());
+        }
+
+        public Task<int> DeleteOldReportsAsync(int olderThanDays)
+        {
+            var cutoff = DateTime.UtcNow.AddDays(-olderThanDays);
+            int deleted = 0;
+
+            var files = Directory.Exists(_reportsDirectory)
+                ? Directory.GetFiles(_reportsDirectory, "report_*.json")
+                : Array.Empty<string>();
+
+            foreach (var file in files)
+            {
+                if (File.GetLastWriteTimeUtc(file) < cutoff)
+                {
+                    File.Delete(file);
+                    deleted++;
+                }
+            }
+
+            if (deleted > 0)
+                Log.Information("Auto-cleanup: deleted {Count} JSON reports older than {Days} days", deleted, olderThanDays);
+
+            return Task.FromResult(deleted);
+        }
+
+        public Task<IEnumerable<ScenarioRunSummary>> GetScenarioStatisticsAsync()
+        {
+            // Statistics are not supported in the JSON-based repository
+            return Task.FromResult(Enumerable.Empty<ScenarioRunSummary>());
+        }
+
         public Task DeleteReportAsync(string id)
         {
             Log.Information("Attempting to delete report with ID: {ReportId}", id);

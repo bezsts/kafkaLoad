@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.Infrastructure.Database.Repositories;
 
-public class PostgresTestReportRepository : ITestReportRepository
+public class SqliteTestReportRepository : ITestReportRepository
 {
     private readonly KafkaLoadDbContext _db;
 
-    public PostgresTestReportRepository(KafkaLoadDbContext db)
+    public SqliteTestReportRepository(KafkaLoadDbContext db)
     {
         _db = db;
     }
@@ -93,11 +93,25 @@ public class PostgresTestReportRepository : ITestReportRepository
             .AsNoTracking()
             .Include(x => x.ProducerMetrics)
             .Include(x => x.ConsumerMetrics)
-            .Include(x => x.TimeSeriesPoints)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
 
         return entities.Select(MapToDomain);
+    }
+
+    public async Task<Dictionary<string, List<TimeSeriesPoint>>> GetTimeSeriesDataAsync(string reportId)
+    {
+        var points = await _db.TimeSeriesPoints
+            .AsNoTracking()
+            .Where(p => p.ReportId == reportId)
+            .ToListAsync();
+
+        return points
+            .GroupBy(p => p.SeriesName)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(p => new TimeSeriesPoint(p.TimeSeconds, p.Value)).ToList()
+            );
     }
 
     public async Task DeleteReportAsync(string id)
@@ -111,6 +125,35 @@ public class PostgresTestReportRepository : ITestReportRepository
         _db.TestReports.Remove(entity);
         await _db.SaveChangesAsync();
         Log.Information("Deleted report: {ReportId}", id);
+    }
+
+    public async Task<int> DeleteOldReportsAsync(int olderThanDays)
+    {
+        var cutoff = DateTime.UtcNow.AddDays(-olderThanDays);
+        var deleted = await _db.TestReports
+            .Where(r => r.CreatedAt < cutoff)
+            .ExecuteDeleteAsync();
+
+        if (deleted > 0)
+            Log.Information("Auto-cleanup: deleted {Count} reports older than {Days} days", deleted, olderThanDays);
+
+        return deleted;
+    }
+
+    public async Task<IEnumerable<ScenarioRunSummary>> GetScenarioStatisticsAsync()
+    {
+        return await _db.Database
+            .SqlQuery<ScenarioRunSummary>($"""
+                SELECT r.scenario_name                        AS ScenarioName,
+                       COUNT(r.id)                           AS RunCount,
+                       MAX(r.created_at)                     AS LastRun,
+                       COALESCE(AVG(pm.throughput_msg_sec), 0.0) AS AvgThroughputMsgSec
+                FROM test_report r
+                LEFT JOIN producer_metrics pm ON pm.report_id = r.id
+                GROUP BY r.scenario_name
+                ORDER BY LastRun DESC
+                """)
+            .ToListAsync();
     }
 
     private static TestReport MapToDomain(TestReportEntity e)

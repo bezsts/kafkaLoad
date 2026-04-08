@@ -29,13 +29,6 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        //RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-        //{
-        //    Log.Error(ex, "An unhandled exception occurred in a UI command.");
-
-        //    // TODO: Here you could trigger a global Event/Message to show a nice Error Dialog to the user
-        //});
-
         RegisterDependencies();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -84,7 +77,10 @@ public partial class App : Application
         Locator.CurrentMutable.RegisterConstant(new MetricsService(), typeof(IMetricsService));
         Locator.CurrentMutable.RegisterConstant(new KafkaClientFactory(), typeof(IKafkaClientFactory));
         Locator.CurrentMutable.RegisterConstant(new KafkaTopicService(), typeof(IKafkaTopicService));
-        Locator.CurrentMutable.RegisterConstant(new PostgresTestReportRepository(db), typeof(ITestReportRepository));
+
+        var reportRepository = new SqliteTestReportRepository(db);
+        _ = reportRepository.DeleteOldReportsAsync(olderThanDays: 90);
+        Locator.CurrentMutable.RegisterConstant(reportRepository, typeof(ITestReportRepository));
 
         Locator.CurrentMutable.RegisterLazySingleton(() =>
             new TestRunnerService(
@@ -100,15 +96,15 @@ public partial class App : Application
         var db = Locator.Current.GetService<KafkaLoadDbContext>()!;
 
         Locator.CurrentMutable.RegisterConstant(
-            new PostgresProducerConfigRepository(db),
+            new SqliteProducerConfigRepository(db),
             typeof(IConfigRepository<CustomProducerConfig>));
 
         Locator.CurrentMutable.RegisterConstant(
-            new PostgresConsumerConfigRepository(db),
+            new SqliteConsumerConfigRepository(db),
             typeof(IConfigRepository<CustomConsumerConfig>));
 
         Locator.CurrentMutable.RegisterConstant(
-            new PostgresTestScenarioRepository(db),
+            new SqliteTestScenarioRepository(db),
             typeof(IConfigRepository<TestScenario>));
     }
 

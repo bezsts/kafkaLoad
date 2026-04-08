@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.Infrastructure.Database.Repositories;
 
-public class PostgresTestScenarioRepository : IConfigRepository<TestScenario>
+public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
 {
     private readonly KafkaLoadDbContext _db;
 
-    public PostgresTestScenarioRepository(KafkaLoadDbContext db)
+    public SqliteTestScenarioRepository(KafkaLoadDbContext db)
     {
         _db = db;
     }

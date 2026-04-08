@@ -12,45 +12,45 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.Infrastructure.Database.Repositories;
 
-public class PostgresProducerConfigRepository : IConfigRepository<CustomProducerConfig>
+public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerConfig>
 {
     private readonly KafkaLoadDbContext _db;
 
-    public PostgresProducerConfigRepository(KafkaLoadDbContext db)
+    public SqliteConsumerConfigRepository(KafkaLoadDbContext db)
     {
         _db = db;
     }
 
-    public async Task<IEnumerable<CustomProducerConfig>> GetAllAsync()
+    public async Task<IEnumerable<CustomConsumerConfig>> GetAllAsync()
     {
-        var entities = await _db.ProducerConfigs.AsNoTracking().ToListAsync();
+        var entities = await _db.ConsumerConfigs.AsNoTracking().ToListAsync();
         return entities.Select(MapToDomain);
     }
 
-    public async Task<CustomProducerConfig?> GetByNameAsync(string name)
+    public async Task<CustomConsumerConfig?> GetByNameAsync(string name)
     {
-        var entity = await _db.ProducerConfigs.AsNoTracking()
+        var entity = await _db.ConsumerConfigs.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Name == name);
         return entity is null ? null : MapToDomain(entity);
     }
 
-    public async Task SaveAsync(CustomProducerConfig config)
+    public async Task SaveAsync(CustomConsumerConfig config)
     {
-        var existing = await _db.ProducerConfigs.FirstOrDefaultAsync(x => x.Name == config.Name);
+        var existing = await _db.ConsumerConfigs.FirstOrDefaultAsync(x => x.Name == config.Name);
 
         if (existing is null)
         {
             var entity = MapToEntity(config);
             entity.CreatedAt = DateTime.UtcNow;
             entity.UpdatedAt = DateTime.UtcNow;
-            _db.ProducerConfigs.Add(entity);
-            Log.Information("Inserting new producer config: {Name}", config.Name);
+            _db.ConsumerConfigs.Add(entity);
+            Log.Information("Inserting new consumer config: {Name}", config.Name);
         }
         else
         {
             MapToEntity(config, existing);
             existing.UpdatedAt = DateTime.UtcNow;
-            Log.Information("Updating existing producer config: {Name}", config.Name);
+            Log.Information("Updating existing consumer config: {Name}", config.Name);
         }
 
         await _db.SaveChangesAsync();
@@ -58,35 +58,32 @@ public class PostgresProducerConfigRepository : IConfigRepository<CustomProducer
 
     public async Task DeleteAsync(string name)
     {
-        var entity = await _db.ProducerConfigs.FirstOrDefaultAsync(x => x.Name == name);
+        var entity = await _db.ConsumerConfigs.FirstOrDefaultAsync(x => x.Name == name);
         if (entity is null)
         {
-            Log.Warning("Producer config not found for deletion: {Name}", name);
+            Log.Warning("Consumer config not found for deletion: {Name}", name);
             return;
         }
-        _db.ProducerConfigs.Remove(entity);
+        _db.ConsumerConfigs.Remove(entity);
         await _db.SaveChangesAsync();
-        Log.Information("Deleted producer config: {Name}", name);
+        Log.Information("Deleted consumer config: {Name}", name);
     }
 
     public async Task<bool> ExistsAsync(string name)
     {
-        return await _db.ProducerConfigs.AnyAsync(x => x.Name == name);
+        return await _db.ConsumerConfigs.AnyAsync(x => x.Name == name);
     }
 
-    private static CustomProducerConfig MapToDomain(ProducerConfigEntity e) => new()
+    private static CustomConsumerConfig MapToDomain(ConsumerConfigEntity e) => new()
     {
         Name = e.Name,
         BootstrapServers = e.BootstrapServers,
-        ClientID = e.ClientId,
-        Acks = Enum.Parse<AcksEnum>(e.Acks),
-        Retries = e.Retries,
-        EnableIdempotence = e.EnableIdempotence,
-        BatchSize = e.BatchSizeBytes,
-        Linger = e.LingerMs,
-        CompressionType = Enum.Parse<CompressionTypeEnum>(e.CompressionType),
-        BufferMemory = e.BufferMemoryBytes,
-        MaxInFlightRequestsPerConnection = e.MaxInFlightRequests,
+        GroupId = e.GroupId,
+        AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),
+        FetchMinBytes = e.FetchMinBytes,
+        FetchMaxBytes = e.FetchMaxBytes,
+        FetchMaxWait = e.FetchMaxWaitMs,
+        MaxPollInterval = e.MaxPollIntervalMs,
         Security = new CustomSecurityConfig
         {
             SecurityProtocol = Enum.Parse<SecurityProtocolEnum>(e.SecurityProtocol),
@@ -100,21 +97,17 @@ public class PostgresProducerConfigRepository : IConfigRepository<CustomProducer
         }
     };
 
-    private static ProducerConfigEntity MapToEntity(CustomProducerConfig c, ProducerConfigEntity? target = null)
+    private static ConsumerConfigEntity MapToEntity(CustomConsumerConfig c, ConsumerConfigEntity? target = null)
     {
-        target ??= new ProducerConfigEntity();
+        target ??= new ConsumerConfigEntity();
         target.Name = c.Name;
         target.BootstrapServers = c.BootstrapServers;
-        target.ClientId = c.ClientID;
-        target.Acks = c.Acks.ToString();
-        target.Retries = c.Retries;
-        target.EnableIdempotence = c.EnableIdempotence;
-        target.BatchSizeBytes = c.BatchSize;
-        target.LingerMs = c.Linger;
-        target.CompressionType = c.CompressionType.ToString();
-        target.BufferMemoryBytes = c.BufferMemory;
-        target.MaxInFlightRequests = c.MaxInFlightRequestsPerConnection;
-        target.AutoCreateTopicsEnable = c.AutoCreateTopicsEnable;
+        target.GroupId = c.GroupId;
+        target.AutoOffsetReset = c.AutoOffsetReset.ToString();
+        target.FetchMinBytes = c.FetchMinBytes;
+        target.FetchMaxBytes = c.FetchMaxBytes;
+        target.FetchMaxWaitMs = c.FetchMaxWait;
+        target.MaxPollIntervalMs = c.MaxPollInterval;
         target.SecurityProtocol = c.Security.SecurityProtocol.ToString();
         target.SaslMechanism = c.Security.SaslMechanism.ToString();
         target.SaslUsername = c.Security.SaslUsername;

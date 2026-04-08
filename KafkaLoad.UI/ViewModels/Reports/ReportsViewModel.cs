@@ -3,8 +3,8 @@ using KafkaLoad.Core.Services.Interfaces;
 using ReactiveUI;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Reactive;
 using System.Threading.Tasks;
 
@@ -20,10 +20,12 @@ namespace KafkaLoad.UI.ViewModels.Reports
         public TestReport? SelectedReport
         {
             get => _selectedReport;
-            set 
-            { 
+            set
+            {
                 this.RaiseAndSetIfChanged(ref _selectedReport, value);
                 CompareWithReport = null;
+                if (value != null)
+                    _ = EnsureTimeSeriesAsync(value, nameof(SelectedReport));
             }
         }
 
@@ -41,12 +43,16 @@ namespace KafkaLoad.UI.ViewModels.Reports
             set
             {
                 this.RaiseAndSetIfChanged(ref _compareWithReport, value);
-                GenerateComparison(); // Recalculate diffs when second report is selected
+                GenerateComparison();
+                if (value != null)
+                    _ = EnsureTimeSeriesAsync(value, nameof(CompareWithReport));
             }
         }
 
         public ObservableCollection<MetricDiff> ProducerComparison { get; } = new();
         public ObservableCollection<MetricDiff> ConsumerComparison { get; } = new();
+
+        public ObservableCollection<ScenarioRunSummary> ScenarioStatistics { get; } = new();
 
         public ReactiveCommand<Unit, Unit> LoadReportsCommand { get; }
         public ReactiveCommand<string, Unit> DeleteReportCommand { get; }
@@ -74,9 +80,12 @@ namespace KafkaLoad.UI.ViewModels.Reports
 
                 Reports.Clear();
                 foreach (var report in reports)
-                {
                     Reports.Add(report);
-                }
+
+                var stats = await _reportRepository.GetScenarioStatisticsAsync();
+                ScenarioStatistics.Clear();
+                foreach (var stat in stats)
+                    ScenarioStatistics.Add(stat);
 
                 Log.Debug("Successfully loaded {Count} reports into the UI.", Reports.Count);
             }
@@ -141,6 +150,21 @@ namespace KafkaLoad.UI.ViewModels.Reports
                 ConsumerComparison.Add(Compare("Throughput (MB/s)", c1.ThroughputBytesSec / 1024.0 / 1024.0, c2.ThroughputBytesSec / 1024.0 / 1024.0, lowerIsBetter: false));
                 ConsumerComparison.Add(Compare("Avg E2E Latency (ms)", c1.AvgEndToEndLatencyMs, c2.AvgEndToEndLatencyMs, lowerIsBetter: true));
                 ConsumerComparison.Add(Compare("Max Lag", c1.MaxConsumerLag, c2.MaxConsumerLag, lowerIsBetter: true, "N0"));
+            }
+        }
+
+        private async Task EnsureTimeSeriesAsync(TestReport report, string propertyName)
+        {
+            if (report.TimeSeriesData.Count > 0) return;
+
+            try
+            {
+                report.TimeSeriesData = await _reportRepository.GetTimeSeriesDataAsync(report.Id);
+                this.RaisePropertyChanged(propertyName);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to load time series data for report {ReportId}", report.Id);
             }
         }
 
