@@ -21,7 +21,6 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
     protected override void InitializeValidation()
     {
         this.ValidationRule(vm => vm.Name, name => !string.IsNullOrWhiteSpace(name), "Name is required");
-        this.ValidationRule(vm => vm.BootstrapServers, s => !string.IsNullOrWhiteSpace(s), "Bootstrap servers required");
         this.ValidationRule(vm => vm.GroupId, g => !string.IsNullOrWhiteSpace(g), "Group Id required");
     }
 
@@ -29,12 +28,6 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
     {
         get => Model.Name;
         set => SetProperty(value, Model.Name, v => Model.Name = v);
-    }
-
-    public string BootstrapServers
-    {
-        get => Model.BootstrapServers;
-        set => SetProperty(value, Model.BootstrapServers, v => Model.BootstrapServers = v);
     }
 
     public string GroupId

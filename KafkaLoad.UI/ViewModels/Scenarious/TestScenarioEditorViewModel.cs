@@ -82,7 +82,6 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         // 1. BASIC FIELD REQUIREMENTS
         // ==========================================
         this.ValidationRule(vm => vm.Name, n => !string.IsNullOrWhiteSpace(n), "Name is required");
-        this.ValidationRule(vm => vm.TopicName, t => !string.IsNullOrWhiteSpace(t), "Topic is required");
         this.ValidationRule(vm => vm.SelectedProducer, p => p is not null, "Producer is required");
         this.ValidationRule(vm => vm.SelectedConsumer, c => c is not null, "Consumer is required");
         this.ValidationRule(vm => vm.ProducerCount, c => c > 0, "Producer count must be > 0");
@@ -181,11 +180,6 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         get => Model.Name;
         set => SetProperty(value, Model.Name, v => Model.Name = v);
-    }
-    public string TopicName
-    {
-        get => Model.TopicName;
-        set => SetProperty(value, Model.TopicName, v => Model.TopicName = v);
     }
 
     public ObservableCollection<CustomProducerConfig> Producers { get; } = new();

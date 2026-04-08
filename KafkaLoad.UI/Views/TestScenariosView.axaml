@@ -8,34 +8,62 @@
 
     <Grid Background="{DynamicResource AppBackground}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="280"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0" Background="White">
-            <Grid RowDefinitions="Auto, *, Auto" Margin="15">
-                <TextBlock Grid.Row="0" Text="Scenarios" FontWeight="Bold" FontSize="18" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryBlue}"/>
-                
-                <ListBox Grid.Row="1" 
-                         ItemsSource="{Binding Scenarios}" 
+        <!-- Left panel: list -->
+        <Border Grid.Column="0" Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="12">
+
+                <TextBlock Grid.Row="0" Text="Scenarious"
+                           FontWeight="Bold" FontSize="16"
+                           Foreground="{DynamicResource PrimaryBlue}"
+                           Margin="0,0,0,10"/>
+
+                <!-- Search -->
+                <Border Grid.Row="1" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+                        CornerRadius="4" Background="White" Margin="0,0,0,10" Padding="8,6">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBox Grid.Column="0" Text="{Binding SearchText}"
+                                 Watermark="Search..."
+                                 BorderThickness="0" Background="Transparent"
+                                 Padding="0" FontSize="13"/>
+                        <TextBlock Grid.Column="1" Text="🔍" FontSize="13"
+                                   Foreground="{DynamicResource TextSecondary}"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Scenarios list -->
+                <ListBox Grid.Row="2"
+                         ItemsSource="{Binding FilteredScenarios}"
                          SelectedItem="{Binding SelectedScenario}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock Text="{Binding TestType}" FontSize="11"
+                                           Foreground="{DynamicResource PrimaryBlue}"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5" Margin="0,10,0,0" HorizontalAlignment="Right">
+                <!-- Action buttons -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5"
+                            Margin="0,10,0,0" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding CreateCommand}" Content="Add"/>
                     <Button Classes="tool" Command="{Binding DuplicateCommand}" Content="Copy"/>
-                    <Button Classes="delete" Command="{Binding DeleteCommand}" Content="Del"/>
+                    <Button Classes="delete" Command="{Binding DeleteCommand}" Content="Delete"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Margin="20">
-            
+        <!-- Right panel: editor -->
+        <Grid Grid.Column="1" Margin="16">
+
             <Border Classes="card" IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <TransitioningContentControl Content="{Binding CurrentEditor}">
                     <TransitioningContentControl.DataTemplates>
@@ -46,12 +74,18 @@
                 </TransitioningContentControl>
             </Border>
 
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10"
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
                         IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNull}}">
-                <TextBlock Text="Select or Create a Scenario" FontSize="20" FontWeight="Light" Foreground="{DynamicResource TextSecondary}"/>
+                <TextBlock Text="Select or create a scenario"
+                           FontSize="20" FontWeight="Light"
+                           Foreground="{DynamicResource TextSecondary}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Use the Add button to create a new scenario"
+                           FontSize="13" Foreground="{DynamicResource TextSecondary}"
+                           HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <Border Background="#22C55E" CornerRadius="4" Padding="15,10" 
+            <Border Background="#22C55E" CornerRadius="6" Padding="14,10"
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="20"
                     IsVisible="{Binding NotificationMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <TextBlock Text="{Binding NotificationMessage}" Foreground="White" FontWeight="Bold"/>

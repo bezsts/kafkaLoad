@@ -7,7 +7,6 @@ public class TestScenarioEntity
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string TopicName { get; set; } = string.Empty;
 
     public int? ProducerConfigId { get; set; }
     public ProducerConfigEntity? ProducerConfig { get; set; }

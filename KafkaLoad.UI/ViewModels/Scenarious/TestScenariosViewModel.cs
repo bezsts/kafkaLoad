@@ -27,7 +27,19 @@ namespace KafkaLoad.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _notificationMessage, value);
         }
 
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _searchText, value);
+                RefreshFiltered();
+            }
+        }
+
         public ObservableCollection<TestScenario> Scenarios { get; } = new();
+        public ObservableCollection<TestScenario> FilteredScenarios { get; } = new();
 
         private TestScenario? _selectedScenario;
         public TestScenario? SelectedScenario
@@ -148,6 +160,21 @@ namespace KafkaLoad.UI.ViewModels
             Scenarios.Clear();
             var list = await _scenarioRepo.GetAllAsync();
             foreach (var item in list) Scenarios.Add(item);
+            RefreshFiltered();
+        }
+
+        private void RefreshFiltered()
+        {
+            FilteredScenarios.Clear();
+            var filter = SearchText?.Trim() ?? string.Empty;
+            foreach (var s in Scenarios)
+            {
+                if (string.IsNullOrEmpty(filter) ||
+                    s.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                {
+                    FilteredScenarios.Add(s);
+                }
+            }
         }
 
         private async void ShowNotification(string message)

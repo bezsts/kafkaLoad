@@ -10,16 +10,16 @@ namespace KafkaLoad.Infrastructure.Kafka;
 public class KafkaClientFactory : IKafkaClientFactory
 {
     public IProducer<TKey, TValue> CreateProducer<TKey, TValue>(
-        CustomProducerConfig config, 
-        ISerializer<TKey> keySerializer, 
+        CustomProducerConfig config,
+        string bootstrapServers,
+        ISerializer<TKey> keySerializer,
         ISerializer<TValue> valueSerializer)
     {
-        Log.Information("Creating Kafka Producer for BootstrapServers: {Servers}, ClientId: {ClientId}", config.BootstrapServers, config.ClientID);
+        Log.Information("Creating Kafka Producer for BootstrapServers: {Servers}, ClientId: {ClientId}", bootstrapServers, config.ClientID);
 
-        // 1. Map ViewModel config to Confluent's ProducerConfig
         var producerConfig = new ProducerConfig
         {
-            BootstrapServers = config.BootstrapServers,
+            BootstrapServers = bootstrapServers,
             ClientId = config.ClientID,
 
             // Mapping Enums
@@ -55,16 +55,16 @@ public class KafkaClientFactory : IKafkaClientFactory
     }
 
     public IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(
-        CustomConsumerConfig config, 
-        IDeserializer<TKey> keyDeserializer, 
+        CustomConsumerConfig config,
+        string bootstrapServers,
+        IDeserializer<TKey> keyDeserializer,
         IDeserializer<TValue> valueDeserializer)
     {
-        Log.Information("Creating Kafka Consumer for BootstrapServers: {Servers}, GroupId: {GroupId}", config.BootstrapServers, config.GroupId);
+        Log.Information("Creating Kafka Consumer for BootstrapServers: {Servers}, GroupId: {GroupId}", bootstrapServers, config.GroupId);
 
-        // Map ViewModel config to Confluent's ConsumerConfig
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = config.BootstrapServers,
+            BootstrapServers = bootstrapServers,
             GroupId = config.GroupId,
             AutoOffsetReset = (AutoOffsetReset)config.AutoOffsetReset,
             

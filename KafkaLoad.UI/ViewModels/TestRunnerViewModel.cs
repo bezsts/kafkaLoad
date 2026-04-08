@@ -35,15 +35,26 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         set => this.RaiseAndSetIfChanged(ref _isTopicFound, value);
     }
 
-    private string _topicDisplayInfo = "None";
+    private string _topicDisplayInfo = "Not checked";
     public string TopicDisplayInfo
     {
         get => _topicDisplayInfo;
         set => this.RaiseAndSetIfChanged(ref _topicDisplayInfo, value);
     }
 
-    private readonly ObservableAsPropertyHelper<bool> _canStart;
-    public bool CanStart => _canStart.Value;
+    private string _bootstrapServers = string.Empty;
+    public string BootstrapServers
+    {
+        get => _bootstrapServers;
+        set => this.RaiseAndSetIfChanged(ref _bootstrapServers, value);
+    }
+
+    private string _topicName = string.Empty;
+    public string TopicName
+    {
+        get => _topicName;
+        set => this.RaiseAndSetIfChanged(ref _topicName, value);
+    }
 
     public TestRunnerViewModel(
         ITestRunnerService testRunner,
@@ -80,11 +91,18 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             try
             {
                 Debug.WriteLine("Test Started");
-                await _testRunner.RunTestAsync(SelectedTestScenario);
+                var request = new TestRunRequest
+                {
+                    Scenario = SelectedTestScenario,
+                    BootstrapServers = BootstrapServers,
+                    TopicName = TopicName
+                };
+
+                await _testRunner.RunTestAsync(request);
 
                 var chartData = ChartViewModel?.GetTimeSeriesData() ?? new Dictionary<string, List<TimeSeriesPoint>>();
 
-                await _testRunner.GenerateAndSaveReportAsync(SelectedTestScenario, chartData);
+                await _testRunner.GenerateAndSaveReportAsync(request, chartData);
 
                 StatusText = "Completed & Report Saved";
                 Log.Information("Test scenario '{ScenarioName}' completed naturally and report was saved.", SelectedTestScenario.Name);
@@ -111,12 +129,10 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
 
         RefreshTopicCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            if (SelectedTestScenario != null)
-            {
-                Log.Debug("User clicked 'Refresh Topic' button.");
-                await CheckTopicAvailability(SelectedTestScenario);
-            }
-        }, this.WhenAnyValue(x => x.SelectedTestScenario).Select(x => x != null));
+            Log.Debug("User clicked 'Refresh Topic' button.");
+            await CheckTopicAvailability();
+        }, this.WhenAnyValue(x => x.BootstrapServers, x => x.TopicName,
+            (servers, topic) => !string.IsNullOrWhiteSpace(servers) && !string.IsNullOrWhiteSpace(topic)));
 
         this.WhenActivated((CompositeDisposable disposables) =>
         {
@@ -132,9 +148,16 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
                 .DisposeWith(disposables);
         });
 
-        this.WhenAnyValue(x => x.SelectedTestScenario)
-            .Where(scenario => scenario != null)
-            .Subscribe(async scenario => await CheckTopicAvailability(scenario!));
+        // Auto-check topic when both servers and topic name are filled in
+        this.WhenAnyValue(x => x.BootstrapServers, x => x.TopicName)
+            .Throttle(TimeSpan.FromMilliseconds(800))
+            .Where(t => !string.IsNullOrWhiteSpace(t.Item1) && !string.IsNullOrWhiteSpace(t.Item2))
+            .ObserveOn(AvaloniaScheduler.Instance)
+            .Subscribe(async _ =>
+            {
+                try { await CheckTopicAvailability(); }
+                catch (Exception ex) { Log.Error(ex, "Auto topic check failed."); }
+            });
     }
 
     private async Task LoadConfigurationsAsync()
@@ -145,42 +168,40 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
         foreach (var t in testScenariosList) TestScenarios.Add(t);
     }
 
-    private async Task CheckTopicAvailability(TestScenario? scenario)
+    private async Task CheckTopicAvailability()
     {
-        if (scenario == null)
+        if (string.IsNullOrWhiteSpace(BootstrapServers) || string.IsNullOrWhiteSpace(TopicName))
         {
             IsTopicFound = null;
-            TopicDisplayInfo = "None";
+            TopicDisplayInfo = "Not checked";
             return;
         }
 
         IsTopicFound = null;
-        TopicDisplayInfo = $"Checking '{scenario.TopicName}'...";
+        TopicDisplayInfo = $"Checking '{TopicName}'...";
 
-        string? servers = scenario.ProducerConfig?.BootstrapServers ??
-                          scenario.ConsumerConfig?.BootstrapServers;
+        try
+        {
+            bool exists = await _topicService.TopicExistsAsync(BootstrapServers, TopicName);
 
-        if (string.IsNullOrEmpty(servers))
+            if (exists)
+            {
+                IsTopicFound = true;
+                TopicDisplayInfo = $"✓ {TopicName}";
+                Log.Debug("Topic '{TopicName}' verified successfully on brokers.", TopicName);
+            }
+            else
+            {
+                IsTopicFound = false;
+                TopicDisplayInfo = $"✗ '{TopicName}' not found";
+                Log.Warning("Topic verification failed: '{TopicName}' not found or unreachable on '{Servers}'.", TopicName, BootstrapServers);
+            }
+        }
+        catch (Exception ex)
         {
             IsTopicFound = false;
-            TopicDisplayInfo = "Error: No Bootstrap Servers configured!";
-            Log.Warning("Topic check failed for scenario '{ScenarioName}': No Bootstrap Servers configured in Producer or Consumer.", scenario.Name);
-            return;
-        }
-
-        bool exists = await _topicService.TopicExistsAsync(servers, scenario.TopicName);
-
-        if (exists)
-        {
-            IsTopicFound = true;
-            TopicDisplayInfo = scenario.TopicName;
-            Log.Debug("Topic '{TopicName}' verified successfully on brokers.", scenario.TopicName);
-        }
-        else
-        {
-            IsTopicFound = false;
-            TopicDisplayInfo = $"Error: '{scenario.TopicName}' not found!";
-            Log.Warning("Topic verification failed: '{TopicName}' not found or unreachable on '{Servers}'.", scenario.TopicName, servers);
+            TopicDisplayInfo = $"Error: {ex.Message}";
+            Log.Error(ex, "Exception while checking topic '{TopicName}'.", TopicName);
         }
     }
 
@@ -218,6 +239,9 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             {
                 _selectedTestScenario = value;
                 this.RaisePropertyChanged();
+                // Reset topic check when scenario changes
+                IsTopicFound = null;
+                TopicDisplayInfo = "Not checked";
             }
         }
     }

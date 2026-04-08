@@ -15,47 +15,36 @@ namespace KafkaLoad.UI.Views;
 public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
 {
     // Producer Charts
-    private AvaPlot? _prodThrMb, _prodThrMsg, _prodLat, _prodErr;
+    private AvaPlot? _prodThrMb, _prodLat;
 
     // Consumer Charts
-    private AvaPlot? _consThrMb, _consThrMsg, _consLat, _consErr;
+    private AvaPlot? _consThrMb, _consLat;
 
     public ReportsView()
     {
         InitializeComponent();
 
-        // Bind Producer Charts
         _prodThrMb = this.FindControl<AvaPlot>("ProdThroughputMbChart");
-        _prodThrMsg = this.FindControl<AvaPlot>("ProdThroughputMsgChart");
         _prodLat = this.FindControl<AvaPlot>("ProdLatencyChart");
-        _prodErr = this.FindControl<AvaPlot>("ProdErrorsChart");
 
-        // Bind Consumer Charts
         _consThrMb = this.FindControl<AvaPlot>("ConsThroughputMbChart");
-        _consThrMsg = this.FindControl<AvaPlot>("ConsThroughputMsgChart");
         _consLat = this.FindControl<AvaPlot>("ConsLatencyChart");
-        _consErr = this.FindControl<AvaPlot>("ConsErrorsChart");
 
         this.WhenActivated(disposables =>
         {
             SetupChartStyle(_prodThrMb);
-            SetupChartStyle(_prodThrMsg);
             SetupChartStyle(_prodLat);
-            SetupChartStyle(_prodErr);
-
             SetupChartStyle(_consThrMb);
-            SetupChartStyle(_consThrMsg);
             SetupChartStyle(_consLat);
-            SetupChartStyle(_consErr);
 
-            this.WhenAnyValue(x => x.ViewModel.SelectedReport, x => x.ViewModel.CompareWithReport)
+            this.WhenAnyValue(x => x.ViewModel!.SelectedReport, x => x.ViewModel!.CompareWithReport)
                 .Subscribe(tuple =>
                 {
                     var (report, compare) = tuple;
                     if (compare == null)
-                        UpdateAllCharts(report); // Single mode
+                        UpdateAllCharts(report);
                     else
-                        UpdateAllComparisonCharts(report, compare); // Comparison mode
+                        UpdateAllComparisonCharts(report, compare);
                 })
                 .DisposeWith(disposables);
         });
@@ -83,27 +72,17 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
         };
     }
 
-    // ==========================================================
-    // SINGLE REPORT MODE
-    // ==========================================================
     private void UpdateAllCharts(TestReport? report)
     {
         if (report == null) return;
 
-        // Draw Producer Charts
         DrawChart(_prodThrMb, report, "Producer_ThroughputMB", "MB/s", 0);
-        DrawChart(_prodThrMsg, report, "Producer_MsgRate", "Msg/s", 1);
         DrawChart(_prodLat, report, "Producer_Latency", "ms", 2);
-        DrawChart(_prodErr, report, "Producer_Errors", "Errors/s", 3);
 
-        // Draw Consumer Charts
         DrawChart(_consThrMb, report, "Consumer_ThroughputMB", "MB/s", 0);
-        DrawChart(_consThrMsg, report, "Consumer_MsgRate", "Msg/s", 1);
         DrawChart(_consLat, report, "Consumer_Latency", "ms", 2);
-        DrawChart(_consErr, report, "Consumer_Errors", "Errors/s", 3);
     }
 
-    // A universal method to extract data, style the line, and render it
     private void DrawChart(AvaPlot? chart, TestReport report, string dictionaryKey, string yLabel, int themeIndex)
     {
         if (chart == null) return;
@@ -124,30 +103,21 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
         }
 
         chart.Plot.Axes.Left.Label.Text = yLabel;
-
         chart.Plot.Title(dictionaryKey.Replace("_", " "), size: 12);
-
         chart.Plot.HideLegend();
         chart.Plot.Axes.AutoScale();
         chart.Refresh();
     }
 
-    // ==========================================================
-    // COMPARISON MODE
-    // ==========================================================
     private void UpdateAllComparisonCharts(TestReport? r1, TestReport? r2)
     {
         if (r1 == null || r2 == null) return;
 
         DrawComparisonChart(_prodThrMb, r1, r2, "Producer_ThroughputMB", "MB/s", lowerIsBetter: false, 0);
-        DrawComparisonChart(_prodThrMsg, r1, r2, "Producer_MsgRate", "Msg/s", lowerIsBetter: false, 1);
         DrawComparisonChart(_prodLat, r1, r2, "Producer_Latency", "ms", lowerIsBetter: true, 2);
-        DrawComparisonChart(_prodErr, r1, r2, "Producer_Errors", "Errors/s", lowerIsBetter: true, 3);
 
         DrawComparisonChart(_consThrMb, r1, r2, "Consumer_ThroughputMB", "MB/s", lowerIsBetter: false, 0);
-        DrawComparisonChart(_consThrMsg, r1, r2, "Consumer_MsgRate", "Msg/s", lowerIsBetter: false, 1);
         DrawComparisonChart(_consLat, r1, r2, "Consumer_Latency", "ms", lowerIsBetter: true, 2);
-        DrawComparisonChart(_consErr, r1, r2, "Consumer_Errors", "Errors/s", lowerIsBetter: true, 3);
     }
 
     private void DrawComparisonChart(AvaPlot? chart, TestReport r1, TestReport r2, string key, string yLabel, bool lowerIsBetter, int themeIndex)
@@ -211,7 +181,6 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
                 double yInt = y1_orig + t * (y2_orig - y1_orig);
 
                 AddPolygon(x1, xInt, y1_orig, yInt, y1_comp, yInt, diff1);
-
                 AddPolygon(xInt, x2, yInt, y2_orig, yInt, y2_comp, diff2);
             }
             else
@@ -221,17 +190,12 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
         }
 
         var scatter1 = chart.Plot.Add.Scatter(xs, ysOriginal);
-        scatter1.Color = ScottPlot.Color.FromHex("#9CA3AF"); // Neutral Gray
+        scatter1.Color = ScottPlot.Color.FromHex("#9CA3AF");
         scatter1.LineWidth = 2f;
         scatter1.MarkerSize = 0;
         scatter1.LegendText = "Original";
 
         var (mainColor, _) = ChartTheme.GetMetricStyle(themeIndex);
-
-        if (key.Contains("Errors"))
-        {
-            mainColor = ScottPlot.Color.FromHex("#8B5CF6"); // Deep Purple
-        }
 
         var scatter2 = chart.Plot.Add.Scatter(xs, ysCompared);
         scatter2.Color = mainColor;

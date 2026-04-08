@@ -36,7 +36,7 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
                 .Where(vm => vm != null)
                 .Subscribe(vm =>
                 {
-                    if (vm.ChartViewModel == null)
+                    if (vm!.ChartViewModel == null)
                     {
                         return;
                     }

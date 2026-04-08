@@ -77,7 +77,6 @@ public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerCo
     private static CustomConsumerConfig MapToDomain(ConsumerConfigEntity e) => new()
     {
         Name = e.Name,
-        BootstrapServers = e.BootstrapServers,
         GroupId = e.GroupId,
         AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),
         FetchMinBytes = e.FetchMinBytes,
@@ -101,7 +100,6 @@ public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerCo
     {
         target ??= new ConsumerConfigEntity();
         target.Name = c.Name;
-        target.BootstrapServers = c.BootstrapServers;
         target.GroupId = c.GroupId;
         target.AutoOffsetReset = c.AutoOffsetReset.ToString();
         target.FetchMinBytes = c.FetchMinBytes;

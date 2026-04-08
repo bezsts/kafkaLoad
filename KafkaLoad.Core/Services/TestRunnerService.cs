@@ -36,8 +36,10 @@ public class TestRunnerService : ITestRunnerService
         _reportRepository = reportRepository;
     }
 
-    public async Task RunTestAsync(TestScenario scenario)
+    public async Task RunTestAsync(TestRunRequest request)
     {
+        var scenario = request.Scenario;
+
         if (IsRunning)
         {
             Log.Warning("Attempted to start a test while another test is already running.");
@@ -45,7 +47,7 @@ public class TestRunnerService : ITestRunnerService
         }
 
         Log.Information("Starting Test Scenario: '{ScenarioName}'. Type: {TestType}, Topic: {Topic}, Duration: {Duration}s",
-            scenario.Name, scenario.TestType, scenario.TopicName, scenario.Duration);
+            scenario.Name, scenario.TestType, request.TopicName, scenario.Duration);
 
         _cts = new CancellationTokenSource();
         _metricsService.Reset();
@@ -73,8 +75,7 @@ public class TestRunnerService : ITestRunnerService
 
                 for (int i = 0; i < pCount; i++)
                 {
-                    var producer = _clientFactory.CreateProducer(scenario.ProducerConfig, keySer, valSer);
-                    //var wrapper = new KafkaProducer<byte[], byte[]>(nativeProducer);
+                    var producer = _clientFactory.CreateProducer(scenario.ProducerConfig, request.BootstrapServers, keySer, valSer);
 
                     lock (_clientsLock)
                     {
@@ -87,7 +88,7 @@ public class TestRunnerService : ITestRunnerService
                     var worker = new ProducerWorker(
                         producer,
                         _metricsService,
-                        scenario.TopicName,
+                        request.TopicName,
                         keyGen,
                         valGen,
                         throughputController
@@ -109,7 +110,7 @@ public class TestRunnerService : ITestRunnerService
 
                 for (int i = 0; i < cCount; i++)
                 {
-                    var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, keyDeser, valDeser);
+                    var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, request.BootstrapServers, keyDeser, valDeser);
 
                     lock (_clientsLock)
                     {
@@ -119,7 +120,7 @@ public class TestRunnerService : ITestRunnerService
                     var worker = new ConsumerWorker(
                         consumer,
                         _metricsService,
-                        scenario.TopicName);
+                        request.TopicName);
 
                     tasks.Add(Task.Run(() => worker.StartAsync(_cts.Token)));
                 }
@@ -164,8 +165,9 @@ public class TestRunnerService : ITestRunnerService
         });
     }
 
-    public async Task GenerateAndSaveReportAsync(TestScenario scenario, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData)
+    public async Task GenerateAndSaveReportAsync(TestRunRequest request, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData)
     {
+        var scenario = request.Scenario;
         Log.Information("Generating final report for Scenario: '{ScenarioName}'", scenario.Name);
 
         var snapshot = _metricsService.CurrentSnapshot;
@@ -183,7 +185,7 @@ public class TestRunnerService : ITestRunnerService
 
             ConfigSnapshot = new TestScenarioConfigSnapshot
             {
-                TopicName = scenario.TopicName,
+                TopicName = request.TopicName,
                 ProducersCount = scenario.ProducerCount ?? 1,
                 ConsumersCount = scenario.ConsumerCount ?? 0,
                 MessageSize = scenario.MessageSize ?? 0,

@@ -13,7 +13,6 @@ public class CustomConsumerConfig : IConfigModel
 
 
     public string Name { get; set; } = string.Empty;
-    public string BootstrapServers { get; set; } = string.Empty;
 
     // Unique identifier for the consumer group.
     // Consumers sharing the same GroupId divide the topic partitions among themselves.

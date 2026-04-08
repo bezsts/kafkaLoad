@@ -5,93 +5,128 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:views="using:KafkaLoad.UI.Views"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.ProducerConfigView"
              x:DataType="vm:ProducerConfigViewModel">
-  <ScrollViewer>
-        <StackPanel Spacing="15" Margin="20">
-            
-            <TextBlock Text="Producer Configuration" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
-                <TextBox Name = "NameTextBox" Text="{Binding Name}"/>
-            </StackPanel>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style Selector="TextBlock.field-label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="Border.section-card">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+    </UserControl.Styles>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Bootstrap Servers *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding BootstrapServers}"/>
-            </StackPanel>
+    <ScrollViewer>
+        <StackPanel Spacing="10" Margin="20">
 
-            <Separator Height="20" Opacity="0"/> 
-
-            <StackPanel Spacing="5">
-                <TextBlock Text="Acks (Durability)"/>
-                <ComboBox Name="AcksComboBox"
-                          ItemsSource="{Binding AcksOptions}"
-                          SelectedItem="{Binding SelectedAcks}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
-
-            <CheckBox IsChecked="{Binding EnableIdempotence}" 
-                      Content="Enable Idempotence (Strict Order, No Duplicates)"/>
-
-            <Grid ColumnDefinitions="*, 15, *" RowDefinitions="Auto, Auto, Auto, Auto">
-                
-                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Batch Size (Bytes)"/>
-                    <NumericUpDown Value="{Binding BatchSize, TargetNullValue={x:Null}}" 
-                                   Minimum="0" Maximum="52428800" Increment="4096"
-                                   FormatString="N0"/> </StackPanel>
-
-                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Linger (ms)"/>
-                    <NumericUpDown Value="{Binding Linger, TargetNullValue={x:Null}}" 
-                                   Minimum="0" Maximum="10000" Increment="5"/>
+            <!-- Name + Client ID -->
+            <Grid ColumnDefinitions="*, 16, *">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="CONFIG NAME" Classes="field-label"/>
+                    <TextBox Name="NameTextBox" Text="{Binding Name}"
+                             Watermark="e.g. local-producer"/>
                 </StackPanel>
-
-                <Border Grid.Row="1" Height="15"/>
-
-                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Buffer Memory (Bytes)"/>
-                    <NumericUpDown Value="{Binding BufferMemory, TargetNullValue={x:Null}}" 
-                                   Minimum="0" Increment="1048576" 
-                                   FormatString="N0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Retries"/>
-                    <NumericUpDown Value="{Binding Retries, TargetNullValue={x:Null}}" 
-                                   Minimum="0" Maximum = "2147483647" Increment="1"/>
+                <StackPanel Grid.Column="2" Spacing="4">
+                    <TextBlock Text="CLIENT ID" Classes="field-label"/>
+                    <TextBox Text="{Binding ClientID}"
+                             Watermark="e.g. kafkaload-producer-1"/>
                 </StackPanel>
             </Grid>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Max In-Flight Requests"/>
-                <NumericUpDown Value="{Binding MaxInFlightRequestsPerConnection, TargetNullValue={x:Null}}" 
-                               Minimum="1" Maximum="100" Increment="1"
-                               Watermark="Default: 5"/>
-            </StackPanel>
+            <!-- Delivery + Performance side by side -->
+            <Grid ColumnDefinitions="*, 10, *">
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Compression Type"/>
-                <ComboBox ItemsSource="{Binding CompressionTypeOptions, TargetNullValue={x:Null}}"
-                          SelectedItem="{Binding SelectedCompressionType}"
-                          HorizontalAlignment="Stretch"/>
-            </StackPanel>
+                <!-- Delivery settings -->
+                <Border Grid.Column="0" Classes="section-card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Delivery Settings" Classes="section-title"/>
 
-            <Separator Height="1" Background="{DynamicResource BorderColor}" Margin="0,15,0,5"/>
-                <TextBlock Text="SECURITY SETTINGS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
-                
-                <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="ACKS (DURABILITY)" Classes="field-label"/>
+                            <ComboBox Name="AcksComboBox"
+                                      ItemsSource="{Binding AcksOptions}"
+                                      SelectedItem="{Binding SelectedAcks}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
 
-            <Button Command="{Binding SaveCommand}" 
+                        <CheckBox IsChecked="{Binding EnableIdempotence}"
+                                  Content="Enable Idempotence"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="RETRIES" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding Retries, TargetNullValue={x:Null}}"
+                                           Minimum="0" Maximum="2147483647" Increment="1"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="COMPRESSION TYPE" Classes="field-label"/>
+                            <ComboBox ItemsSource="{Binding CompressionTypeOptions}"
+                                      SelectedItem="{Binding SelectedCompressionType}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Performance settings -->
+                <Border Grid.Column="2" Classes="section-card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Performance Settings" Classes="section-title"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="BATCH SIZE (BYTES)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding BatchSize, TargetNullValue={x:Null}}"
+                                           Minimum="0" Maximum="52428800" Increment="4096" FormatString="N0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="LINGER (MS)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding Linger, TargetNullValue={x:Null}}"
+                                           Minimum="0" Maximum="10000" Increment="5"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="BUFFER MEMORY (BYTES)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding BufferMemory, TargetNullValue={x:Null}}"
+                                           Minimum="0" Increment="1048576" FormatString="N0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="MAX IN-FLIGHT REQUESTS" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding MaxInFlightRequestsPerConnection, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="100" Increment="1"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Security settings (full width) -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Security Settings" Classes="section-title"/>
+                    <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
+                </StackPanel>
+            </Border>
+
+            <Button Command="{Binding SaveCommand}"
                     Content="Save Configuration"
-                    Classes="accent" 
+                    Classes="accent"
                     HorizontalAlignment="Right"
-                    Padding="20, 10"
-                    Margin="0,20,0,0"/>
-            
+                    Padding="24,10"/>
         </StackPanel>
     </ScrollViewer>
 </rxui:ReactiveUserControl>

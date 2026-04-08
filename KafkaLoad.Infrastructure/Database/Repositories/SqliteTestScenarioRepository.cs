@@ -104,7 +104,6 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
     private static TestScenario MapToDomain(TestScenarioEntity e) => new()
     {
         Name = e.Name,
-        TopicName = e.TopicName,
         KeyStrategy = Enum.Parse<KeyGenerationStrategy>(e.KeyStrategy),
         ValueStrategy = Enum.Parse<ValueGenerationStrategy>(e.ValueStrategy),
         FixedTemplate = e.FixedTemplate,
@@ -123,7 +122,6 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
     private static CustomProducerConfig MapProducerConfig(ProducerConfigEntity e) => new()
     {
         Name = e.Name,
-        BootstrapServers = e.BootstrapServers,
         ClientID = e.ClientId,
         Acks = Enum.Parse<AcksEnum>(e.Acks),
         Retries = e.Retries,
@@ -149,7 +147,6 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
     private static CustomConsumerConfig MapConsumerConfig(ConsumerConfigEntity e) => new()
     {
         Name = e.Name,
-        BootstrapServers = e.BootstrapServers,
         GroupId = e.GroupId,
         AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),
         FetchMinBytes = e.FetchMinBytes,
@@ -173,7 +170,6 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
     {
         target ??= new TestScenarioEntity();
         target.Name = s.Name;
-        target.TopicName = s.TopicName;
         target.KeyStrategy = s.KeyStrategy.ToString();
         target.ValueStrategy = s.ValueStrategy.ToString();
         target.FixedTemplate = s.FixedTemplate;

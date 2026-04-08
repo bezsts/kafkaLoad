@@ -7,8 +7,8 @@ namespace KafkaLoad.Core.Services.Interfaces;
 
 public interface ITestRunnerService
 {
-    Task RunTestAsync(TestScenario scenario);
-    Task GenerateAndSaveReportAsync(TestScenario scenario, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData);
+    Task RunTestAsync(TestRunRequest request);
+    Task GenerateAndSaveReportAsync(TestRunRequest request, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData);
     void StopTest();
     bool IsRunning { get; }
 }

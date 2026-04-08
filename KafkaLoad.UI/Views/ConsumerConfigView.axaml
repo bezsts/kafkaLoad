@@ -5,83 +5,111 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:views="using:KafkaLoad.UI.Views"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.ConsumerConfigView"
              x:DataType="vm:ConsumerConfigViewModel">
-  <ScrollViewer>
-        <StackPanel Spacing="15" Margin="20">
-            
-            <TextBlock Text="Consumer Configuration" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Configuration Name *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Name}"/>
-            </StackPanel>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style Selector="TextBlock.field-label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="Border.section-card">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+    </UserControl.Styles>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Bootstrap Servers *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding BootstrapServers}"/>
-            </StackPanel>
+    <ScrollViewer>
+        <StackPanel Spacing="10" Margin="20">
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Group id *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding GroupId}"/>
-            </StackPanel>
-
-            <Separator Height="20" Opacity="0"/> 
-
-            <StackPanel Spacing="5">
-                    <TextBlock Text="Auto offset reset"/>
-                    <ComboBox ItemsSource="{Binding AutoOffsetResetOptions}"
-                              SelectedItem="{Binding SelectedAutoOffsetReset}"
-                              HorizontalAlignment="Stretch"/>
+            <!-- Name + Group ID -->
+            <Grid ColumnDefinitions="*, 16, *">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="CONFIG NAME" Classes="field-label"/>
+                    <TextBox Text="{Binding Name}"
+                             Watermark="e.g. local-consumer"/>
                 </StackPanel>
-
-            <!-- <CheckBox IsChecked="{Binding EnableAutoCommit}" 
-                      Content="Enable auto commit"/> -->
-
-            <Grid ColumnDefinitions="*, 15, *" RowDefinitions="Auto, Auto, Auto, Auto">
-                
-                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Fetch min bytes"/>
-                    <NumericUpDown Value="{Binding FetchMinBytes, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="52428800" Increment="4096"
-                                   FormatString="N0"/> </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Fetch max bytes"/>
-                    <NumericUpDown Value="{Binding FetchMaxBytes, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="52428800" Increment="4096" 
-                                   FormatString="N0"/>
-                </StackPanel>
-
-                <Border Grid.Row="1" Height="15"/>
-                
-                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Fetch max wait"/>
-                    <NumericUpDown Value="{Binding FetchMaxWait, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="10000" Increment="5"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Max poll interval"/>
-                    <NumericUpDown Value="{Binding MaxPollInterval, TargetNullValue={x:Null}}" 
-                                   Minimum="6000" Maximum="3600000" Increment="1000"/>
+                <StackPanel Grid.Column="2" Spacing="4">
+                    <TextBlock Text="GROUP ID" Classes="field-label"/>
+                    <TextBox Text="{Binding GroupId}"
+                             Watermark="e.g. kafkaload-group-1"/>
                 </StackPanel>
             </Grid>
 
-            <Separator Height="1" Background="{DynamicResource BorderColor}" Margin="0,15,0,5"/>
-                <TextBlock Text="SECURITY SETTINGS" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
-                
-                <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
+            <!-- Offset + Fetch settings side by side -->
+            <Grid ColumnDefinitions="*, 10, *">
 
-            <Button Command="{Binding SaveCommand}" 
+                <!-- Offset -->
+                <Border Grid.Column="0" Classes="section-card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Consumer Settings" Classes="section-title"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="AUTO OFFSET RESET" Classes="field-label"/>
+                            <ComboBox ItemsSource="{Binding AutoOffsetResetOptions}"
+                                      SelectedItem="{Binding SelectedAutoOffsetReset}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="MAX POLL INTERVAL (MS)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding MaxPollInterval, TargetNullValue={x:Null}}"
+                                           Minimum="6000" Maximum="3600000" Increment="1000"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Fetch settings -->
+                <Border Grid.Column="2" Classes="section-card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Fetch Settings" Classes="section-title"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="FETCH MIN BYTES" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding FetchMinBytes, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="52428800" Increment="4096" FormatString="N0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="FETCH MAX BYTES" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding FetchMaxBytes, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="52428800" Increment="4096" FormatString="N0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="FETCH MAX WAIT (MS)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding FetchMaxWait, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="10000" Increment="5"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Security settings (full width) -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Security Settings" Classes="section-title"/>
+                    <views:SecurityConfigView DataContext="{Binding SecurityVM}"/>
+                </StackPanel>
+            </Border>
+
+            <Button Command="{Binding SaveCommand}"
                     Content="Save Configuration"
-                    Classes="accent" 
+                    Classes="accent"
                     HorizontalAlignment="Right"
-                    Padding="20, 10"
-                    Margin="0,20,0,0"/>
-            
+                    Padding="24,10"/>
         </StackPanel>
-  </ScrollViewer>
+    </ScrollViewer>
 </rxui:ReactiveUserControl>

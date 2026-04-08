@@ -77,7 +77,6 @@ public class SqliteProducerConfigRepository : IConfigRepository<CustomProducerCo
     private static CustomProducerConfig MapToDomain(ProducerConfigEntity e) => new()
     {
         Name = e.Name,
-        BootstrapServers = e.BootstrapServers,
         ClientID = e.ClientId,
         Acks = Enum.Parse<AcksEnum>(e.Acks),
         Retries = e.Retries,
@@ -104,7 +103,6 @@ public class SqliteProducerConfigRepository : IConfigRepository<CustomProducerCo
     {
         target ??= new ProducerConfigEntity();
         target.Name = c.Name;
-        target.BootstrapServers = c.BootstrapServers;
         target.ClientId = c.ClientID;
         target.Acks = c.Acks.ToString();
         target.Retries = c.Retries;

@@ -22,7 +22,6 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
     protected override void InitializeValidation()
     {
         this.ValidationRule(vm => vm.Name, name => !string.IsNullOrWhiteSpace(name), "Name is required");
-        this.ValidationRule(vm => vm.BootstrapServers, s => !string.IsNullOrWhiteSpace(s), "Bootstrap servers required");
 
         var idempotenceAndAcks = this.WhenAnyValue(x => x.EnableIdempotence, x => x.SelectedAcks,
             (idempotence, acks) => !idempotence || acks == AcksEnum.All);
@@ -51,10 +50,10 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
         set => SetProperty(value, Model.Name, v => Model.Name = v);
     }
 
-    public string BootstrapServers
+    public string ClientID
     {
-        get => Model.BootstrapServers;
-        set => SetProperty(value, Model.BootstrapServers, v => Model.BootstrapServers = v);
+        get => Model.ClientID;
+        set => SetProperty(value, Model.ClientID, v => Model.ClientID = v);
     }
 
     public List<AcksEnum> AcksOptions { get; } = Enum.GetValues<AcksEnum>().ToList();

@@ -7,7 +7,6 @@ public class ConsumerConfigEntity
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string BootstrapServers { get; set; } = string.Empty;
     public string GroupId { get; set; } = string.Empty;
     public string AutoOffsetReset { get; set; } = string.Empty;
     public int FetchMinBytes { get; set; }

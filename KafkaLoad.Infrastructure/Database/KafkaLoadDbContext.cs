@@ -25,7 +25,6 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.Name).HasColumnName("name").IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
-            e.Property(x => x.BootstrapServers).HasColumnName("bootstrap_servers").IsRequired();
             e.Property(x => x.ClientId).HasColumnName("client_id").IsRequired();
             e.Property(x => x.Acks).HasColumnName("acks").IsRequired();
             e.Property(x => x.Retries).HasColumnName("retries");
@@ -55,7 +54,6 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.Name).HasColumnName("name").IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
-            e.Property(x => x.BootstrapServers).HasColumnName("bootstrap_servers").IsRequired();
             e.Property(x => x.GroupId).HasColumnName("group_id").IsRequired();
             e.Property(x => x.AutoOffsetReset).HasColumnName("auto_offset_reset").IsRequired();
             e.Property(x => x.FetchMinBytes).HasColumnName("fetch_min_bytes");
@@ -81,7 +79,6 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.Name).HasColumnName("name").IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
-            e.Property(x => x.TopicName).HasColumnName("topic_name").IsRequired();
             e.Property(x => x.ProducerConfigId).HasColumnName("producer_config_id");
             e.Property(x => x.ConsumerConfigId).HasColumnName("consumer_config_id");
             e.Property(x => x.KeyStrategy).HasColumnName("key_strategy").IsRequired();

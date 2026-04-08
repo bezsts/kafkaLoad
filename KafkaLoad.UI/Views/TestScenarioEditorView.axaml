@@ -4,176 +4,182 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.TestScenarioEditorView"
              x:DataType="vm:TestScenarioEditorViewModel">
-    <ScrollViewer>
-        <StackPanel Spacing="15" Margin="20">
-            
-            <TextBlock Text="Create Test Scenario" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Scenario Name *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Name}"/>
-            </StackPanel>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style Selector="TextBlock.field-label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="Border.section-card">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+    </UserControl.Styles>
 
-            <StackPanel Spacing="5">
-                <TextBlock Text="Topic Name *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding TopicName}"/>
-            </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="10" Margin="20">
 
-            <Separator Height="20" Opacity="0"/>
-            <TextBlock Text="Clients Configuration" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/> 
-            
-            <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto">
-                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Select Producer Configuration *" FontWeight="SemiBold"/>
-                    <ComboBox ItemsSource="{Binding Producers}"
-                              SelectedItem="{Binding SelectedProducer}"
-                              HorizontalAlignment="Stretch"
-                              PlaceholderText="Choose a producer config...">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+            <!-- Row 1: Name + Test Type -->
+            <Grid ColumnDefinitions="*, 16, 200">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="SCENARIO NAME" Classes="field-label"/>
+                    <TextBox Text="{Binding Name}"
+                             FontSize="14" FontWeight="SemiBold"
+                             Watermark="e.g. High Load Test"/>
                 </StackPanel>
-
-                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Select Consumer Configuration *" FontWeight="SemiBold"/>
-                    <ComboBox ItemsSource="{Binding Consumers}"
-                              SelectedItem="{Binding SelectedConsumer}"
-                              HorizontalAlignment="Stretch"
-                              PlaceholderText="Choose a consumer config...">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
-            </Grid>
-
-            <Separator Height="20" Opacity="0"/>
-            <TextBlock Text="Data Generation" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>  
-            
-            <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto">
-                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Key Generation Strategy"/>
-                    <ComboBox ItemsSource="{Binding KeyStrategyOptions}"
-                              SelectedItem="{Binding KeyStrategy}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Value Generation Strategy"/>
-                    <ComboBox ItemsSource="{Binding ValueStrategyOptions}"
-                              SelectedItem="{Binding ValueStrategy}"
-                              HorizontalAlignment="Stretch"/>
-                </StackPanel>
-            </Grid>
-
-            <StackPanel Spacing="5" IsVisible="{Binding IsFixedContentVisible}">
-                <TextBlock Text="Message Content (JSON/Text) *" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                <TextBox Text="{Binding FixedTemplate}" 
-                         AcceptsReturn="True" 
-                         Height="100" 
-                         TextWrapping="Wrap"
-                         FontFamily="Cascadia Code, Consolas, Monospace"
-                         Watermark="{}{'id': 1, 'message': 'hello'}"/>
-                <TextBlock Text="Note: Message Size will be calculated automatically based on this content." 
-                           FontSize="12" Foreground="{DynamicResource TextSecondary}" FontStyle="Italic"/>
-            </StackPanel>
-
-            <Separator Height="20" Opacity="0"/>
-            <TextBlock Text="Load Parameters" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
-
-            <Grid ColumnDefinitions="*, 20, *" RowDefinitions="Auto, Auto, Auto, Auto">
-                
-                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="Test Type *"/>
+                <StackPanel Grid.Column="2" Spacing="4">
+                    <TextBlock Text="TEST TYPE" Classes="field-label"/>
                     <ComboBox ItemsSource="{Binding TestTypeOptions}"
                               SelectedItem="{Binding TestType}"
                               HorizontalAlignment="Stretch"/>
                 </StackPanel>
-
-                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="5">
-                    <TextBlock Text="Duration (Seconds) *"/>
-                    <NumericUpDown Value="{Binding Duration, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="86400" Increment="10"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Spacing="5" Margin="0,15,0,0"
-                            IsVisible="{Binding IsTargetThroughputVisible}">
-                    <TextBlock Text="Target Throughput (Msg/sec) *"/>
-                    <NumericUpDown Value="{Binding TargetThroughput, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
-                    <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondary}" FontStyle="Italic">
-                        <TextBlock.Styles>
-                            <Style Selector="TextBlock[Tag=Load]">
-                                <Setter Property="Text" Value="System will linearly ramp up to this rate, then hold it."/>
-                            </Style>
-                            <Style Selector="TextBlock[Tag=Soak]">
-                                <Setter Property="Text" Value="System will quickly reach this rate and hold it for a long endurance test."/>
-                            </Style>
-                            <Style Selector="TextBlock[Tag=Stress]">
-                                <Setter Property="Text" Value="System will continuously scale up to this rate over the test duration."/>
-                            </Style>
-                        </TextBlock.Styles>
-                        <TextBlock.Tag>
-                            <Binding Path="TestType"/>
-                        </TextBlock.Tag>
-                    </TextBlock>
-                </StackPanel>
-
-                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5" Margin="0,15,0,0"
-                            IsVisible="{Binding IsSpikeVisible}">
-                    <TextBlock Text="Base Throughput (Msg/sec) *"/>
-                    <NumericUpDown Value="{Binding BaseThroughput, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="5" Margin="0,15,0,0"
-                            IsVisible="{Binding IsSpikeVisible}">
-                    <TextBlock Text="Spike Throughput (Msg/sec) *"/>
-                    <NumericUpDown Value="{Binding SpikeThroughput, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="10000000" Increment="1000" FormatString="N0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,15,0,0">
-                    <TextBlock Text="Producers Count *"/>
-                    <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="2" Spacing="5" Margin="0,15,0,0">
-                    <TextBlock Text="Consumers Count"/>
-                    <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
-                </StackPanel>
-
-                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,15,0,0"
-                            IsVisible="{Binding IsMessageSizeVisible}">
-                    <TextBlock Text="Message Size (Bytes) *"/>
-                    <NumericUpDown Value="{Binding MessageSize, TargetNullValue={x:Null}}" 
-                                   Minimum="1" Maximum="10485760" Increment="128" FormatString="N0"/>
-                </StackPanel>
-                
-                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="5" Margin="0,15,0,0"
-                            IsVisible="{Binding IsFixedContentVisible}">
-                     <TextBlock Text="Message Size" Foreground="{DynamicResource TextSecondary}"/>
-                     <TextBlock Text="Auto-calculated from Fixed Content" FontWeight="Bold" Foreground="{DynamicResource TextSecondary}"/>
-                </StackPanel>
-
             </Grid>
 
-            <Button Command="{Binding SaveCommand}" 
-                    Content="Save scenario"
-                    Classes="accent" 
+            <!-- Row 2: Clients Config (left) + Data Generation (right) side by side -->
+            <Grid ColumnDefinitions="*, 10, *">
+
+                <!-- Clients Configuration -->
+                <Border Grid.Column="0" Classes="section-card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Clients Configuration" Classes="section-title"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="PRODUCER CONFIG" Classes="field-label"/>
+                            <ComboBox ItemsSource="{Binding Producers}"
+                                      SelectedItem="{Binding SelectedProducer}"
+                                      HorizontalAlignment="Stretch"
+                                      PlaceholderText="Select producer...">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="CONSUMER CONFIG" Classes="field-label"/>
+                            <ComboBox ItemsSource="{Binding Consumers}"
+                                      SelectedItem="{Binding SelectedConsumer}"
+                                      HorizontalAlignment="Stretch"
+                                      PlaceholderText="Select consumer...">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Data Generation -->
+                <Border Grid.Column="2" Classes="section-card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Data Generation" Classes="section-title"/>
+
+                        <Grid ColumnDefinitions="*, 10, *">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="KEY STRATEGY" Classes="field-label"/>
+                                <ComboBox ItemsSource="{Binding KeyStrategyOptions}"
+                                          SelectedItem="{Binding KeyStrategy}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="VALUE STRATEGY" Classes="field-label"/>
+                                <ComboBox ItemsSource="{Binding ValueStrategyOptions}"
+                                          SelectedItem="{Binding ValueStrategy}"
+                                          HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="4" IsVisible="{Binding IsMessageSizeVisible}">
+                            <TextBlock Text="MESSAGE SIZE (BYTES)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding MessageSize, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="10485760" Increment="128" FormatString="N0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4" IsVisible="{Binding IsFixedContentVisible}">
+                            <TextBlock Text="MESSAGE CONTENT (JSON / TEXT)" Classes="field-label"/>
+                            <TextBox Text="{Binding FixedTemplate}"
+                                     AcceptsReturn="True"
+                                     MinHeight="70"
+                                     TextWrapping="Wrap"
+                                     FontFamily="Cascadia Code, Consolas, Monospace"
+                                     Watermark="{}{&apos;id&apos;: 1, &apos;msg&apos;: &apos;hello&apos;}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Row 3: Load Parameters (full width) -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Load Parameters" Classes="section-title"/>
+
+                    <Grid ColumnDefinitions="*, 10, *, 10, *, 10, *">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="DURATION (SEC)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding Duration, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="86400" Increment="10"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="PRODUCERS" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Spacing="4">
+                            <TextBlock Text="CONSUMERS" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}"
+                                           Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Target throughput (Load / Stress / Soak) -->
+                    <Grid ColumnDefinitions="*, 10, *, 10, *"
+                          IsVisible="{Binding IsTargetThroughputVisible}">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="TARGET THROUGHPUT (MSG/SEC)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding TargetThroughput, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Spike fields -->
+                    <Grid ColumnDefinitions="*, 10, *" IsVisible="{Binding IsSpikeVisible}">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="BASE THROUGHPUT (MSG/SEC)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding BaseThroughput, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="SPIKE THROUGHPUT (MSG/SEC)" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding SpikeThroughput, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="10000000" Increment="1000" FormatString="N0"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Button Command="{Binding SaveCommand}"
+                    Content="Save Scenario"
+                    Classes="accent"
                     HorizontalAlignment="Right"
-                    Padding="20, 10"
-                    Margin="0,20,0,0"/>
+                    Padding="24,10"/>
         </StackPanel>
     </ScrollViewer>
 </rxui:ReactiveUserControl>

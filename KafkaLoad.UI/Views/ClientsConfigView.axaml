@@ -8,64 +8,78 @@
 
     <Grid Background="{DynamicResource AppBackground}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="240"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0" Background="White">
-            <Grid RowDefinitions="*, *">
-                
-                <Grid Grid.Row="0" RowDefinitions="Auto, *, Auto" Margin="15">
-                    <TextBlock Text="Producers" FontWeight="Bold" FontSize="18" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryBlue}"/>
-                    
-                    <ListBox Grid.Row="1" 
-                             ItemsSource="{Binding Producers}" 
+        <!-- Left panel: two lists (producers / consumers) -->
+        <Border Grid.Column="0" Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="*, Auto, *, Auto">
+
+                <!-- Producers -->
+                <Grid Grid.Row="0" RowDefinitions="Auto, *" Margin="12,12,12,0">
+                    <TextBlock Grid.Row="0" Text="Producers"
+                               FontWeight="Bold" FontSize="14"
+                               Foreground="{DynamicResource PrimaryBlue}"
+                               Margin="0,0,0,8"/>
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding Producers}"
                              SelectedItem="{Binding SelectedProducer}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5" Margin="0,10,0,0" HorizontalAlignment="Right">
-                        <Button Classes="tool" Command="{Binding CreateProducerCommand}" Content="Add"/>
-                        <Button Classes="tool" Command="{Binding DuplicateProducerCommand}" Content="Copy"/>
-                        <Button Classes="delete" Command="{Binding DeleteProducerCommand}" Content="Del"/>
-                    </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" Margin="15">
-                    <Border Grid.Row="0" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0" Margin="0,0,0,15"/>
-                    
-                    <TextBlock Grid.Row="0" Text="Consumers" FontWeight="Bold" FontSize="18" Margin="0,10,0,10" Foreground="{DynamicResource PrimaryBlue}"/>
-                    
-                    <ListBox Grid.Row="1" 
-                             ItemsSource="{Binding Consumers}" 
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5"
+                            Margin="12,6,12,10" HorizontalAlignment="Right">
+                    <Button Classes="tool" Command="{Binding CreateProducerCommand}" Content="Add"/>
+                    <Button Classes="tool" Command="{Binding DuplicateProducerCommand}" Content="Copy"/>
+                    <Button Classes="delete" Command="{Binding DeleteProducerCommand}" Content="Del"/>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Separator Grid.Row="1" Height="1" Background="{DynamicResource BorderColor}"
+                           VerticalAlignment="Bottom" Margin="12,0"/>
+
+                <!-- Consumers -->
+                <Grid Grid.Row="2" RowDefinitions="Auto, *" Margin="12,12,12,0">
+                    <TextBlock Grid.Row="0" Text="Consumers"
+                               FontWeight="Bold" FontSize="14"
+                               Foreground="{DynamicResource PrimaryBlue}"
+                               Margin="0,0,0,8"/>
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding Consumers}"
                              SelectedItem="{Binding SelectedConsumer}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="5" Margin="0,10,0,0" HorizontalAlignment="Right">
-                        <Button Classes="tool" Command="{Binding CreateConsumerCommand}" Content="Add"/>
-                        <Button Classes="tool" Command="{Binding DuplicateConsumerCommand}" Content="Copy"/>
-                        <Button Classes="delete" Command="{Binding DeleteConsumerCommand}" Content="Del"/>
-                    </StackPanel>
                 </Grid>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5"
+                            Margin="12,6,12,12" HorizontalAlignment="Right">
+                    <Button Classes="tool" Command="{Binding CreateConsumerCommand}" Content="Add"/>
+                    <Button Classes="tool" Command="{Binding DuplicateConsumerCommand}" Content="Copy"/>
+                    <Button Classes="delete" Command="{Binding DeleteConsumerCommand}" Content="Del"/>
+                </StackPanel>
+
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Margin="20">
-            
+        <!-- Right panel: editor -->
+        <Grid Grid.Column="1" Margin="16">
+
             <Border Classes="card" IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <TransitioningContentControl Content="{Binding CurrentEditor}">
                     <TransitioningContentControl.DataTemplates>
                         <DataTemplate DataType="{x:Type vm:ProducerConfigViewModel}">
-                            <views:ProducerConfigView/> 
+                            <views:ProducerConfigView/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:ConsumerConfigViewModel}">
                             <views:ConsumerConfigView/>
@@ -74,15 +88,18 @@
                 </TransitioningContentControl>
             </Border>
 
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" 
-                        Spacing="10"
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
                         IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNull}}">
-                <TextBlock Text="Select or Create a Configuration" 
-                           FontSize="20" FontWeight="Light" Foreground="{DynamicResource TextSecondary}"
+                <TextBlock Text="Select or create a configuration"
+                           FontSize="20" FontWeight="Light"
+                           Foreground="{DynamicResource TextSecondary}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Use the Add button to create a new producer or consumer config"
+                           FontSize="13" Foreground="{DynamicResource TextSecondary}"
                            HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <Border Background="#22C55E" CornerRadius="4" Padding="15,10" 
+            <Border Background="#22C55E" CornerRadius="6" Padding="14,10"
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="20"
                     IsVisible="{Binding NotificationMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <TextBlock Text="{Binding NotificationMessage}" Foreground="White" FontWeight="Bold"/>

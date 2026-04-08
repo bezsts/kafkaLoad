@@ -6,36 +6,50 @@
         xmlns:rxui="http://reactiveui.net"
         xmlns:vm="using:KafkaLoad.UI.ViewModels"
         xmlns:views="using:KafkaLoad.UI.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="750"
         x:DataType="vm:MainViewModel"
         x:TypeArguments="vm:MainViewModel"
         x:Class="KafkaLoad.UI.MainWindow"
-        Title="KafkaLoad">
+        Title="KafkaLoad"
+        MinWidth="900" MinHeight="600">
 
-        <Design.DataContext>
-                <vm:MainViewModel/>
-        </Design.DataContext>
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
 
-        <Panel>
-                <TabControl Margin="5">
+    <Panel>
+        <TabControl Margin="0" Padding="0">
+            <TabControl.Styles>
+                <Style Selector="TabControl">
+                    <Setter Property="Background" Value="{DynamicResource AppBackground}"/>
+                </Style>
+                <Style Selector="TabItem">
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Padding" Value="20,12"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                </Style>
+                <Style Selector="TabItem:selected">
+                    <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/>
+                </Style>
+            </TabControl.Styles>
 
-                <TabItem Header="Run test" FontSize="16">
-                        <views:TestRunnerView DataContext="{Binding TestRunnerViewModel}"/>
-                </TabItem>
+            <TabItem Header="Run Test">
+                <views:TestRunnerView DataContext="{Binding TestRunnerViewModel}"/>
+            </TabItem>
 
-                <TabItem Header="Test scenarios" FontSize="16">
-                        <views:TestScenariosView DataContext="{Binding TestScenariosViewModel}"/>
-                </TabItem>
-                
-                <TabItem Header="Clients Configuration" FontSize="16">
-                        <views:ClientsConfigView DataContext="{Binding ClientsConfigViewModel}"/>
-                </TabItem>
+            <TabItem Header="Scenarious">
+                <views:TestScenariosView DataContext="{Binding TestScenariosViewModel}"/>
+            </TabItem>
 
-                <TabItem Header="Reports" FontSize="16">
-                        <views:ReportsView DataContext="{Binding ReportsViewModel}"/>
-                </TabItem>
-                
-                </TabControl>
-        </Panel>
-        
+            <TabItem Header="Configs">
+                <views:ClientsConfigView DataContext="{Binding ClientsConfigViewModel}"/>
+            </TabItem>
+
+            <TabItem Header="Reports">
+                <views:ReportsView DataContext="{Binding ReportsViewModel}"/>
+            </TabItem>
+        </TabControl>
+    </Panel>
+
 </rxui:ReactiveWindow>

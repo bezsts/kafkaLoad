@@ -11,7 +11,6 @@ public class CustomProducerConfig : IConfigModel
     private const int DefaultLingerMs = 0;
     private const int DefaultMaxInFlightRequests = 5;
     public string Name { get; set; } = string.Empty;
-    public string BootstrapServers { get; set; } = string.Empty;
 
     // Client identifier. Used to track the source of requests in broker logs and metrics.
     public string ClientID { get; set; } = string.Empty;
