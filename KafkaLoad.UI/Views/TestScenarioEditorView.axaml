@@ -107,6 +107,12 @@
                             </StackPanel>
                         </Grid>
 
+                        <StackPanel Spacing="4" IsVisible="{Binding IsFixedKeyVisible}">
+                            <TextBlock Text="FIXED KEY" Classes="field-label"/>
+                            <TextBox Text="{Binding FixedKey}"
+                                     Watermark="e.g. my-fixed-key"/>
+                        </StackPanel>
+
                         <StackPanel Spacing="4" IsVisible="{Binding IsMessageSizeVisible}">
                             <TextBlock Text="MESSAGE SIZE (BYTES)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding MessageSize, TargetNullValue={x:Null}}"
@@ -131,35 +137,35 @@
                 <StackPanel Spacing="12">
                     <TextBlock Text="Load Parameters" Classes="section-title"/>
 
-                    <Grid ColumnDefinitions="*, 10, *, 10, *, 10, *">
+                    <!-- Row 1: Duration | Target Throughput (Load/Stress/Soak) -->
+                    <Grid ColumnDefinitions="*, 10, *">
                         <StackPanel Grid.Column="0" Spacing="4">
                             <TextBlock Text="DURATION (SEC)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding Duration, TargetNullValue={x:Null}}"
                                            Minimum="1" Maximum="86400" Increment="10"/>
                         </StackPanel>
-                        <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="PRODUCERS" Classes="field-label"/>
-                            <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="4" Spacing="4">
-                            <TextBlock Text="CONSUMERS" Classes="field-label"/>
-                            <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}"
-                                           Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Target throughput (Load / Stress / Soak) -->
-                    <Grid ColumnDefinitions="*, 10, *, 10, *"
-                          IsVisible="{Binding IsTargetThroughputVisible}">
-                        <StackPanel Grid.Column="0" Spacing="4">
+                        <StackPanel Grid.Column="2" Spacing="4" IsVisible="{Binding IsTargetThroughputVisible}">
                             <TextBlock Text="TARGET THROUGHPUT (MSG/SEC)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding TargetThroughput, TargetNullValue={x:Null}}"
                                            Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
                         </StackPanel>
                     </Grid>
 
-                    <!-- Spike fields -->
+                    <!-- Row 2: Producers | Consumers -->
+                    <Grid ColumnDefinitions="*, 10, *">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="PRODUCERS" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}"
+                                           Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="CONSUMERS" Classes="field-label"/>
+                            <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}"
+                                           Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Row 3: Base Throughput | Spike Throughput (Spike only) -->
                     <Grid ColumnDefinitions="*, 10, *" IsVisible="{Binding IsSpikeVisible}">
                         <StackPanel Grid.Column="0" Spacing="4">
                             <TextBlock Text="BASE THROUGHPUT (MSG/SEC)" Classes="field-label"/>

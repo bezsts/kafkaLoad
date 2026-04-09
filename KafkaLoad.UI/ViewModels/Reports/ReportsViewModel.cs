@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace KafkaLoad.UI.ViewModels.Reports
@@ -53,6 +54,9 @@ namespace KafkaLoad.UI.ViewModels.Reports
         public ObservableCollection<MetricDiff> ConsumerComparison { get; } = new();
 
         public ObservableCollection<ScenarioRunSummary> ScenarioStatistics { get; } = new();
+
+        private readonly Subject<TestReport> _timeSeriesReady = new();
+        public IObservable<TestReport> TimeSeriesReady => _timeSeriesReady;
 
         public ReactiveCommand<Unit, Unit> LoadReportsCommand { get; }
         public ReactiveCommand<string, Unit> DeleteReportCommand { get; }
@@ -160,7 +164,7 @@ namespace KafkaLoad.UI.ViewModels.Reports
             try
             {
                 report.TimeSeriesData = await _reportRepository.GetTimeSeriesDataAsync(report.Id);
-                this.RaisePropertyChanged(propertyName);
+                _timeSeriesReady.OnNext(report);
             }
             catch (Exception ex)
             {

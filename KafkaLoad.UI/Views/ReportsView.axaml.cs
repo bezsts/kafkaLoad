@@ -7,6 +7,7 @@ using ReactiveUI.Avalonia;
 using ScottPlot.Avalonia;
 using System;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reactive.Disposables.Fluent;
 using KafkaLoad.Core.Models.Reports;
 
@@ -15,27 +16,35 @@ namespace KafkaLoad.UI.Views;
 public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
 {
     // Producer Charts
-    private AvaPlot? _prodThrMb, _prodLat;
+    private AvaPlot? _prodThrMb, _prodMsgRate, _prodLat, _prodErrors;
 
     // Consumer Charts
-    private AvaPlot? _consThrMb, _consLat;
+    private AvaPlot? _consThrMb, _consMsgRate, _consLat, _consErrors;
 
     public ReportsView()
     {
         InitializeComponent();
 
-        _prodThrMb = this.FindControl<AvaPlot>("ProdThroughputMbChart");
-        _prodLat = this.FindControl<AvaPlot>("ProdLatencyChart");
+        _prodThrMb   = this.FindControl<AvaPlot>("ProdThroughputMbChart");
+        _prodMsgRate = this.FindControl<AvaPlot>("ProdMsgRateChart");
+        _prodLat     = this.FindControl<AvaPlot>("ProdLatencyChart");
+        _prodErrors  = this.FindControl<AvaPlot>("ProdErrorsChart");
 
-        _consThrMb = this.FindControl<AvaPlot>("ConsThroughputMbChart");
-        _consLat = this.FindControl<AvaPlot>("ConsLatencyChart");
+        _consThrMb   = this.FindControl<AvaPlot>("ConsThroughputMbChart");
+        _consMsgRate = this.FindControl<AvaPlot>("ConsMsgRateChart");
+        _consLat     = this.FindControl<AvaPlot>("ConsLatencyChart");
+        _consErrors  = this.FindControl<AvaPlot>("ConsErrorsChart");
 
         this.WhenActivated(disposables =>
         {
             SetupChartStyle(_prodThrMb);
+            SetupChartStyle(_prodMsgRate);
             SetupChartStyle(_prodLat);
+            SetupChartStyle(_prodErrors);
             SetupChartStyle(_consThrMb);
+            SetupChartStyle(_consMsgRate);
             SetupChartStyle(_consLat);
+            SetupChartStyle(_consErrors);
 
             this.WhenAnyValue(x => x.ViewModel!.SelectedReport, x => x.ViewModel!.CompareWithReport)
                 .Subscribe(tuple =>
@@ -45,6 +54,19 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
                         UpdateAllCharts(report);
                     else
                         UpdateAllComparisonCharts(report, compare);
+                })
+                .DisposeWith(disposables);
+
+            // WhenAnyValue uses DistinctUntilChanged and won't re-fire when the same report
+            // reference gets its TimeSeriesData populated. Subscribe to the dedicated signal instead.
+            ViewModel!.TimeSeriesReady
+                .ObserveOn(AvaloniaScheduler.Instance)
+                .Subscribe(report =>
+                {
+                    if (ViewModel?.CompareWithReport == null)
+                        UpdateAllCharts(report);
+                    else
+                        UpdateAllComparisonCharts(report, ViewModel.CompareWithReport);
                 })
                 .DisposeWith(disposables);
         });
@@ -76,11 +98,15 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
     {
         if (report == null) return;
 
-        DrawChart(_prodThrMb, report, "Producer_ThroughputMB", "MB/s", 0);
-        DrawChart(_prodLat, report, "Producer_Latency", "ms", 2);
+        DrawChart(_prodThrMb,   report, "Producer_ThroughputMB", "MB/s",    0);
+        DrawChart(_prodMsgRate, report, "Producer_MsgRate",       "msg/s",   0);
+        DrawChart(_prodLat,     report, "Producer_Latency",       "ms",      2);
+        DrawChart(_prodErrors,  report, "Producer_Errors",        "err/s",   3);
 
-        DrawChart(_consThrMb, report, "Consumer_ThroughputMB", "MB/s", 0);
-        DrawChart(_consLat, report, "Consumer_Latency", "ms", 2);
+        DrawChart(_consThrMb,   report, "Consumer_ThroughputMB", "MB/s",    0);
+        DrawChart(_consMsgRate, report, "Consumer_MsgRate",       "msg/s",   0);
+        DrawChart(_consLat,     report, "Consumer_Latency",       "ms",      2);
+        DrawChart(_consErrors,  report, "Consumer_Errors",        "err/s",   3);
     }
 
     private void DrawChart(AvaPlot? chart, TestReport report, string dictionaryKey, string yLabel, int themeIndex)
@@ -113,11 +139,15 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
     {
         if (r1 == null || r2 == null) return;
 
-        DrawComparisonChart(_prodThrMb, r1, r2, "Producer_ThroughputMB", "MB/s", lowerIsBetter: false, 0);
-        DrawComparisonChart(_prodLat, r1, r2, "Producer_Latency", "ms", lowerIsBetter: true, 2);
+        DrawComparisonChart(_prodThrMb,   r1, r2, "Producer_ThroughputMB", "MB/s",  lowerIsBetter: false, 0);
+        DrawComparisonChart(_prodMsgRate, r1, r2, "Producer_MsgRate",       "msg/s", lowerIsBetter: false, 0);
+        DrawComparisonChart(_prodLat,     r1, r2, "Producer_Latency",       "ms",    lowerIsBetter: true,  2);
+        DrawComparisonChart(_prodErrors,  r1, r2, "Producer_Errors",        "err/s", lowerIsBetter: true,  3);
 
-        DrawComparisonChart(_consThrMb, r1, r2, "Consumer_ThroughputMB", "MB/s", lowerIsBetter: false, 0);
-        DrawComparisonChart(_consLat, r1, r2, "Consumer_Latency", "ms", lowerIsBetter: true, 2);
+        DrawComparisonChart(_consThrMb,   r1, r2, "Consumer_ThroughputMB", "MB/s",  lowerIsBetter: false, 0);
+        DrawComparisonChart(_consMsgRate, r1, r2, "Consumer_MsgRate",       "msg/s", lowerIsBetter: false, 0);
+        DrawComparisonChart(_consLat,     r1, r2, "Consumer_Latency",       "ms",    lowerIsBetter: true,  2);
+        DrawComparisonChart(_consErrors,  r1, r2, "Consumer_Errors",        "err/s", lowerIsBetter: true,  3);
     }
 
     private void DrawComparisonChart(AvaPlot? chart, TestReport r1, TestReport r2, string key, string yLabel, bool lowerIsBetter, int themeIndex)

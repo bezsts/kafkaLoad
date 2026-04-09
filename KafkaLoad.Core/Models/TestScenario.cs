@@ -13,6 +13,7 @@ public class TestScenario : IConfigModel
     public KeyGenerationStrategy KeyStrategy { get; set; } = KeyGenerationStrategy.RandomString;
     public ValueGenerationStrategy ValueStrategy { get; set; } = ValueGenerationStrategy.RandomString;
     public TestType TestType { get; set; } = TestType.Load;
+    public string? FixedKey { get; set; }
     public string? FixedTemplate { get; set; }
     public int? ProducerCount { get; set; } = 1;
     public int? ConsumerCount { get; set; } = 1;

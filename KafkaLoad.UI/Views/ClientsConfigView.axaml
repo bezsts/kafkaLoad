@@ -6,19 +6,14 @@
              x:DataType="vm:ClientsConfigViewModel"
              x:Class="KafkaLoad.UI.Views.ClientsConfigView">
 
-    <Grid Background="{DynamicResource AppBackground}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="560, 8, *">
 
         <!-- Left panel: two lists (producers / consumers) -->
-        <Border Grid.Column="0" Background="{DynamicResource CardBackground}"
-                BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Classes="card" Padding="10" Margin="8,8,0,8">
             <Grid RowDefinitions="*, Auto, *, Auto">
 
                 <!-- Producers -->
-                <Grid Grid.Row="0" RowDefinitions="Auto, *" Margin="12,12,12,0">
+                <Grid Grid.Row="0" RowDefinitions="Auto, *" Margin="0,0,0,0">
                     <TextBlock Grid.Row="0" Text="Producers"
                                FontWeight="Bold" FontSize="14"
                                Foreground="{DynamicResource PrimaryBlue}"
@@ -35,7 +30,7 @@
                 </Grid>
 
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5"
-                            Margin="12,6,12,10" HorizontalAlignment="Right">
+                            Margin="0,6,0,6" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding CreateProducerCommand}" Content="Add"/>
                     <Button Classes="tool" Command="{Binding DuplicateProducerCommand}" Content="Copy"/>
                     <Button Classes="delete" Command="{Binding DeleteProducerCommand}" Content="Del"/>
@@ -46,7 +41,7 @@
                            VerticalAlignment="Bottom" Margin="12,0"/>
 
                 <!-- Consumers -->
-                <Grid Grid.Row="2" RowDefinitions="Auto, *" Margin="12,12,12,0">
+                <Grid Grid.Row="2" RowDefinitions="Auto, *" Margin="0,0,0,0">
                     <TextBlock Grid.Row="0" Text="Consumers"
                                FontWeight="Bold" FontSize="14"
                                Foreground="{DynamicResource PrimaryBlue}"
@@ -63,7 +58,7 @@
                 </Grid>
 
                 <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5"
-                            Margin="12,6,12,12" HorizontalAlignment="Right">
+                            Margin="0,6,0,0" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding CreateConsumerCommand}" Content="Add"/>
                     <Button Classes="tool" Command="{Binding DuplicateConsumerCommand}" Content="Copy"/>
                     <Button Classes="delete" Command="{Binding DeleteConsumerCommand}" Content="Del"/>
@@ -73,7 +68,7 @@
         </Border>
 
         <!-- Right panel: editor -->
-        <Grid Grid.Column="1" Margin="16">
+        <Grid Grid.Column="2" Margin="0,8,8,8">
 
             <Border Classes="card" IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <TransitioningContentControl Content="{Binding CurrentEditor}">

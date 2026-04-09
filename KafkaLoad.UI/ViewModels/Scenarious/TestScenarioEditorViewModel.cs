@@ -19,6 +19,13 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     private readonly IConfigRepository<CustomProducerConfig> _producerConfigRepository;
     private readonly IConfigRepository<CustomConsumerConfig> _consumerConfigRepository;
 
+    private bool _isFixedKeyVisible;
+    public bool IsFixedKeyVisible
+    {
+        get => _isFixedKeyVisible;
+        set => this.RaiseAndSetIfChanged(ref _isFixedKeyVisible, value);
+    }
+
     private bool _isFixedContentVisible;
     public bool IsFixedContentVisible
     {
@@ -55,6 +62,12 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         _producerConfigRepository = producerConfigRepository;
         _consumerConfigRepository = consumerConfigRepository;
+
+        this.WhenAnyValue(x => x.KeyStrategy)
+            .Subscribe(strategy =>
+            {
+                IsFixedKeyVisible = strategy == KeyGenerationStrategy.Fixed;
+            });
 
         this.WhenAnyValue(x => x.ValueStrategy)
             .Subscribe(strategy =>
@@ -158,6 +171,11 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
 
     private async Task LoadConfigurationsAsync()
     {
+        // Save names before async loading — the ComboBox two-way binding can clear
+        // Model.ProducerConfig/ConsumerConfig when ItemsSource is repopulated with new objects
+        var savedProducerName = Model.ProducerConfig?.Name;
+        var savedConsumerName = Model.ConsumerConfig?.Name;
+
         Producers.Clear();
         Consumers.Clear();
 
@@ -167,11 +185,11 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         var consumerList = await _consumerConfigRepository.GetAllAsync();
         foreach (var c in consumerList) Consumers.Add(c);
 
-        if (Model.ProducerConfig != null)
-            SelectedProducer = Producers.FirstOrDefault(p => p.Name == Model.ProducerConfig.Name);
+        if (savedProducerName != null)
+            SelectedProducer = Producers.FirstOrDefault(p => p.Name == savedProducerName);
 
-        if (Model.ConsumerConfig != null)
-            SelectedConsumer = Consumers.FirstOrDefault(c => c.Name == Model.ConsumerConfig.Name);
+        if (savedConsumerName != null)
+            SelectedConsumer = Consumers.FirstOrDefault(c => c.Name == savedConsumerName);
     }
 
     // --- Properties Wrappers ---
@@ -220,6 +238,12 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         get => Model.ValueStrategy;
         set => SetProperty(value, Model.ValueStrategy, v => Model.ValueStrategy = v);
+    }
+
+    public string? FixedKey
+    {
+        get => Model.FixedKey;
+        set => SetProperty(value, Model.FixedKey, v => Model.FixedKey = v);
     }
 
     public string? FixedTemplate

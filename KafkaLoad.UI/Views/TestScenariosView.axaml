@@ -6,16 +6,11 @@
              x:Class="KafkaLoad.UI.Views.TestScenariosView"
              x:DataType="vm:TestScenariosViewModel">
 
-    <Grid Background="{DynamicResource AppBackground}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="280"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="560, 8, *">
 
         <!-- Left panel: list -->
-        <Border Grid.Column="0" Background="{DynamicResource CardBackground}"
-                BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
-            <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="12">
+        <Border Grid.Column="0" Classes="card" Padding="10" Margin="8,8,0,8">
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
 
                 <TextBlock Grid.Row="0" Text="Scenarious"
                            FontWeight="Bold" FontSize="16"
@@ -62,7 +57,7 @@
         </Border>
 
         <!-- Right panel: editor -->
-        <Grid Grid.Column="1" Margin="16">
+        <Grid Grid.Column="2" Margin="0,8,8,8">
 
             <Border Classes="card" IsVisible="{Binding CurrentEditor, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <TransitioningContentControl Content="{Binding CurrentEditor}">

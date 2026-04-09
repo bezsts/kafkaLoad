@@ -18,7 +18,7 @@ namespace KafkaLoad.Core.Services.Generators
                 KeyGenerationStrategy.SequentialInt => new SequentialIntKeyGenerator(),
                 KeyGenerationStrategy.RandomInt => new RandomIntKeyGenerator(),
                 KeyGenerationStrategy.RandomString => new RandomStringKeyGenerator(),
-                KeyGenerationStrategy.Fixed => new FixedDataGenerator("fixed-key"),
+                KeyGenerationStrategy.Fixed => new FixedDataGenerator(scenario.FixedKey ?? "fixed-key"),
                 _ => new FixedDataGenerator(null)
             };
         }
