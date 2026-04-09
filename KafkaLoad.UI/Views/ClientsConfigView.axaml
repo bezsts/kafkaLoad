@@ -6,58 +6,84 @@
              x:DataType="vm:ClientsConfigViewModel"
              x:Class="KafkaLoad.UI.Views.ClientsConfigView">
 
-    <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="560, 8, *">
+    <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="450, 8, *">
 
         <!-- Left panel: two lists (producers / consumers) -->
-        <Border Grid.Column="0" Classes="card" Padding="10" Margin="8,8,0,8">
-            <Grid RowDefinitions="*, Auto, *, Auto">
+        <Border Grid.Column="0" Classes="card" Padding="12" Margin="8,8,0,8">
+            <Grid RowDefinitions="Auto, Auto, *, Auto, Auto, Auto, Auto, *, Auto">
 
-                <!-- Producers -->
-                <Grid Grid.Row="0" RowDefinitions="Auto, *" Margin="0,0,0,0">
-                    <TextBlock Grid.Row="0" Text="Producers"
+                <!-- Producers header + sort -->
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,6">
+                    <TextBlock Grid.Column="0" Text="Producers"
                                FontWeight="Bold" FontSize="14"
                                Foreground="{DynamicResource PrimaryBlue}"
-                               Margin="0,0,0,8"/>
-                    <ListBox Grid.Row="1"
-                             ItemsSource="{Binding Producers}"
-                             SelectedItem="{Binding SelectedProducer}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                               VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" Classes="sort"
+                              ItemsSource="{Binding SortOptions}"
+                              SelectedItem="{Binding SelectedProducerSort}"
+                              MinWidth="105"/>
                 </Grid>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5"
-                            Margin="0,6,0,6" HorizontalAlignment="Right">
+                <!-- Producers search -->
+                <TextBox Grid.Row="1" Classes="search"
+                         Text="{Binding ProducerSearchText}"
+                         Watermark="Search producers..."
+                         Margin="0,0,0,6"/>
+
+                <!-- Producers list -->
+                <ListBox Grid.Row="2"
+                         ItemsSource="{Binding FilteredProducers}"
+                         SelectedItem="{Binding SelectedProducer}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Producers buttons -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5"
+                            Margin="0,6,0,4" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding CreateProducerCommand}" Content="Add"/>
                     <Button Classes="tool" Command="{Binding DuplicateProducerCommand}" Content="Copy"/>
                     <Button Classes="delete" Command="{Binding DeleteProducerCommand}" Content="Del"/>
                 </StackPanel>
 
                 <!-- Divider -->
-                <Separator Grid.Row="1" Height="1" Background="{DynamicResource BorderColor}"
-                           VerticalAlignment="Bottom" Margin="12,0"/>
+                <Separator Grid.Row="4" Height="1" Background="{DynamicResource BorderColor}"
+                           Margin="0,4,0,8"/>
 
-                <!-- Consumers -->
-                <Grid Grid.Row="2" RowDefinitions="Auto, *" Margin="0,0,0,0">
-                    <TextBlock Grid.Row="0" Text="Consumers"
+                <!-- Consumers header + sort -->
+                <Grid Grid.Row="5" ColumnDefinitions="*, Auto" Margin="0,0,0,6">
+                    <TextBlock Grid.Column="0" Text="Consumers"
                                FontWeight="Bold" FontSize="14"
                                Foreground="{DynamicResource PrimaryBlue}"
-                               Margin="0,0,0,8"/>
-                    <ListBox Grid.Row="1"
-                             ItemsSource="{Binding Consumers}"
-                             SelectedItem="{Binding SelectedConsumer}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                               VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" Classes="sort"
+                              ItemsSource="{Binding SortOptions}"
+                              SelectedItem="{Binding SelectedConsumerSort}"
+                              MinWidth="105"/>
                 </Grid>
 
-                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5"
+                <!-- Consumers search -->
+                <TextBox Grid.Row="6" Classes="search"
+                         Text="{Binding ConsumerSearchText}"
+                         Watermark="Search consumers..."
+                         Margin="0,0,0,6"/>
+
+                <!-- Consumers list -->
+                <ListBox Grid.Row="7"
+                         ItemsSource="{Binding FilteredConsumers}"
+                         SelectedItem="{Binding SelectedConsumer}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Consumers buttons -->
+                <StackPanel Grid.Row="8" Orientation="Horizontal" Spacing="5"
                             Margin="0,6,0,0" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding CreateConsumerCommand}" Content="Add"/>
                     <Button Classes="tool" Command="{Binding DuplicateConsumerCommand}" Content="Copy"/>

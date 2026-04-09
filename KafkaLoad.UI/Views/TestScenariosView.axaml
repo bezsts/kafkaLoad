@@ -3,36 +3,67 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:views="using:KafkaLoad.UI.Views"
+             xmlns:enums="using:KafkaLoad.Core.Enums"
              x:Class="KafkaLoad.UI.Views.TestScenariosView"
              x:DataType="vm:TestScenariosViewModel">
 
-    <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="560, 8, *">
+
+    <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="450, 8, *">
 
         <!-- Left panel: list -->
-        <Border Grid.Column="0" Classes="card" Padding="10" Margin="8,8,0,8">
-            <Grid RowDefinitions="Auto, Auto, *, Auto">
+        <Border Grid.Column="0" Classes="card" Padding="12" Margin="8,8,0,8">
+            <Grid RowDefinitions="Auto, Auto, Auto, *, Auto">
 
-                <TextBlock Grid.Row="0" Text="Scenarious"
+                <!-- Title -->
+                <TextBlock Grid.Row="0" Text="Scenarios"
                            FontWeight="Bold" FontSize="16"
                            Foreground="{DynamicResource PrimaryBlue}"
                            Margin="0,0,0,10"/>
 
                 <!-- Search -->
-                <Border Grid.Row="1" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
-                        CornerRadius="4" Background="White" Margin="0,0,0,10" Padding="8,6">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBox Grid.Column="0" Text="{Binding SearchText}"
-                                 Watermark="Search..."
-                                 BorderThickness="0" Background="Transparent"
-                                 Padding="0" FontSize="13"/>
-                        <TextBlock Grid.Column="1" Text="🔍" FontSize="13"
-                                   Foreground="{DynamicResource TextSecondary}"
-                                   VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                <TextBox Grid.Row="1" Classes="search"
+                         Text="{Binding SearchText}"
+                         Watermark="Search scenarios..."
+                         Margin="0,0,0,8"/>
+
+                <!-- Filter chips + Sort -->
+                <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="0,0,0,8">
+                    <WrapPanel Grid.Column="0" Orientation="Horizontal">
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsFilterAll, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}"
+                                      CommandParameter="{x:Null}"
+                                      Content="All"/>
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsFilterLoad, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}"
+                                      CommandParameter="{x:Static enums:TestType.Load}"
+                                      Content="Load"/>
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsFilterStress, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}"
+                                      CommandParameter="{x:Static enums:TestType.Stress}"
+                                      Content="Stress"/>
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsFilterSpike, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}"
+                                      CommandParameter="{x:Static enums:TestType.Spike}"
+                                      Content="Spike"/>
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsFilterSoak, Mode=OneWay}"
+                                      Command="{Binding SetFilterCommand}"
+                                      CommandParameter="{x:Static enums:TestType.Soak}"
+                                      Content="Soak"/>
+                    </WrapPanel>
+                    <ComboBox Grid.Column="1" Classes="sort"
+                              VerticalAlignment="Top"
+                              ItemsSource="{Binding SortOptions}"
+                              SelectedItem="{Binding SelectedSort}"
+                              MinWidth="105"/>
+                </Grid>
 
                 <!-- Scenarios list -->
-                <ListBox Grid.Row="2"
+                <ListBox Grid.Row="3"
                          ItemsSource="{Binding FilteredScenarios}"
                          SelectedItem="{Binding SelectedScenario}">
                     <ListBox.ItemTemplate>
@@ -47,7 +78,7 @@
                 </ListBox>
 
                 <!-- Action buttons -->
-                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5"
+                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="5"
                             Margin="0,10,0,0" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding CreateCommand}" Content="Add"/>
                     <Button Classes="tool" Command="{Binding DuplicateCommand}" Content="Copy"/>

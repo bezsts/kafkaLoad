@@ -8,6 +8,7 @@ namespace KafkaLoad.Core.Models;
 public class TestScenario : IConfigModel
 {
     public string Name { get; set;} = string.Empty;
+    public DateTime CreatedAt { get; set; }
     public CustomProducerConfig? ProducerConfig { get; set; }
     public CustomConsumerConfig? ConsumerConfig { get; set; }
     public KeyGenerationStrategy KeyStrategy { get; set; } = KeyGenerationStrategy.RandomString;

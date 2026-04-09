@@ -115,6 +115,7 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
         TargetThroughput = e.TargetThroughput,
         BaseThroughput = e.BaseThroughput,
         SpikeThroughput = e.SpikeThroughput,
+        CreatedAt = e.CreatedAt,
         ProducerConfig = e.ProducerConfig is null ? null : MapProducerConfig(e.ProducerConfig),
         ConsumerConfig = e.ConsumerConfig is null ? null : MapConsumerConfig(e.ConsumerConfig)
     };

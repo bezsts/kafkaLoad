@@ -83,6 +83,7 @@ public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerCo
         FetchMaxBytes = e.FetchMaxBytes,
         FetchMaxWait = e.FetchMaxWaitMs,
         MaxPollInterval = e.MaxPollIntervalMs,
+        CreatedAt = e.CreatedAt,
         Security = new CustomSecurityConfig
         {
             SecurityProtocol = Enum.Parse<SecurityProtocolEnum>(e.SecurityProtocol),

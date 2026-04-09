@@ -1,4 +1,5 @@
-﻿using KafkaLoad.Core.Models;
+using KafkaLoad.Core.Enums;
+using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Services.Interfaces;
 using ReactiveUI;
 using Serilog;
@@ -8,12 +9,28 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace KafkaLoad.UI.ViewModels
 {
+    public enum ScenarioSort
+    {
+        NameAsc,
+        NameDesc,
+        TypeAsc,
+        DateDesc,
+        DateAsc
+    }
+
+    public class SortOption<T>
+    {
+        public string Label { get; }
+        public T Value { get; }
+        public SortOption(string label, T value) { Label = label; Value = value; }
+        public override string ToString() => Label;
+    }
+
     public class TestScenariosViewModel : ReactiveObject
     {
         private readonly IConfigRepository<TestScenario> _scenarioRepo;
@@ -37,6 +54,48 @@ namespace KafkaLoad.UI.ViewModels
                 RefreshFiltered();
             }
         }
+
+        private TestType? _activeTypeFilter = null;
+        public TestType? ActiveTypeFilter
+        {
+            get => _activeTypeFilter;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _activeTypeFilter, value);
+                this.RaisePropertyChanged(nameof(IsFilterAll));
+                this.RaisePropertyChanged(nameof(IsFilterLoad));
+                this.RaisePropertyChanged(nameof(IsFilterStress));
+                this.RaisePropertyChanged(nameof(IsFilterSpike));
+                this.RaisePropertyChanged(nameof(IsFilterSoak));
+                RefreshFiltered();
+            }
+        }
+
+        public bool IsFilterAll    => !_activeTypeFilter.HasValue;
+        public bool IsFilterLoad   => _activeTypeFilter == TestType.Load;
+        public bool IsFilterStress => _activeTypeFilter == TestType.Stress;
+        public bool IsFilterSpike  => _activeTypeFilter == TestType.Spike;
+        public bool IsFilterSoak   => _activeTypeFilter == TestType.Soak;
+
+        private SortOption<ScenarioSort> _selectedSort;
+        public SortOption<ScenarioSort> SelectedSort
+        {
+            get => _selectedSort;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedSort, value);
+                RefreshFiltered();
+            }
+        }
+
+        public List<SortOption<ScenarioSort>> SortOptions { get; } = new()
+        {
+            new("Name A→Z",   ScenarioSort.NameAsc),
+            new("Name Z→A",   ScenarioSort.NameDesc),
+            new("Type",       ScenarioSort.TypeAsc),
+            new("Newest",     ScenarioSort.DateDesc),
+            new("Oldest",     ScenarioSort.DateAsc),
+        };
 
         public ObservableCollection<TestScenario> Scenarios { get; } = new();
         public ObservableCollection<TestScenario> FilteredScenarios { get; } = new();
@@ -62,6 +121,7 @@ namespace KafkaLoad.UI.ViewModels
         public ReactiveCommand<Unit, Unit> CreateCommand { get; }
         public ReactiveCommand<Unit, Unit> DuplicateCommand { get; }
         public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
+        public ReactiveCommand<object?, Unit> SetFilterCommand { get; }
 
         public TestScenariosViewModel(
             IConfigRepository<TestScenario> scenarioRepo,
@@ -71,6 +131,8 @@ namespace KafkaLoad.UI.ViewModels
             _scenarioRepo = scenarioRepo;
             _producerRepo = producerRepo;
             _consumerRepo = consumerRepo;
+
+            _selectedSort = SortOptions[0];
 
             CreateCommand = ReactiveCommand.Create(() =>
             {
@@ -83,7 +145,6 @@ namespace KafkaLoad.UI.ViewModels
                 if (SelectedScenario == null) return;
                 var copy = Clone(SelectedScenario);
 
-                // Smart naming logic
                 string baseName = $"{SelectedScenario.Name}_Copy";
                 string uniqueName = baseName;
                 int counter = 1;
@@ -129,6 +190,11 @@ namespace KafkaLoad.UI.ViewModels
 
             }, this.WhenAnyValue(x => x.SelectedScenario).Select(x => x != null));
 
+            SetFilterCommand = ReactiveCommand.Create<object?>(param =>
+            {
+                ActiveTypeFilter = param is TestType t ? t : (TestType?)null;
+            });
+
             _ = RefreshList();
         }
 
@@ -165,16 +231,25 @@ namespace KafkaLoad.UI.ViewModels
 
         private void RefreshFiltered()
         {
-            FilteredScenarios.Clear();
-            var filter = SearchText?.Trim() ?? string.Empty;
-            foreach (var s in Scenarios)
+            var q = Scenarios.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+                q = q.Where(s => s.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+            if (ActiveTypeFilter.HasValue)
+                q = q.Where(s => s.TestType == ActiveTypeFilter.Value);
+
+            q = (_selectedSort?.Value ?? ScenarioSort.NameAsc) switch
             {
-                if (string.IsNullOrEmpty(filter) ||
-                    s.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
-                {
-                    FilteredScenarios.Add(s);
-                }
-            }
+                ScenarioSort.NameDesc => q.OrderByDescending(s => s.Name),
+                ScenarioSort.TypeAsc  => q.OrderBy(s => s.TestType).ThenBy(s => s.Name),
+                ScenarioSort.DateDesc => q.OrderByDescending(s => s.CreatedAt),
+                ScenarioSort.DateAsc  => q.OrderBy(s => s.CreatedAt),
+                _                    => q.OrderBy(s => s.Name),
+            };
+
+            FilteredScenarios.Clear();
+            foreach (var s in q) FilteredScenarios.Add(s);
         }
 
         private async void ShowNotification(string message)

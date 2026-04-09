@@ -86,6 +86,7 @@ public class SqliteProducerConfigRepository : IConfigRepository<CustomProducerCo
         CompressionType = Enum.Parse<CompressionTypeEnum>(e.CompressionType),
         BufferMemory = e.BufferMemoryBytes,
         MaxInFlightRequestsPerConnection = e.MaxInFlightRequests,
+        CreatedAt = e.CreatedAt,
         Security = new CustomSecurityConfig
         {
             SecurityProtocol = Enum.Parse<SecurityProtocolEnum>(e.SecurityProtocol),

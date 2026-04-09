@@ -1,6 +1,7 @@
 using KafkaLoad.Core.Enums;
 using KafkaLoad.Core.Models.Configs;
 using KafkaLoad.Core.Models.Interfaces;
+using System;
 
 namespace KafkaLoad.Core.Models;
 
@@ -46,5 +47,6 @@ public class CustomConsumerConfig : IConfigModel
     public int MaxPollInterval { get; set; } = DefaultMaxPollIntervalMs;
 
     public CustomSecurityConfig Security { get; set; } = new CustomSecurityConfig();
+    public DateTime CreatedAt { get; set; }
     public override string ToString() => Name;
 }

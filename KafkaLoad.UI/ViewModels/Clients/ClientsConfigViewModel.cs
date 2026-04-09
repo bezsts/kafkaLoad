@@ -1,9 +1,10 @@
-﻿using KafkaLoad.Core.Models;
+using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Models.Interfaces;
 using KafkaLoad.Core.Services.Interfaces;
 using ReactiveUI;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -12,6 +13,14 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.UI.ViewModels
 {
+    public enum ClientSort
+    {
+        NameAsc,
+        NameDesc,
+        DateDesc,
+        DateAsc
+    }
+
     public class ClientsConfigViewModel : ReactiveObject
     {
         private readonly IConfigRepository<CustomProducerConfig> _producerRepo;
@@ -24,9 +33,67 @@ namespace KafkaLoad.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _notificationMessage, value);
         }
 
+        // --- Producers ---
         public ObservableCollection<CustomProducerConfig> Producers { get; } = new();
-        public ObservableCollection<CustomConsumerConfig> Consumers { get; } = new();
+        public ObservableCollection<CustomProducerConfig> FilteredProducers { get; } = new();
 
+        private string _producerSearchText = string.Empty;
+        public string ProducerSearchText
+        {
+            get => _producerSearchText;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _producerSearchText, value);
+                RefreshFilteredProducers();
+            }
+        }
+
+        private SortOption<ClientSort> _selectedProducerSort;
+        public SortOption<ClientSort> SelectedProducerSort
+        {
+            get => _selectedProducerSort;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedProducerSort, value);
+                RefreshFilteredProducers();
+            }
+        }
+
+        // --- Consumers ---
+        public ObservableCollection<CustomConsumerConfig> Consumers { get; } = new();
+        public ObservableCollection<CustomConsumerConfig> FilteredConsumers { get; } = new();
+
+        private string _consumerSearchText = string.Empty;
+        public string ConsumerSearchText
+        {
+            get => _consumerSearchText;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _consumerSearchText, value);
+                RefreshFilteredConsumers();
+            }
+        }
+
+        private SortOption<ClientSort> _selectedConsumerSort;
+        public SortOption<ClientSort> SelectedConsumerSort
+        {
+            get => _selectedConsumerSort;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _selectedConsumerSort, value);
+                RefreshFilteredConsumers();
+            }
+        }
+
+        public List<SortOption<ClientSort>> SortOptions { get; } = new()
+        {
+            new("Name A→Z", ClientSort.NameAsc),
+            new("Name Z→A", ClientSort.NameDesc),
+            new("Newest",   ClientSort.DateDesc),
+            new("Oldest",   ClientSort.DateAsc),
+        };
+
+        // --- Selection ---
         private CustomProducerConfig? _selectedProducer;
         public CustomProducerConfig? SelectedProducer
         {
@@ -72,7 +139,10 @@ namespace KafkaLoad.UI.ViewModels
             _producerRepo = producerRepo;
             _consumerRepo = consumerRepo;
 
-            // ---Producer Commands Setup ---
+            _selectedProducerSort = SortOptions[0];
+            _selectedConsumerSort = SortOptions[0];
+
+            // --- Producer Commands ---
             CreateProducerCommand = ReactiveCommand.Create(() =>
             {
                 Log.Information("User clicked Create New Producer Configuration.");
@@ -87,7 +157,7 @@ namespace KafkaLoad.UI.ViewModels
                 DeleteItemAsync(_producerRepo, SelectedProducer, "Producer"),
                 this.WhenAnyValue(x => x.SelectedProducer).Select(x => x != null));
 
-            // --- Consumer Commands Setup ---
+            // --- Consumer Commands ---
             CreateConsumerCommand = ReactiveCommand.Create(() =>
             {
                 Log.Information("User clicked Create New Consumer Configuration.");
@@ -102,20 +172,17 @@ namespace KafkaLoad.UI.ViewModels
                 DeleteItemAsync(_consumerRepo, SelectedConsumer, "Consumer"),
                 this.WhenAnyValue(x => x.SelectedConsumer).Select(x => x != null));
 
-            // Initial Load
             _ = RefreshLists();
         }
 
         private void OpenEditorFor<TConfig>(Func<BaseConfigViewModel<TConfig>> viewModelFactory, string typeName)
             where TConfig : class, IConfigModel, new()
         {
-            // Clear selection from the OTHER list to avoid confusion
             if (typeName == "Producer") SelectedConsumer = null;
             else SelectedProducer = null;
 
             var vm = viewModelFactory();
 
-            // Unified subscription logic using the BaseConfigViewModel properties
             vm.SaveComplete.Subscribe(async _ =>
             {
                 await RefreshLists();
@@ -158,7 +225,6 @@ namespace KafkaLoad.UI.ViewModels
             await repo.SaveAsync(copy);
             await RefreshLists();
 
-            // Find and select the new item
             var newItem = collection.FirstOrDefault(x => x.Name == copy.Name);
             if (newItem != null) setSelectedAction(newItem);
 
@@ -203,6 +269,47 @@ namespace KafkaLoad.UI.ViewModels
             Consumers.Clear();
             var cList = await _consumerRepo.GetAllAsync();
             foreach (var c in cList) Consumers.Add(c);
+
+            RefreshFilteredProducers();
+            RefreshFilteredConsumers();
+        }
+
+        private void RefreshFilteredProducers()
+        {
+            var q = Producers.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(ProducerSearchText))
+                q = q.Where(p => p.Name.Contains(ProducerSearchText, StringComparison.OrdinalIgnoreCase));
+
+            q = (_selectedProducerSort?.Value ?? ClientSort.NameAsc) switch
+            {
+                ClientSort.NameDesc => q.OrderByDescending(p => p.Name),
+                ClientSort.DateDesc => q.OrderByDescending(p => p.CreatedAt),
+                ClientSort.DateAsc  => q.OrderBy(p => p.CreatedAt),
+                _                  => q.OrderBy(p => p.Name),
+            };
+
+            FilteredProducers.Clear();
+            foreach (var p in q) FilteredProducers.Add(p);
+        }
+
+        private void RefreshFilteredConsumers()
+        {
+            var q = Consumers.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(ConsumerSearchText))
+                q = q.Where(c => c.Name.Contains(ConsumerSearchText, StringComparison.OrdinalIgnoreCase));
+
+            q = (_selectedConsumerSort?.Value ?? ClientSort.NameAsc) switch
+            {
+                ClientSort.NameDesc => q.OrderByDescending(c => c.Name),
+                ClientSort.DateDesc => q.OrderByDescending(c => c.CreatedAt),
+                ClientSort.DateAsc  => q.OrderBy(c => c.CreatedAt),
+                _                  => q.OrderBy(c => c.Name),
+            };
+
+            FilteredConsumers.Clear();
+            foreach (var c in q) FilteredConsumers.Add(c);
         }
 
         private async void ShowNotification(string message)
