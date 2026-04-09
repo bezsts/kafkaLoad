@@ -15,6 +15,8 @@ public class TestScenario : IConfigModel
     public ValueGenerationStrategy ValueStrategy { get; set; } = ValueGenerationStrategy.RandomString;
     public TestType TestType { get; set; } = TestType.Load;
     public string? FixedKey { get; set; }
+    /// <summary>JSON template string used when <see cref="ValueStrategy"/> is <c>Json</c>.
+    /// Supports placeholders: ${uuid}, ${randomInt}, ${randomInt:min:max}, ${randomString:N}, ${timestamp}, ${randomBool}</summary>
     public string? FixedTemplate { get; set; }
     public int? ProducerCount { get; set; } = 1;
     public int? ConsumerCount { get; set; } = 1;

@@ -11,8 +11,7 @@
 
     public enum ValueGenerationStrategy
     {
-        Fixed,          // User provided string/json repeated
-        RandomString,   // Random alphanumeric text of specific size
-        RandomJson      // JSON with random data inside
+        RandomString,   // Random alphanumeric text of specific byte length
+        Json            // JSON generated from user-defined template with placeholders
     }
 }

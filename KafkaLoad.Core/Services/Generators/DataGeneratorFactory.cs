@@ -25,16 +25,14 @@ namespace KafkaLoad.Core.Services.Generators
 
         public static IDataGenerator CreateValueGenerator(TestScenario scenario)
         {
-            int size = scenario.MessageSize ?? 1024;
-
-            Log.Information("Initializing Value Generator with strategy: {Strategy}, Payload Size: {Size} bytes", scenario.ValueStrategy, size);
+            Log.Information("Initializing Value Generator with strategy: {Strategy}", scenario.ValueStrategy);
 
             return scenario.ValueStrategy switch
             {
-                ValueGenerationStrategy.Fixed => new FixedDataGenerator(scenario.FixedTemplate ?? "default-payload"),
-                ValueGenerationStrategy.RandomJson => new RandomJsonGenerator(size),
-                ValueGenerationStrategy.RandomString => new RandomStringValueGenerator(size),
-                _ => new RandomStringValueGenerator(size)
+                ValueGenerationStrategy.RandomString => new RandomStringValueGenerator(scenario.MessageSize ?? 1024),
+                ValueGenerationStrategy.Json => new JsonTemplateGenerator(
+                    scenario.FixedTemplate ?? throw new InvalidOperationException("Json strategy requires a non-null FixedTemplate.")),
+                _ => new RandomStringValueGenerator(scenario.MessageSize ?? 1024)
             };
         }
     }

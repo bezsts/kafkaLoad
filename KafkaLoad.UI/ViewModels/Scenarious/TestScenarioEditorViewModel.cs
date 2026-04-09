@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KafkaLoad.UI.ViewModels;
 
@@ -26,11 +27,11 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         set => this.RaiseAndSetIfChanged(ref _isFixedKeyVisible, value);
     }
 
-    private bool _isFixedContentVisible;
-    public bool IsFixedContentVisible
+    private bool _isJsonTemplateVisible;
+    public bool IsJsonTemplateVisible
     {
-        get => _isFixedContentVisible;
-        set => this.RaiseAndSetIfChanged(ref _isFixedContentVisible, value);
+        get => _isJsonTemplateVisible;
+        set => this.RaiseAndSetIfChanged(ref _isJsonTemplateVisible, value);
     }
 
     private bool _isMessageSizeVisible;
@@ -54,6 +55,28 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         set => this.RaiseAndSetIfChanged(ref _isSpikeVisible, value);
     }
 
+    // Test type button states
+    public bool IsTypeLoad   => TestType == TestType.Load;
+    public bool IsTypeStress => TestType == TestType.Stress;
+    public bool IsTypeSpike  => TestType == TestType.Spike;
+    public bool IsTypeSoak   => TestType == TestType.Soak;
+
+    public ICommand SetTestTypeCommand { get; }
+
+    // Key strategy button states
+    public bool IsKeyNull       => KeyStrategy == KeyGenerationStrategy.Null;
+    public bool IsKeyRandomInt  => KeyStrategy == KeyGenerationStrategy.RandomInt;
+    public bool IsKeySequential => KeyStrategy == KeyGenerationStrategy.SequentialInt;
+    public bool IsKeyRandomStr  => KeyStrategy == KeyGenerationStrategy.RandomString;
+    public bool IsKeyFixed      => KeyStrategy == KeyGenerationStrategy.Fixed;
+
+    // Value strategy button states
+    public bool IsValueRandomStr => ValueStrategy == ValueGenerationStrategy.RandomString;
+    public bool IsValueJson      => ValueStrategy == ValueGenerationStrategy.Json;
+
+    public ICommand SetKeyStrategyCommand { get; }
+    public ICommand SetValueStrategyCommand { get; }
+
     public TestScenarioEditorViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository,
         IConfigRepository<CustomConsumerConfig> consumerConfigRepository,
@@ -63,17 +86,28 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         _producerConfigRepository = producerConfigRepository;
         _consumerConfigRepository = consumerConfigRepository;
 
+        SetTestTypeCommand      = ReactiveCommand.Create<TestType>(t => TestType = t);
+        SetKeyStrategyCommand   = ReactiveCommand.Create<KeyGenerationStrategy>(s => KeyStrategy = s);
+        SetValueStrategyCommand = ReactiveCommand.Create<ValueGenerationStrategy>(s => ValueStrategy = s);
+
         this.WhenAnyValue(x => x.KeyStrategy)
             .Subscribe(strategy =>
             {
                 IsFixedKeyVisible = strategy == KeyGenerationStrategy.Fixed;
+                this.RaisePropertyChanged(nameof(IsKeyNull));
+                this.RaisePropertyChanged(nameof(IsKeyRandomInt));
+                this.RaisePropertyChanged(nameof(IsKeySequential));
+                this.RaisePropertyChanged(nameof(IsKeyRandomStr));
+                this.RaisePropertyChanged(nameof(IsKeyFixed));
             });
 
         this.WhenAnyValue(x => x.ValueStrategy)
             .Subscribe(strategy =>
             {
-                IsFixedContentVisible = strategy == ValueGenerationStrategy.Fixed;
-                IsMessageSizeVisible = strategy != ValueGenerationStrategy.Fixed;
+                IsMessageSizeVisible  = strategy == ValueGenerationStrategy.RandomString;
+                IsJsonTemplateVisible = strategy == ValueGenerationStrategy.Json;
+                this.RaisePropertyChanged(nameof(IsValueRandomStr));
+                this.RaisePropertyChanged(nameof(IsValueJson));
             });
 
         this.WhenAnyValue(x => x.TestType)
@@ -81,6 +115,10 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
             {
                 IsTargetThroughputVisible = type != TestType.Spike;
                 IsSpikeVisible = type == TestType.Spike;
+                this.RaisePropertyChanged(nameof(IsTypeLoad));
+                this.RaisePropertyChanged(nameof(IsTypeStress));
+                this.RaisePropertyChanged(nameof(IsTypeSpike));
+                this.RaisePropertyChanged(nameof(IsTypeSoak));
             });
 
         this.WhenActivated((CompositeDisposable disposables) =>
@@ -102,19 +140,19 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         // ==========================================
         // 2. DATA GENERATION STRATEGY
         // ==========================================
-        var fixedTemplateValid = this.WhenAnyValue(
+        var jsonTemplateValid = this.WhenAnyValue(
             x => x.FixedTemplate,
             x => x.ValueStrategy,
-            (template, strategy) => strategy != ValueGenerationStrategy.Fixed || !string.IsNullOrWhiteSpace(template)
+            (template, strategy) => strategy != ValueGenerationStrategy.Json || !string.IsNullOrWhiteSpace(template)
         );
-        this.ValidationRule(vm => vm.FixedTemplate, fixedTemplateValid, "Message content is required for Fixed strategy");
+        this.ValidationRule(vm => vm.FixedTemplate, jsonTemplateValid, "JSON template is required for Json strategy");
 
         var messageSizeValid = this.WhenAnyValue(
             x => x.MessageSize,
             x => x.ValueStrategy,
-            (size, strategy) => strategy == ValueGenerationStrategy.Fixed || (size > 0)
+            (size, strategy) => strategy != ValueGenerationStrategy.RandomString || (size.HasValue && size.Value > 0)
         );
-        this.ValidationRule(vm => vm.MessageSize, messageSizeValid, "Message size must be > 0");
+        this.ValidationRule(vm => vm.MessageSize, messageSizeValid, "Message size must be > 0 for RandomString strategy");
 
         // ==========================================
         // 3. TEST DURATION LOGIC
@@ -226,14 +264,12 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         set => SetProperty(value, Model.ConsumerCount, v => Model.ConsumerCount = v);
     }
 
-    public List<KeyGenerationStrategy> KeyStrategyOptions { get; } = Enum.GetValues<KeyGenerationStrategy>().ToList();
     public KeyGenerationStrategy KeyStrategy
     {
         get => Model.KeyStrategy;
         set => SetProperty(value, Model.KeyStrategy, v => Model.KeyStrategy = v);
     }
 
-    public List<ValueGenerationStrategy> ValueStrategyOptions { get; } = Enum.GetValues<ValueGenerationStrategy>().ToList();
     public ValueGenerationStrategy ValueStrategy
     {
         get => Model.ValueStrategy;
@@ -263,8 +299,6 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         get => Model.Duration;
         set => SetProperty(value, Model.Duration, v => Model.Duration = v);
     }
-
-    public List<TestType> TestTypeOptions { get; } = Enum.GetValues<TestType>().ToList();
 
     public TestType TestType
     {
