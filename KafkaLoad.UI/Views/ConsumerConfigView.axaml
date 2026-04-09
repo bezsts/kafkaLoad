@@ -5,6 +5,7 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:views="using:KafkaLoad.UI.Views"
+             xmlns:enums="using:KafkaLoad.Core.Enums"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.ConsumerConfigView"
              x:DataType="vm:ConsumerConfigViewModel">
@@ -58,9 +59,18 @@
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="AUTO OFFSET RESET" Classes="field-label"/>
-                            <ComboBox ItemsSource="{Binding AutoOffsetResetOptions}"
-                                      SelectedItem="{Binding SelectedAutoOffsetReset}"
-                                      HorizontalAlignment="Stretch"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsOffsetLatest, Mode=OneWay}"
+                                              Command="{Binding SetAutoOffsetResetCommand}"
+                                              CommandParameter="{x:Static enums:AutoOffsetResetEnum.Latest}"
+                                              Content="Latest"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsOffsetEarliest, Mode=OneWay}"
+                                              Command="{Binding SetAutoOffsetResetCommand}"
+                                              CommandParameter="{x:Static enums:AutoOffsetResetEnum.Earliest}"
+                                              Content="Earliest"/>
+                            </WrapPanel>
                         </StackPanel>
 
                         <StackPanel Spacing="4">

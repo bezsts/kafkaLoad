@@ -7,16 +7,51 @@ using ReactiveUI.Validation.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 
 namespace KafkaLoad.UI.ViewModels;
 
 public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
 {
     public SecurityConfigViewModel SecurityVM { get; }
+
+    // Acks button states
+    public bool IsAcksNone   => SelectedAcks == AcksEnum.None;
+    public bool IsAcksLeader => SelectedAcks == AcksEnum.Leader;
+    public bool IsAcksAll    => SelectedAcks == AcksEnum.All;
+
+    // Compression button states
+    public bool IsCompressionNone   => SelectedCompressionType == CompressionTypeEnum.None;
+    public bool IsCompressionGzip   => SelectedCompressionType == CompressionTypeEnum.Gzip;
+    public bool IsCompressionSnappy => SelectedCompressionType == CompressionTypeEnum.Snappy;
+    public bool IsCompressionLz4    => SelectedCompressionType == CompressionTypeEnum.Lz4;
+    public bool IsCompressionZstd   => SelectedCompressionType == CompressionTypeEnum.Zstd;
+
+    public ICommand SetAcksCommand        { get; }
+    public ICommand SetCompressionCommand { get; }
+
     public ProducerConfigViewModel(IConfigRepository<CustomProducerConfig> repository, CustomProducerConfig? modelToEdit = null)
         : base(repository, modelToEdit)
     {
         SecurityVM = new SecurityConfigViewModel(Model.Security);
+
+        SetAcksCommand = ReactiveCommand.Create<AcksEnum>(a =>
+        {
+            SelectedAcks = a;
+            this.RaisePropertyChanged(nameof(IsAcksNone));
+            this.RaisePropertyChanged(nameof(IsAcksLeader));
+            this.RaisePropertyChanged(nameof(IsAcksAll));
+        });
+
+        SetCompressionCommand = ReactiveCommand.Create<CompressionTypeEnum>(c =>
+        {
+            SelectedCompressionType = c;
+            this.RaisePropertyChanged(nameof(IsCompressionNone));
+            this.RaisePropertyChanged(nameof(IsCompressionGzip));
+            this.RaisePropertyChanged(nameof(IsCompressionSnappy));
+            this.RaisePropertyChanged(nameof(IsCompressionLz4));
+            this.RaisePropertyChanged(nameof(IsCompressionZstd));
+        });
     }
 
     protected override void InitializeValidation()
@@ -56,7 +91,6 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
         set => SetProperty(value, Model.ClientID, v => Model.ClientID = v);
     }
 
-    public List<AcksEnum> AcksOptions { get; } = Enum.GetValues<AcksEnum>().ToList();
 
     public AcksEnum SelectedAcks
     {
@@ -88,7 +122,6 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
         set => SetProperty(value ?? 0, Model.Linger, v => Model.Linger = v);
     }
 
-    public List<CompressionTypeEnum> CompressionTypeOptions { get; } = Enum.GetValues<CompressionTypeEnum>().ToList();
 
     public CompressionTypeEnum SelectedCompressionType
     {

@@ -3,24 +3,59 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:KafkaLoad.UI.ViewModels.Clients"
-             xmlns:enums="using:KafkaLoad.UI.Enums"
+             xmlns:enums="using:KafkaLoad.Core.Enums"
              x:DataType="vm:SecurityConfigViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="KafkaLoad.UI.Views.SecurityConfigView">
   <StackPanel Spacing="10">
-        <TextBlock Text="Security Protocol" Classes="label"/>
-        <ComboBox ItemsSource="{Binding SecurityProtocolOptions}" 
-                  SelectedItem="{Binding SecurityProtocol}" 
-                  HorizontalAlignment="Stretch"/>
+        <TextBlock Text="SECURITY PROTOCOL" Classes="label"/>
+        <WrapPanel Orientation="Horizontal">
+            <ToggleButton Classes="filter" Margin="0,0,4,4"
+                          IsChecked="{Binding IsProtocolPlaintext, Mode=OneWay}"
+                          Command="{Binding SetSecurityProtocolCommand}"
+                          CommandParameter="{x:Static enums:SecurityProtocolEnum.Plaintext}"
+                          Content="Plaintext"/>
+            <ToggleButton Classes="filter" Margin="0,0,4,4"
+                          IsChecked="{Binding IsProtocolSsl, Mode=OneWay}"
+                          Command="{Binding SetSecurityProtocolCommand}"
+                          CommandParameter="{x:Static enums:SecurityProtocolEnum.Ssl}"
+                          Content="SSL"/>
+            <ToggleButton Classes="filter" Margin="0,0,4,4"
+                          IsChecked="{Binding IsProtocolSaslPlaintext, Mode=OneWay}"
+                          Command="{Binding SetSecurityProtocolCommand}"
+                          CommandParameter="{x:Static enums:SecurityProtocolEnum.SaslPlaintext}"
+                          Content="SASL Plaintext"/>
+            <ToggleButton Classes="filter" Margin="0,0,4,4"
+                          IsChecked="{Binding IsProtocolSaslSsl, Mode=OneWay}"
+                          Command="{Binding SetSecurityProtocolCommand}"
+                          CommandParameter="{x:Static enums:SecurityProtocolEnum.SaslSsl}"
+                          Content="SASL SSL"/>
+        </WrapPanel>
 
         <StackPanel Spacing="10" IsVisible="{Binding IsSaslVisible}" Margin="0,10,0,0">
             <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0" Padding="0,10,0,0"/>
             <TextBlock Text="SASL Authentication" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}"/>
-            
+
             <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" RowSpacing="10" ColumnSpacing="15">
                 <StackPanel Grid.Row="0" Grid.Column="0" Spacing="5">
-                    <TextBlock Text="SASL Mechanism" Classes="label"/>
-                    <ComboBox ItemsSource="{Binding SaslMechanismOptions}" SelectedItem="{Binding SaslMechanism}" HorizontalAlignment="Stretch"/>
+                    <TextBlock Text="SASL MECHANISM" Classes="label"/>
+                    <WrapPanel Orientation="Horizontal">
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsMechanismPlain, Mode=OneWay}"
+                                      Command="{Binding SetSaslMechanismCommand}"
+                                      CommandParameter="{x:Static enums:SaslMechanismEnum.Plain}"
+                                      Content="Plain"/>
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsMechanismScramSha256, Mode=OneWay}"
+                                      Command="{Binding SetSaslMechanismCommand}"
+                                      CommandParameter="{x:Static enums:SaslMechanismEnum.ScramSha256}"
+                                      Content="SCRAM-SHA-256"/>
+                        <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                      IsChecked="{Binding IsMechanismScramSha512, Mode=OneWay}"
+                                      Command="{Binding SetSaslMechanismCommand}"
+                                      CommandParameter="{x:Static enums:SaslMechanismEnum.ScramSha512}"
+                                      Content="SCRAM-SHA-512"/>
+                    </WrapPanel>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="1" Grid.Column="0" Spacing="5">

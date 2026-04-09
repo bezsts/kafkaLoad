@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Windows.Input;
 
 namespace KafkaLoad.UI.ViewModels.Clients
 {
@@ -12,11 +13,19 @@ namespace KafkaLoad.UI.ViewModels.Clients
     {
         private readonly CustomSecurityConfig _model;
 
-        public IEnumerable<SecurityProtocolEnum> SecurityProtocolOptions =>
-            (IEnumerable<SecurityProtocolEnum>)Enum.GetValues(typeof(SecurityProtocolEnum));
+        // Security protocol button states
+        public bool IsProtocolPlaintext     => SecurityProtocol == SecurityProtocolEnum.Plaintext;
+        public bool IsProtocolSsl           => SecurityProtocol == SecurityProtocolEnum.Ssl;
+        public bool IsProtocolSaslPlaintext => SecurityProtocol == SecurityProtocolEnum.SaslPlaintext;
+        public bool IsProtocolSaslSsl       => SecurityProtocol == SecurityProtocolEnum.SaslSsl;
 
-        public IEnumerable<SaslMechanismEnum> SaslMechanismOptions =>
-            (IEnumerable<SaslMechanismEnum>)Enum.GetValues(typeof(SaslMechanismEnum));
+        // SASL mechanism button states
+        public bool IsMechanismPlain       => SaslMechanism == SaslMechanismEnum.Plain;
+        public bool IsMechanismScramSha256 => SaslMechanism == SaslMechanismEnum.ScramSha256;
+        public bool IsMechanismScramSha512 => SaslMechanism == SaslMechanismEnum.ScramSha512;
+
+        public ICommand SetSecurityProtocolCommand { get; }
+        public ICommand SetSaslMechanismCommand    { get; }
 
         public SecurityProtocolEnum SecurityProtocol
         {
@@ -92,6 +101,23 @@ namespace KafkaLoad.UI.ViewModels.Clients
         public SecurityConfigViewModel(CustomSecurityConfig model)
         {
             _model = model;
+
+            SetSecurityProtocolCommand = ReactiveCommand.Create<SecurityProtocolEnum>(p =>
+            {
+                SecurityProtocol = p;
+                this.RaisePropertyChanged(nameof(IsProtocolPlaintext));
+                this.RaisePropertyChanged(nameof(IsProtocolSsl));
+                this.RaisePropertyChanged(nameof(IsProtocolSaslPlaintext));
+                this.RaisePropertyChanged(nameof(IsProtocolSaslSsl));
+            });
+
+            SetSaslMechanismCommand = ReactiveCommand.Create<SaslMechanismEnum>(m =>
+            {
+                SaslMechanism = m;
+                this.RaisePropertyChanged(nameof(IsMechanismPlain));
+                this.RaisePropertyChanged(nameof(IsMechanismScramSha256));
+                this.RaisePropertyChanged(nameof(IsMechanismScramSha512));
+            });
 
             // Logic: Show SASL if protocol is SASL_PLAINTEXT or SASL_SSL
             _isSaslVisible = this.WhenAnyValue(x => x.SecurityProtocol)

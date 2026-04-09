@@ -5,6 +5,7 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:views="using:KafkaLoad.UI.Views"
+             xmlns:enums="using:KafkaLoad.Core.Enums"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.ProducerConfigView"
              x:DataType="vm:ProducerConfigViewModel">
@@ -58,10 +59,23 @@
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="ACKS (DURABILITY)" Classes="field-label"/>
-                            <ComboBox Name="AcksComboBox"
-                                      ItemsSource="{Binding AcksOptions}"
-                                      SelectedItem="{Binding SelectedAcks}"
-                                      HorizontalAlignment="Stretch"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsAcksNone, Mode=OneWay}"
+                                              Command="{Binding SetAcksCommand}"
+                                              CommandParameter="{x:Static enums:AcksEnum.None}"
+                                              Content="None"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsAcksLeader, Mode=OneWay}"
+                                              Command="{Binding SetAcksCommand}"
+                                              CommandParameter="{x:Static enums:AcksEnum.Leader}"
+                                              Content="Leader"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsAcksAll, Mode=OneWay}"
+                                              Command="{Binding SetAcksCommand}"
+                                              CommandParameter="{x:Static enums:AcksEnum.All}"
+                                              Content="All"/>
+                            </WrapPanel>
                         </StackPanel>
 
                         <CheckBox IsChecked="{Binding EnableIdempotence}"
@@ -75,9 +89,33 @@
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="COMPRESSION TYPE" Classes="field-label"/>
-                            <ComboBox ItemsSource="{Binding CompressionTypeOptions}"
-                                      SelectedItem="{Binding SelectedCompressionType}"
-                                      HorizontalAlignment="Stretch"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsCompressionNone, Mode=OneWay}"
+                                              Command="{Binding SetCompressionCommand}"
+                                              CommandParameter="{x:Static enums:CompressionTypeEnum.None}"
+                                              Content="None"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsCompressionGzip, Mode=OneWay}"
+                                              Command="{Binding SetCompressionCommand}"
+                                              CommandParameter="{x:Static enums:CompressionTypeEnum.Gzip}"
+                                              Content="Gzip"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsCompressionSnappy, Mode=OneWay}"
+                                              Command="{Binding SetCompressionCommand}"
+                                              CommandParameter="{x:Static enums:CompressionTypeEnum.Snappy}"
+                                              Content="Snappy"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsCompressionLz4, Mode=OneWay}"
+                                              Command="{Binding SetCompressionCommand}"
+                                              CommandParameter="{x:Static enums:CompressionTypeEnum.Lz4}"
+                                              Content="LZ4"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsCompressionZstd, Mode=OneWay}"
+                                              Command="{Binding SetCompressionCommand}"
+                                              CommandParameter="{x:Static enums:CompressionTypeEnum.Zstd}"
+                                              Content="Zstd"/>
+                            </WrapPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>

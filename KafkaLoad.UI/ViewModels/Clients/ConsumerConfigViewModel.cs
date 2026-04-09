@@ -2,20 +2,36 @@ using KafkaLoad.Core.Enums;
 using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Services.Interfaces;
 using KafkaLoad.UI.ViewModels.Clients;
+using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 
 namespace KafkaLoad.UI.ViewModels;
 
 public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
 {
     public SecurityConfigViewModel SecurityVM { get; }
+
+    // Auto offset reset button states
+    public bool IsOffsetLatest   => SelectedAutoOffsetReset == AutoOffsetResetEnum.Latest;
+    public bool IsOffsetEarliest => SelectedAutoOffsetReset == AutoOffsetResetEnum.Earliest;
+
+    public ICommand SetAutoOffsetResetCommand { get; }
+
     public ConsumerConfigViewModel(IConfigRepository<CustomConsumerConfig> repository, CustomConsumerConfig? modelToEdit = null)
         : base(repository, modelToEdit)
     {
         SecurityVM = new SecurityConfigViewModel(Model.Security);
+
+        SetAutoOffsetResetCommand = ReactiveCommand.Create<AutoOffsetResetEnum>(o =>
+        {
+            SelectedAutoOffsetReset = o;
+            this.RaisePropertyChanged(nameof(IsOffsetLatest));
+            this.RaisePropertyChanged(nameof(IsOffsetEarliest));
+        });
     }
 
     protected override void InitializeValidation()
@@ -36,7 +52,6 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
         set => SetProperty(value, Model.GroupId, v => Model.GroupId = v);
     }
 
-    public List<AutoOffsetResetEnum> AutoOffsetResetOptions { get; } = Enum.GetValues<AutoOffsetResetEnum>().ToList();
 
     public AutoOffsetResetEnum SelectedAutoOffsetReset
     {
