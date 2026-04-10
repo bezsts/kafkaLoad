@@ -77,33 +77,50 @@
                     <StackPanel Spacing="10">
                         <TextBlock Text="Clients Configuration" Classes="section-title"/>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="PRODUCER CONFIG" Classes="field-label"/>
-                            <ComboBox ItemsSource="{Binding Producers}"
-                                      SelectedItem="{Binding SelectedProducer}"
-                                      HorizontalAlignment="Stretch"
-                                      PlaceholderText="Select producer...">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
+                        <!-- Row 1: Producer Config | Consumer Config -->
+                        <Grid ColumnDefinitions="*, 10, *">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="PRODUCER CONFIG" Classes="field-label"/>
+                                <ComboBox ItemsSource="{Binding Producers}"
+                                          SelectedItem="{Binding SelectedProducer}"
+                                          HorizontalAlignment="Stretch"
+                                          PlaceholderText="Select producer...">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
 
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="CONSUMER CONFIG" Classes="field-label"/>
-                            <ComboBox ItemsSource="{Binding Consumers}"
-                                      SelectedItem="{Binding SelectedConsumer}"
-                                      HorizontalAlignment="Stretch"
-                                      PlaceholderText="Select consumer...">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="CONSUMER CONFIG" Classes="field-label"/>
+                                <ComboBox ItemsSource="{Binding Consumers}"
+                                          SelectedItem="{Binding SelectedConsumer}"
+                                          HorizontalAlignment="Stretch"
+                                          PlaceholderText="Select consumer...">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 2: Producers count | Consumers count -->
+                        <Grid ColumnDefinitions="*, 10, *">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="PRODUCERS" Classes="field-label"/>
+                                <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}"
+                                               Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="CONSUMERS" Classes="field-label"/>
+                                <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}"
+                                               Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
@@ -259,21 +276,7 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- Row 2: Producers | Consumers -->
-                    <Grid ColumnDefinitions="*, 10, *">
-                        <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="PRODUCERS" Classes="field-label"/>
-                            <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2" Spacing="4">
-                            <TextBlock Text="CONSUMERS" Classes="field-label"/>
-                            <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}"
-                                           Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Row 3: Base Throughput | Spike Throughput (Spike only) -->
+                    <!-- Row 2: Base Throughput | Spike Throughput (Spike only) -->
                     <Grid ColumnDefinitions="*, 10, *" IsVisible="{Binding IsSpikeVisible}">
                         <StackPanel Grid.Column="0" Spacing="4">
                             <TextBlock Text="BASE THROUGHPUT (MSG/SEC)" Classes="field-label"/>
