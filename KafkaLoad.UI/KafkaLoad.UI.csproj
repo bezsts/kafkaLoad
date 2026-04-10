@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Disable auto-compilation of .proto files by Grpc.Tools -->
+    <EnableDefaultProtobufItems>false</EnableDefaultProtobufItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +21,10 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="Confluent.Kafka" Version="2.13.2" />
+    <PackageReference Include="Grpc.Tools" Version="2.80.0">
+      <IncludeAssets>build; native</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="ReactiveUI" Version="23.1.8" />
     <PackageReference Include="ReactiveUI.Avalonia" Version="11.4.12" />
     <PackageReference Include="ReactiveUI.Validation" Version="7.0.5" />
@@ -32,6 +38,21 @@
     <ProjectReference Include="..\KafkaLoad.Core\KafkaLoad.Core.csproj" />
     <ProjectReference Include="..\KafkaLoad.Infrastructure\KafkaLoad.Infrastructure.csproj" />
   </ItemGroup>
+
+  <!-- Copy the platform-appropriate protoc binary to the output tools/ folder.
+       Protobuf_PackagedToolsPath is set by Grpc.Tools .props at build time. -->
+  <Target Name="CopyProtocToOutput" AfterTargets="Build">
+    <PropertyGroup>
+      <_ProtocSource Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(Protobuf_PackagedToolsPath)\windows_x64\protoc.exe</_ProtocSource>
+      <_ProtocSource Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(Protobuf_PackagedToolsPath)/linux_x64/protoc</_ProtocSource>
+      <_ProtocSource Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(Protobuf_PackagedToolsPath)/macosx_x64/protoc</_ProtocSource>
+    </PropertyGroup>
+    <MakeDir Directories="$(OutputPath)tools" />
+    <Copy SourceFiles="$(_ProtocSource)"
+          DestinationFolder="$(OutputPath)tools/"
+          SkipUnchangedFiles="true"
+          Condition="'$(_ProtocSource)' != '' and Exists('$(_ProtocSource)')" />
+  </Target>
 
   <ItemGroup>
     <Compile Update="Views/ConsumerConfigView.axaml.cs">

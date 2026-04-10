@@ -32,6 +32,10 @@ namespace KafkaLoad.Core.Services.Generators
                 ValueGenerationStrategy.RandomString => new RandomStringValueGenerator(scenario.MessageSize ?? 1024),
                 ValueGenerationStrategy.Json => new JsonTemplateGenerator(
                     scenario.FixedTemplate ?? throw new InvalidOperationException("Json strategy requires a non-null FixedTemplate.")),
+                ValueGenerationStrategy.Avro => new AvroSchemaGenerator(
+                    scenario.FixedTemplate ?? throw new InvalidOperationException("Avro strategy requires a non-null FixedTemplate.")),
+                ValueGenerationStrategy.Protobuf => new ProtobufSchemaGenerator(
+                    scenario.FixedTemplate ?? throw new InvalidOperationException("Protobuf strategy requires a non-null FixedTemplate.")),
                 _ => new RandomStringValueGenerator(scenario.MessageSize ?? 1024)
             };
         }

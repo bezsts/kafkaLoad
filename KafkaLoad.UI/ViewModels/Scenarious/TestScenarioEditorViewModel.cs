@@ -7,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -32,6 +34,20 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         get => _isJsonTemplateVisible;
         set => this.RaiseAndSetIfChanged(ref _isJsonTemplateVisible, value);
+    }
+
+    private bool _isAvroSchemaVisible;
+    public bool IsAvroSchemaVisible
+    {
+        get => _isAvroSchemaVisible;
+        set => this.RaiseAndSetIfChanged(ref _isAvroSchemaVisible, value);
+    }
+
+    private bool _isProtobufSchemaVisible;
+    public bool IsProtobufSchemaVisible
+    {
+        get => _isProtobufSchemaVisible;
+        set => this.RaiseAndSetIfChanged(ref _isProtobufSchemaVisible, value);
     }
 
     private bool _isMessageSizeVisible;
@@ -71,11 +87,18 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     public bool IsKeyFixed      => KeyStrategy == KeyGenerationStrategy.Fixed;
 
     // Value strategy button states
-    public bool IsValueRandomStr => ValueStrategy == ValueGenerationStrategy.RandomString;
-    public bool IsValueJson      => ValueStrategy == ValueGenerationStrategy.Json;
+    public bool IsValueRandomStr  => ValueStrategy == ValueGenerationStrategy.RandomString;
+    public bool IsValueJson       => ValueStrategy == ValueGenerationStrategy.Json;
+    public bool IsValueAvro       => ValueStrategy == ValueGenerationStrategy.Avro;
+    public bool IsValueProtobuf   => ValueStrategy == ValueGenerationStrategy.Protobuf;
 
     public ICommand SetKeyStrategyCommand { get; }
     public ICommand SetValueStrategyCommand { get; }
+
+    public Interaction<Unit, string?> ImportAvroSchemaInteraction     { get; } = new();
+    public Interaction<Unit, string?> ImportProtobufSchemaInteraction { get; } = new();
+    public ICommand ImportAvroSchemaCommand { get; }
+    public ICommand ImportProtobufSchemaCommand { get; }
 
     public TestScenarioEditorViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository,
@@ -89,6 +112,12 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         SetTestTypeCommand      = ReactiveCommand.Create<TestType>(t => TestType = t);
         SetKeyStrategyCommand   = ReactiveCommand.Create<KeyGenerationStrategy>(s => KeyStrategy = s);
         SetValueStrategyCommand = ReactiveCommand.Create<ValueGenerationStrategy>(s => ValueStrategy = s);
+        ImportAvroSchemaCommand = ReactiveCommand.CreateFromObservable(() =>
+            ImportAvroSchemaInteraction.Handle(Unit.Default)
+                .Do(result => { if (result is not null) FixedTemplate = result; }));
+        ImportProtobufSchemaCommand = ReactiveCommand.CreateFromObservable(() =>
+            ImportProtobufSchemaInteraction.Handle(Unit.Default)
+                .Do(result => { if (result is not null) FixedTemplate = result; }));
 
         this.WhenAnyValue(x => x.KeyStrategy)
             .Subscribe(strategy =>
@@ -104,10 +133,14 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         this.WhenAnyValue(x => x.ValueStrategy)
             .Subscribe(strategy =>
             {
-                IsMessageSizeVisible  = strategy == ValueGenerationStrategy.RandomString;
-                IsJsonTemplateVisible = strategy == ValueGenerationStrategy.Json;
+                IsMessageSizeVisible    = strategy == ValueGenerationStrategy.RandomString;
+                IsJsonTemplateVisible   = strategy == ValueGenerationStrategy.Json;
+                IsAvroSchemaVisible     = strategy == ValueGenerationStrategy.Avro;
+                IsProtobufSchemaVisible = strategy == ValueGenerationStrategy.Protobuf;
                 this.RaisePropertyChanged(nameof(IsValueRandomStr));
                 this.RaisePropertyChanged(nameof(IsValueJson));
+                this.RaisePropertyChanged(nameof(IsValueAvro));
+                this.RaisePropertyChanged(nameof(IsValueProtobuf));
             });
 
         this.WhenAnyValue(x => x.TestType)
@@ -146,6 +179,20 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
             (template, strategy) => strategy != ValueGenerationStrategy.Json || !string.IsNullOrWhiteSpace(template)
         );
         this.ValidationRule(vm => vm.FixedTemplate, jsonTemplateValid, "JSON template is required for Json strategy");
+
+        var avroSchemaValid = this.WhenAnyValue(
+            x => x.FixedTemplate,
+            x => x.ValueStrategy,
+            (template, strategy) => strategy != ValueGenerationStrategy.Avro || !string.IsNullOrWhiteSpace(template)
+        );
+        this.ValidationRule(vm => vm.FixedTemplate, avroSchemaValid, "Avro schema is required for Avro strategy");
+
+        var protobufSchemaValid = this.WhenAnyValue(
+            x => x.FixedTemplate,
+            x => x.ValueStrategy,
+            (template, strategy) => strategy != ValueGenerationStrategy.Protobuf || !string.IsNullOrWhiteSpace(template)
+        );
+        this.ValidationRule(vm => vm.FixedTemplate, protobufSchemaValid, "Proto schema is required for Protobuf strategy");
 
         var messageSizeValid = this.WhenAnyValue(
             x => x.MessageSize,

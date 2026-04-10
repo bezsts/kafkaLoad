@@ -156,6 +156,16 @@
                                               Command="{Binding SetValueStrategyCommand}"
                                               CommandParameter="{x:Static enums:ValueGenerationStrategy.Json}"
                                               Content="Json"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsValueAvro, Mode=OneWay}"
+                                              Command="{Binding SetValueStrategyCommand}"
+                                              CommandParameter="{x:Static enums:ValueGenerationStrategy.Avro}"
+                                              Content="Avro"/>
+                                <ToggleButton Classes="filter" Margin="0,0,4,4"
+                                              IsChecked="{Binding IsValueProtobuf, Mode=OneWay}"
+                                              Command="{Binding SetValueStrategyCommand}"
+                                              CommandParameter="{x:Static enums:ValueGenerationStrategy.Protobuf}"
+                                              Content="Protobuf"/>
                             </WrapPanel>
                         </StackPanel>
 
@@ -180,6 +190,48 @@
                                      FontFamily="Cascadia Code, Consolas, Monospace"
                                      Watermark="{}{&quot;id&quot;: &quot;${uuid}&quot;, &quot;amount&quot;: &quot;${randomInt:1:1000}&quot;}"/>
                             <TextBlock Text="Placeholders: ${uuid}  ${randomInt:min:max}  ${randomString:N}  ${timestamp}  ${randomBool}"
+                                       FontSize="10"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4" IsVisible="{Binding IsAvroSchemaVisible}">
+                            <DockPanel LastChildFill="False">
+                                <TextBlock Text="AVRO SCHEMA" Classes="field-label" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Button Content="Import File"
+                                        DockPanel.Dock="Right"
+                                        Command="{Binding ImportAvroSchemaCommand}"
+                                        Padding="8,2"
+                                        FontSize="11"/>
+                            </DockPanel>
+                            <TextBox Text="{Binding FixedTemplate}"
+                                     AcceptsReturn="True"
+                                     MinHeight="90"
+                                     TextWrapping="Wrap"
+                                     FontFamily="Cascadia Code, Consolas, Monospace"
+                                     Watermark="{}{&quot;type&quot;:&quot;record&quot;,&quot;name&quot;:&quot;Event&quot;,&quot;fields&quot;:[{&quot;name&quot;:&quot;id&quot;,&quot;type&quot;:&quot;string&quot;}]}"/>
+                            <TextBlock Text="Supported field types: string, int, long, float, double, boolean, null, union"
+                                       FontSize="10"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4" IsVisible="{Binding IsProtobufSchemaVisible}">
+                            <DockPanel LastChildFill="False">
+                                <TextBlock Text="PROTOBUF SCHEMA (.proto)" Classes="field-label" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Button Content="Import File"
+                                        DockPanel.Dock="Right"
+                                        Command="{Binding ImportProtobufSchemaCommand}"
+                                        Padding="8,2"
+                                        FontSize="11"/>
+                            </DockPanel>
+                            <TextBox Text="{Binding FixedTemplate}"
+                                     AcceptsReturn="True"
+                                     MinHeight="90"
+                                     TextWrapping="Wrap"
+                                     FontFamily="Cascadia Code, Consolas, Monospace"
+                                     Watermark="{}syntax = &quot;proto3&quot;;&#10;message Event &#123;&#10;  string id = 1;&#10;  int32 amount = 2;&#10;&#125;"/>
+                            <TextBlock Text="Supported field types: string, int32, int64, uint32, uint64, float, double, bool, bytes, enum"
                                        FontSize="10"
                                        Foreground="{DynamicResource TextSecondary}"
                                        TextWrapping="Wrap"/>

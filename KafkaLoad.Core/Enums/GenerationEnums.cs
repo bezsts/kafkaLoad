@@ -12,6 +12,8 @@
     public enum ValueGenerationStrategy
     {
         RandomString,   // Random alphanumeric text of specific byte length
-        Json            // JSON generated from user-defined template with placeholders
+        Json,           // JSON generated from user-defined template with placeholders
+        Avro,           // Avro binary generated from user-defined Avro schema
+        Protobuf        // Protobuf binary generated from user-defined .proto schema
     }
 }
