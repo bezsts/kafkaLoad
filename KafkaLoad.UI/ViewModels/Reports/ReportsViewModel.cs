@@ -1,11 +1,14 @@
 ﻿using KafkaLoad.Core.Models.Reports;
 using KafkaLoad.Core.Services.Interfaces;
+using KafkaLoad.Infrastructure.Export;
 using ReactiveUI;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
@@ -61,6 +64,9 @@ namespace KafkaLoad.UI.ViewModels.Reports
         public ReactiveCommand<Unit, Unit> LoadReportsCommand { get; }
         public ReactiveCommand<string, Unit> DeleteReportCommand { get; }
         public ReactiveCommand<Unit, Unit> ClearComparisonCommand { get; }
+        public ReactiveCommand<Unit, Unit> ExportReportCommand { get; }
+
+        public Interaction<string, string?> SaveFileDialog { get; } = new();
 
         public ReportsViewModel(ITestReportRepository reportRepository)
         {
@@ -69,6 +75,9 @@ namespace KafkaLoad.UI.ViewModels.Reports
             LoadReportsCommand = ReactiveCommand.CreateFromTask(LoadReportsAsync);
             DeleteReportCommand = ReactiveCommand.CreateFromTask<string>(DeleteReportAsync);
             ClearComparisonCommand = ReactiveCommand.Create(() => { CompareWithReport = null; });
+
+            var canExport = this.WhenAnyValue(x => x.SelectedReport).Select(r => r != null);
+            ExportReportCommand = ReactiveCommand.CreateFromTask(ExportReportAsync, canExport);
 
             LoadReportsCommand.Execute().Subscribe();
         }
@@ -122,6 +131,28 @@ namespace KafkaLoad.UI.ViewModels.Reports
             catch (Exception ex)
             {
                 Log.Error(ex, "Error occurred while user tried to delete report {ReportId}.", id);
+            }
+        }
+
+        private async Task ExportReportAsync()
+        {
+            if (SelectedReport == null) return;
+
+            var safeName = string.Concat(SelectedReport.ScenarioName.Split(Path.GetInvalidFileNameChars()));
+            var suggested = $"{safeName}_{SelectedReport.CreatedAt:yyyyMMdd_HHmmss}.html";
+
+            var path = await SaveFileDialog.Handle(suggested).FirstAsync();
+            if (string.IsNullOrWhiteSpace(path)) return;
+
+            try
+            {
+                var html = HtmlReportExporter.GenerateHtml(SelectedReport);
+                await File.WriteAllTextAsync(path, html, System.Text.Encoding.UTF8);
+                Log.Information("Report {ReportId} exported to {Path}", SelectedReport.Id, path);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to export report {ReportId}", SelectedReport.Id);
             }
         }
 

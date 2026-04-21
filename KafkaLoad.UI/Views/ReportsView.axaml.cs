@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using KafkaLoad.UI.ViewModels.Reports;
 using KafkaLoad.UI.Helpers;
 using ReactiveUI;
@@ -37,6 +38,18 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
 
         this.WhenActivated(disposables =>
         {
+            ViewModel!.SaveFileDialog.RegisterHandler(async ctx =>
+            {
+                var topLevel = TopLevel.GetTopLevel(this)!;
+                var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    Title = "Export Test Report",
+                    SuggestedFileName = ctx.Input,
+                    FileTypeChoices = [new FilePickerFileType("HTML File") { Patterns = ["*.html"] }]
+                });
+                ctx.SetOutput(file?.Path.LocalPath);
+            });
+
             SetupChartStyle(_prodThrMb);
             SetupChartStyle(_prodMsgRate);
             SetupChartStyle(_prodLat);
