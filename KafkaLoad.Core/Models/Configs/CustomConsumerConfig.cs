@@ -28,7 +28,7 @@ public class CustomConsumerConfig : IConfigModel
     // If true, the consumer's offset will be periodically committed in the background.
     // If false, you must manually commit offsets (recommended for high reliability).
 
-    // public bool EnableAutoCommit { get; set; } = true;
+    public bool EnableAutoCommit { get; set; } = false;
 
     // Minimum amount of data the server should return for a fetch request.
     // If data is insufficient, the broker waits before answering.
