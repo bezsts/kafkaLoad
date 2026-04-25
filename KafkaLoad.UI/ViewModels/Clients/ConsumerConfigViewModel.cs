@@ -21,10 +21,21 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
 
     public ICommand SetAutoOffsetResetCommand { get; }
 
+    private static readonly CustomConsumerConfig _defaults = new();
+    public ICommand ResetMaxPollIntervalCommand { get; }
+    public ICommand ResetFetchMinBytesCommand   { get; }
+    public ICommand ResetFetchMaxBytesCommand   { get; }
+    public ICommand ResetFetchMaxWaitCommand    { get; }
+
     public ConsumerConfigViewModel(IConfigRepository<CustomConsumerConfig> repository, CustomConsumerConfig? modelToEdit = null)
         : base(repository, modelToEdit)
     {
         SecurityVM = new SecurityConfigViewModel(Model.Security);
+
+        ResetMaxPollIntervalCommand = ReactiveCommand.Create(() => { MaxPollInterval = _defaults.MaxPollInterval; });
+        ResetFetchMinBytesCommand   = ReactiveCommand.Create(() => { FetchMinBytes   = _defaults.FetchMinBytes; });
+        ResetFetchMaxBytesCommand   = ReactiveCommand.Create(() => { FetchMaxBytes   = _defaults.FetchMaxBytes; });
+        ResetFetchMaxWaitCommand    = ReactiveCommand.Create(() => { FetchMaxWait    = _defaults.FetchMaxWait; });
 
         SetAutoOffsetResetCommand = ReactiveCommand.Create<AutoOffsetResetEnum>(o =>
         {
@@ -36,8 +47,32 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
 
     protected override void InitializeValidation()
     {
-        this.ValidationRule(vm => vm.Name, name => !string.IsNullOrWhiteSpace(name), "Name is required");
-        this.ValidationRule(vm => vm.GroupId, g => !string.IsNullOrWhiteSpace(g), "Group Id required");
+        this.ValidationRule(
+            this.WhenAnyValue(x => x.Name, name => !string.IsNullOrWhiteSpace(name)),
+            "Name is required");
+        this.ValidationRule(
+            this.WhenAnyValue(x => x.GroupId, g => !string.IsNullOrWhiteSpace(g)),
+            "Group Id required");
+
+        var fetchMinValid = this.WhenAnyValue(x => x.FetchMinBytes, v => v > 0);
+        this.ValidationRule(fetchMinValid, "Fetch Min Bytes must be greater than zero");
+
+        var fetchMaxValid = this.WhenAnyValue(x => x.FetchMaxBytes, v => v > 0);
+        this.ValidationRule(fetchMaxValid, "Fetch Max Bytes must be greater than zero");
+
+        var fetchMinMax = this.WhenAnyValue(x => x.FetchMinBytes, x => x.FetchMaxBytes,
+            (min, max) => min <= max);
+        this.ValidationRule(fetchMinMax, "Fetch Min Bytes must be less than or equal to Fetch Max Bytes");
+
+        var fetchMaxWaitValid = this.WhenAnyValue(x => x.FetchMaxWait, v => v > 0);
+        this.ValidationRule(fetchMaxWaitValid, "Fetch Max Wait must be greater than zero");
+
+        var maxPollIntervalValid = this.WhenAnyValue(x => x.MaxPollInterval, v => v > 0);
+        this.ValidationRule(maxPollIntervalValid, "Max Poll Interval must be greater than zero");
+
+        var fetchWaitVsPoll = this.WhenAnyValue(x => x.FetchMaxWait, x => x.MaxPollInterval,
+            (wait, poll) => wait < poll);
+        this.ValidationRule(fetchWaitVsPoll, "Fetch Max Wait must be less than Max Poll Interval");
     }
 
     public string Name

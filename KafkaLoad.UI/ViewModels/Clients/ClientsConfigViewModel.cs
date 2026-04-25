@@ -33,6 +33,13 @@ namespace KafkaLoad.UI.ViewModels
             set => this.RaiseAndSetIfChanged(ref _notificationMessage, value);
         }
 
+        private bool _notificationIsError;
+        public bool NotificationIsError
+        {
+            get => _notificationIsError;
+            private set => this.RaiseAndSetIfChanged(ref _notificationIsError, value);
+        }
+
         // --- Producers ---
         public ObservableCollection<CustomProducerConfig> Producers { get; } = new();
         public ObservableCollection<CustomProducerConfig> FilteredProducers { get; } = new();
@@ -192,7 +199,7 @@ namespace KafkaLoad.UI.ViewModels
             vm.SaveCommand.ThrownExceptions.Subscribe(ex =>
             {
                 Log.Error(ex, "Error occurred while trying to save {TypeName} configuration from UI.", typeName);
-                ShowNotification($"Error: {ex.Message}");
+                ShowNotification($"Error: {ex.Message}", isError: true);
             });
 
             CurrentEditor = vm;
@@ -312,8 +319,9 @@ namespace KafkaLoad.UI.ViewModels
             foreach (var c in q) FilteredConsumers.Add(c);
         }
 
-        private async void ShowNotification(string message)
+        private async void ShowNotification(string message, bool isError = false)
         {
+            NotificationIsError = isError;
             NotificationMessage = message;
             await Task.Delay(3000);
             NotificationMessage = string.Empty;

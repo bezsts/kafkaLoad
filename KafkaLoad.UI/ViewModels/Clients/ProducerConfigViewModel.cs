@@ -30,10 +30,23 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
     public ICommand SetAcksCommand        { get; }
     public ICommand SetCompressionCommand { get; }
 
+    private static readonly CustomProducerConfig _defaults = new();
+    public ICommand ResetRetriesCommand      { get; }
+    public ICommand ResetBatchSizeCommand    { get; }
+    public ICommand ResetLingerCommand       { get; }
+    public ICommand ResetBufferMemoryCommand { get; }
+    public ICommand ResetMaxInFlightCommand  { get; }
+
     public ProducerConfigViewModel(IConfigRepository<CustomProducerConfig> repository, CustomProducerConfig? modelToEdit = null)
         : base(repository, modelToEdit)
     {
         SecurityVM = new SecurityConfigViewModel(Model.Security);
+
+        ResetRetriesCommand      = ReactiveCommand.Create(() => { Retries = _defaults.Retries; });
+        ResetBatchSizeCommand    = ReactiveCommand.Create(() => { BatchSize = _defaults.BatchSize; });
+        ResetLingerCommand       = ReactiveCommand.Create(() => { Linger = _defaults.Linger; });
+        ResetBufferMemoryCommand = ReactiveCommand.Create(() => { BufferMemory = _defaults.BufferMemory; });
+        ResetMaxInFlightCommand  = ReactiveCommand.Create(() => { MaxInFlightRequestsPerConnection = _defaults.MaxInFlightRequestsPerConnection; });
 
         SetAcksCommand = ReactiveCommand.Create<AcksEnum>(a =>
         {
@@ -56,7 +69,9 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
 
     protected override void InitializeValidation()
     {
-        this.ValidationRule(vm => vm.Name, name => !string.IsNullOrWhiteSpace(name), "Name is required");
+        this.ValidationRule(
+            this.WhenAnyValue(x => x.Name, name => !string.IsNullOrWhiteSpace(name)),
+            "Name is required");
 
         var idempotenceAndAcks = this.WhenAnyValue(x => x.EnableIdempotence, x => x.SelectedAcks,
             (idempotence, acks) => !idempotence || acks == AcksEnum.All);
@@ -66,15 +81,22 @@ public class ProducerConfigViewModel : BaseConfigViewModel<CustomProducerConfig>
         var idempotenceAndRetries = this.WhenAnyValue(x => x.EnableIdempotence, x => x.Retries,
             (idempotence, retries) => !idempotence || retries > 0);
 
-        this.ValidationRule(vm => vm.Retries, idempotenceAndRetries, "Idempotence requires number of retries to greater than zero");
+        this.ValidationRule(idempotenceAndRetries, "Idempotence requires number of retries to greater than zero");
 
         var bufferAndBatch = this.WhenAnyValue(x => x.BufferMemory, x => x.BatchSize,
             (bufferMemory, batchSize) => bufferMemory > batchSize);
 
-        this.ValidationRule(vm => vm.BatchSize, bufferAndBatch, "Batch size should be less than Buffer memory");
+        this.ValidationRule(bufferAndBatch, "Batch size should be less than Buffer memory");
 
-        this.ValidationRule(viewModel => viewModel.MaxInFlightRequestsPerConnection, maxFlight => maxFlight != 0,
-            "Max in flight requests per connection should be greater than zero");
+        var maxFlightPositive = this.WhenAnyValue(x => x.MaxInFlightRequestsPerConnection,
+            maxFlight => maxFlight > 0);
+        this.ValidationRule(maxFlightPositive, "Max in flight requests per connection should be greater than zero");
+
+        var idempotenceAndMaxInFlight = this.WhenAnyValue(x => x.EnableIdempotence, x => x.MaxInFlightRequestsPerConnection,
+            (idempotence, maxFlight) => !idempotence || maxFlight <= 5);
+
+        this.ValidationRule(idempotenceAndMaxInFlight,
+            "Idempotence requires Max in-flight requests per connection to be 5 or less");
     }
 
     // --- Properties Wrappers ---

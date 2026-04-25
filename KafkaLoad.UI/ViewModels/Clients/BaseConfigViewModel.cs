@@ -2,13 +2,16 @@
 using KafkaLoad.Core.Services.Interfaces;
 using ReactiveUI;
 using ReactiveUI.Builder;
+using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
 using ReactiveUI.Avalonia;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -24,6 +27,9 @@ namespace KafkaLoad.UI.ViewModels
 
         public IObservable<Unit> SaveComplete => SaveCommand;
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+
+        private ObservableAsPropertyHelper<string?> _validationSummary = null!;
+        public string? ValidationSummary => _validationSummary.Value;
 
         protected BaseConfigViewModel(IConfigRepository<TConfig> configRepository, TConfig? modelToEdit)
         {
@@ -41,6 +47,32 @@ namespace KafkaLoad.UI.ViewModels
             }
 
             InitializeValidation();
+
+            var validationCtx = (ValidationContext)ValidationContext;
+
+            string? GetSummary()
+            {
+                var errorList = new List<string>();
+                foreach (var v in ValidationContext.Validations.Items)
+                {
+                    if (!v.IsValid)
+                    {
+                        var msg = v.Text?.ToSingleLine();
+                        if (!string.IsNullOrWhiteSpace(msg))
+                            errorList.Add($"• {msg}");
+                    }
+                }
+                return errorList.Count > 0 ? string.Join("\n", errorList) : null;
+            }
+
+            _validationSummary = validationCtx.ValidationStatusChange
+                .Select(_ =>
+                {
+                    string? s = GetSummary();
+                    return s;
+                })
+                .ObserveOn(AvaloniaScheduler.Instance)
+                .ToProperty(this, nameof(ValidationSummary), initialValue: GetSummary());
 
             SaveCommand = ReactiveCommand.CreateFromTask(
                 SaveConfigAsync,

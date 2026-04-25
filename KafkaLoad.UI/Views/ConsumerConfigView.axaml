@@ -6,6 +6,7 @@
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:views="using:KafkaLoad.UI.Views"
              xmlns:enums="using:KafkaLoad.Core.Enums"
+             xmlns:behaviors="using:KafkaLoad.UI.Behaviors"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.ConsumerConfigView"
              x:DataType="vm:ConsumerConfigViewModel">
@@ -29,6 +30,20 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="14,12"/>
+        </Style>
+        <Style Selector="Button.field-reset">
+            <Setter Property="Padding" Value="5,1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="MinWidth" Value="0"/>
+        </Style>
+        <Style Selector="Grid.label-row TextBlock.field-label">
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </UserControl.Styles>
 
@@ -74,9 +89,15 @@
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="MAX POLL INTERVAL (MS)" Classes="field-label"/>
+                            <Grid Classes="label-row" ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                                <TextBlock Grid.Column="0" Text="MAX POLL INTERVAL (MS)" Classes="field-label"/>
+                                <Button Grid.Column="1" Content="↺" Classes="field-reset"
+                                        ToolTip.Tip="Reset to default" Command="{Binding ResetMaxPollIntervalCommand}"/>
+                            </Grid>
                             <NumericUpDown Value="{Binding MaxPollInterval, TargetNullValue={x:Null}}"
-                                           Minimum="6000" Maximum="3600000" Increment="1000"/>
+                                           Minimum="6000" Maximum="3600000" Increment="1000"
+                                           FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -87,21 +108,37 @@
                         <TextBlock Text="Fetch Settings" Classes="section-title"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="FETCH MIN BYTES" Classes="field-label"/>
+                            <Grid Classes="label-row" ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                                <TextBlock Grid.Column="0" Text="FETCH MIN BYTES" Classes="field-label"/>
+                                <Button Grid.Column="1" Content="↺" Classes="field-reset"
+                                        ToolTip.Tip="Reset to default" Command="{Binding ResetFetchMinBytesCommand}"/>
+                            </Grid>
                             <NumericUpDown Value="{Binding FetchMinBytes, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="52428800" Increment="4096" FormatString="N0"/>
+                                           Minimum="1" Maximum="52428800" Increment="4096" FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="FETCH MAX BYTES" Classes="field-label"/>
+                            <Grid Classes="label-row" ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                                <TextBlock Grid.Column="0" Text="FETCH MAX BYTES" Classes="field-label"/>
+                                <Button Grid.Column="1" Content="↺" Classes="field-reset"
+                                        ToolTip.Tip="Reset to default" Command="{Binding ResetFetchMaxBytesCommand}"/>
+                            </Grid>
                             <NumericUpDown Value="{Binding FetchMaxBytes, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="52428800" Increment="4096" FormatString="N0"/>
+                                           Minimum="1" Maximum="52428800" Increment="4096" FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="FETCH MAX WAIT (MS)" Classes="field-label"/>
+                            <Grid Classes="label-row" ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                                <TextBlock Grid.Column="0" Text="FETCH MAX WAIT (MS)" Classes="field-label"/>
+                                <Button Grid.Column="1" Content="↺" Classes="field-reset"
+                                        ToolTip.Tip="Reset to default" Command="{Binding ResetFetchMaxWaitCommand}"/>
+                            </Grid>
                             <NumericUpDown Value="{Binding FetchMaxWait, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="10000" Increment="5"/>
+                                           Minimum="1" Maximum="10000" Increment="5"
+                                           FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -115,11 +152,21 @@
                 </StackPanel>
             </Border>
 
-            <Button Command="{Binding SaveCommand}"
-                    Content="Save Configuration"
-                    Classes="accent"
-                    HorizontalAlignment="Right"
-                    Padding="24,10"/>
+            <StackPanel HorizontalAlignment="Right" Spacing="6">
+                <TextBlock Text="{Binding ValidationSummary}"
+                           Foreground="#E53E3E"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           MaxWidth="520"
+                           HorizontalAlignment="Right"
+                           IsVisible="{Binding ValidationSummary,
+                               Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <Button Command="{Binding SaveCommand}"
+                        Content="Save Configuration"
+                        Classes="accent"
+                        HorizontalAlignment="Right"
+                        Padding="24,10"/>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </rxui:ReactiveUserControl>

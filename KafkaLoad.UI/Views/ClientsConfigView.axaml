@@ -6,6 +6,15 @@
              x:DataType="vm:ClientsConfigViewModel"
              x:Class="KafkaLoad.UI.Views.ClientsConfigView">
 
+    <UserControl.Styles>
+        <Style Selector="Border.notification">
+            <Setter Property="Background" Value="#22C55E"/>
+        </Style>
+        <Style Selector="Border.notification.error">
+            <Setter Property="Background" Value="#E53E3E"/>
+        </Style>
+    </UserControl.Styles>
+
     <Grid Background="{DynamicResource AppBackground}" ColumnDefinitions="450, 8, *">
 
         <!-- Left panel: two lists (producers / consumers) -->
@@ -120,7 +129,8 @@
                            HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <Border Background="#22C55E" CornerRadius="6" Padding="14,10"
+            <Border Classes="notification" Classes.error="{Binding NotificationIsError}"
+                    CornerRadius="6" Padding="14,10"
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="20"
                     IsVisible="{Binding NotificationMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <TextBlock Text="{Binding NotificationMessage}" Foreground="White" FontWeight="Bold"/>
