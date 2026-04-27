@@ -1,6 +1,7 @@
 using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Services.Interfaces;
 using KafkaLoad.UI.ViewModels.Reports;
+using ReactiveUI;
 using ReactiveUI.Validation.Helpers;
 
 namespace KafkaLoad.UI.ViewModels;
@@ -13,6 +14,9 @@ public class MainViewModel : ReactiveValidationObject
     public TestScenariosViewModel TestScenariosViewModel { get; }
     public TestRunnerViewModel TestRunnerViewModel { get; }
     public ReportsViewModel ReportsViewModel { get; }
+
+    private readonly ObservableAsPropertyHelper<bool> _isTestRunning;
+    public bool IsTestRunning => _isTestRunning.Value;
 
     public MainViewModel(
         IConfigRepository<CustomProducerConfig> producerConfigRepository,
@@ -38,6 +42,10 @@ public class MainViewModel : ReactiveValidationObject
             producerConfigRepository,
             consumerConfigRepository);
         TestRunnerViewModel = new TestRunnerViewModel(testRunnerService, metricsService, testScenarioRepository, kafkaTopicService);
+
+        _isTestRunning = TestRunnerViewModel
+            .WhenAnyValue(x => x.IsRunning)
+            .ToProperty(this, x => x.IsTestRunning);
 
         ReportsViewModel = new ReportsViewModel(testReportRepository);
 

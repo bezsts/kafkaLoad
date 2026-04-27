@@ -38,15 +38,15 @@
                 <views:TestRunnerView DataContext="{Binding TestRunnerViewModel}"/>
             </TabItem>
 
-            <TabItem Header="Scenarious">
+            <TabItem Header="Scenarious" IsEnabled="{Binding !IsTestRunning}">
                 <views:TestScenariosView DataContext="{Binding TestScenariosViewModel}"/>
             </TabItem>
 
-            <TabItem Header="Configs">
+            <TabItem Header="Configs" IsEnabled="{Binding !IsTestRunning}">
                 <views:ClientsConfigView DataContext="{Binding ClientsConfigViewModel}"/>
             </TabItem>
 
-            <TabItem Header="Reports">
+            <TabItem Header="Reports" IsEnabled="{Binding !IsTestRunning}">
                 <views:ReportsView DataContext="{Binding ReportsViewModel}"/>
             </TabItem>
         </TabControl>
