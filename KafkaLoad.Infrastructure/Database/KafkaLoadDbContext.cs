@@ -83,6 +83,7 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.ConsumerConfigId).HasColumnName("consumer_config_id");
             e.Property(x => x.KeyStrategy).HasColumnName("key_strategy").IsRequired();
             e.Property(x => x.ValueStrategy).HasColumnName("value_strategy").IsRequired();
+            e.Property(x => x.FixedKey).HasColumnName("fixed_key");
             e.Property(x => x.FixedTemplate).HasColumnName("fixed_template");
             e.Property(x => x.MessageSizeBytes).HasColumnName("message_size_bytes");
             e.Property(x => x.TestType).HasColumnName("test_type").IsRequired();

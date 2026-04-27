@@ -180,7 +180,7 @@ public class TestRunnerService : ITestRunnerService
         var report = new TestReport
         {
             ScenarioName = scenario.Name ?? "Unnamed Scenario",
-            TestType = scenario.TestType,
+            TestType = scenario.TestType ?? throw new InvalidOperationException("TestType must be set before running a test."),
             DurationSeconds = scenario.Duration ?? 0,
 
             ConfigSnapshot = new TestScenarioConfigSnapshot

@@ -1,4 +1,6 @@
+using ReactiveUI.Avalonia;
 using KafkaLoad.Core.Enums;
+using TT = KafkaLoad.Core.Enums.TestType;
 using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Services.Interfaces;
 using ReactiveUI;
@@ -72,10 +74,10 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     }
 
     // Test type button states
-    public bool IsTypeLoad   => TestType == TestType.Load;
-    public bool IsTypeStress => TestType == TestType.Stress;
-    public bool IsTypeSpike  => TestType == TestType.Spike;
-    public bool IsTypeSoak   => TestType == TestType.Soak;
+    public bool IsTypeLoad   => TestType == TT.Load;
+    public bool IsTypeStress => TestType == TT.Stress;
+    public bool IsTypeSpike  => TestType == TT.Spike;
+    public bool IsTypeSoak   => TestType == TT.Soak;
 
     public ICommand SetTestTypeCommand { get; }
 
@@ -109,14 +111,16 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         _producerConfigRepository = producerConfigRepository;
         _consumerConfigRepository = consumerConfigRepository;
 
-        SetTestTypeCommand      = ReactiveCommand.Create<TestType>(t => TestType = t);
-        SetKeyStrategyCommand   = ReactiveCommand.Create<KeyGenerationStrategy>(s => KeyStrategy = s);
-        SetValueStrategyCommand = ReactiveCommand.Create<ValueGenerationStrategy>(s => ValueStrategy = s);
+        SetTestTypeCommand      = ReactiveCommand.Create<TestType>(t => TestType = TestType == t ? null : t);
+        SetKeyStrategyCommand   = ReactiveCommand.Create<KeyGenerationStrategy>(s => KeyStrategy = KeyStrategy == s ? null : s);
+        SetValueStrategyCommand = ReactiveCommand.Create<ValueGenerationStrategy>(s => ValueStrategy = ValueStrategy == s ? null : s);
         ImportAvroSchemaCommand = ReactiveCommand.CreateFromObservable(() =>
             ImportAvroSchemaInteraction.Handle(Unit.Default)
+                .ObserveOn(AvaloniaScheduler.Instance)
                 .Do(result => { if (result is not null) FixedTemplate = result; }));
         ImportProtobufSchemaCommand = ReactiveCommand.CreateFromObservable(() =>
             ImportProtobufSchemaInteraction.Handle(Unit.Default)
+                .ObserveOn(AvaloniaScheduler.Instance)
                 .Do(result => { if (result is not null) FixedTemplate = result; }));
 
         this.WhenAnyValue(x => x.KeyStrategy)
@@ -146,8 +150,8 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         this.WhenAnyValue(x => x.TestType)
             .Subscribe(type =>
             {
-                IsTargetThroughputVisible = type != TestType.Spike;
-                IsSpikeVisible = type == TestType.Spike;
+                IsTargetThroughputVisible = type != TT.Spike;
+                IsSpikeVisible = type == TT.Spike;
                 this.RaisePropertyChanged(nameof(IsTypeLoad));
                 this.RaisePropertyChanged(nameof(IsTypeStress));
                 this.RaisePropertyChanged(nameof(IsTypeSpike));
@@ -169,6 +173,16 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         this.ValidationRule(vm => vm.SelectedProducer, p => p is not null, "Producer is required");
         this.ValidationRule(vm => vm.SelectedConsumer, c => c is not null, "Consumer is required");
         this.ValidationRule(vm => vm.ProducerCount, c => c > 0, "Producer count must be > 0");
+        this.ValidationRule(vm => vm.TestType, t => t is not null, "Test type must be selected");
+        this.ValidationRule(vm => vm.KeyStrategy, s => s is not null, "Key strategy must be selected");
+        this.ValidationRule(vm => vm.ValueStrategy, s => s is not null, "Value strategy must be selected");
+
+        var fixedKeyValid = this.WhenAnyValue(
+            x => x.KeyStrategy,
+            x => x.FixedKey,
+            (strategy, key) => strategy != KeyGenerationStrategy.Fixed || !string.IsNullOrWhiteSpace(key)
+        );
+        this.ValidationRule(vm => vm.FixedKey, fixedKeyValid, "Fixed key is required");
 
         // ==========================================
         // 2. DATA GENERATION STRATEGY
@@ -213,9 +227,9 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
 
                 return type switch
                 {
-                    TestType.Soak => duration.Value >= 60,   // Minimum 1 minute for Soak
-                    TestType.Stress => duration.Value >= 30, // Minimum 30s to draw 4 steps properly
-                    _ => duration.Value >= 10                // Minimum 10s for Load/Spike to ramp up
+                    TT.Soak => duration.Value >= 60,   // Minimum 1 minute for Soak
+                    TT.Stress => duration.Value >= 30, // Minimum 30s to draw 4 steps properly
+                    _ => duration.Value >= 10          // Minimum 10s for Load/Spike to ramp up
                 };
             }
         );
@@ -228,14 +242,14 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         var targetValid = this.WhenAnyValue(
             x => x.TestType,
             x => x.TargetThroughput,
-            (type, target) => type == TestType.Spike || (target.HasValue && target.Value > 0)
+            (type, target) => type == null || type == TT.Spike || (target.HasValue && target.Value > 0)
         );
         this.ValidationRule(vm => vm.TargetThroughput, targetValid, "Target Throughput must be > 0");
 
         var baseValid = this.WhenAnyValue(
             x => x.TestType,
             x => x.BaseThroughput,
-            (type, baseTp) => type != TestType.Spike || (baseTp.HasValue && baseTp.Value > 0)
+            (type, baseTp) => type == null || type != TT.Spike || (baseTp.HasValue && baseTp.Value > 0)
         );
         this.ValidationRule(vm => vm.BaseThroughput, baseValid, "Base Throughput must be > 0");
 
@@ -245,7 +259,7 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
             x => x.SpikeThroughput,
             (type, baseTp, spikeTp) =>
             {
-                if (type != TestType.Spike) return true;
+                if (type == null || type != TT.Spike) return true;
                 if (!spikeTp.HasValue || !baseTp.HasValue) return false;
 
                 return spikeTp.Value > baseTp.Value;
@@ -311,13 +325,13 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         set => SetProperty(value, Model.ConsumerCount, v => Model.ConsumerCount = v);
     }
 
-    public KeyGenerationStrategy KeyStrategy
+    public KeyGenerationStrategy? KeyStrategy
     {
         get => Model.KeyStrategy;
         set => SetProperty(value, Model.KeyStrategy, v => Model.KeyStrategy = v);
     }
 
-    public ValueGenerationStrategy ValueStrategy
+    public ValueGenerationStrategy? ValueStrategy
     {
         get => Model.ValueStrategy;
         set => SetProperty(value, Model.ValueStrategy, v => Model.ValueStrategy = v);
@@ -347,7 +361,7 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         set => SetProperty(value, Model.Duration, v => Model.Duration = v);
     }
 
-    public TestType TestType
+    public TestType? TestType
     {
         get => Model.TestType;
         set => SetProperty(value, Model.TestType, v => Model.TestType = v);

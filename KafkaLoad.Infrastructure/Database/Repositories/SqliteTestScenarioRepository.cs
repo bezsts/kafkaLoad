@@ -106,6 +106,7 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
         Name = e.Name,
         KeyStrategy = Enum.Parse<KeyGenerationStrategy>(e.KeyStrategy),
         ValueStrategy = Enum.Parse<ValueGenerationStrategy>(e.ValueStrategy),
+        FixedKey = e.FixedKey,
         FixedTemplate = e.FixedTemplate,
         MessageSize = e.MessageSizeBytes,
         TestType = Enum.Parse<TestType>(e.TestType),
@@ -171,11 +172,12 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
     {
         target ??= new TestScenarioEntity();
         target.Name = s.Name;
-        target.KeyStrategy = s.KeyStrategy.ToString();
-        target.ValueStrategy = s.ValueStrategy.ToString();
+        target.KeyStrategy = s.KeyStrategy!.Value.ToString();
+        target.ValueStrategy = s.ValueStrategy!.Value.ToString();
+        target.FixedKey = s.FixedKey;
         target.FixedTemplate = s.FixedTemplate;
         target.MessageSizeBytes = s.MessageSize;
-        target.TestType = s.TestType.ToString();
+        target.TestType = s.TestType!.Value.ToString();
         target.DurationSeconds = s.Duration;
         target.ProducerCount = s.ProducerCount;
         target.ConsumerCount = s.ConsumerCount;

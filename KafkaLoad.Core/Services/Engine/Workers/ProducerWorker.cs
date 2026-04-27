@@ -57,8 +57,8 @@ public class ProducerWorker : BaseWorker
 
                 var kafkaMessage = new Message<byte[], byte[]>
                 {
-                    Key = key,
-                    Value = val
+                    Key = key!,
+                    Value = val!
                 };
 
                 try

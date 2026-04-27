@@ -6,7 +6,7 @@ using ReactiveUI.Avalonia;
 
 namespace KafkaLoad.UI.Views;
 
-public partial class TestScenariosView : ReactiveUserControl<TestScenarioEditorViewModel>
+public partial class TestScenariosView : ReactiveUserControl<TestScenariosViewModel>
 {
     public TestScenariosView()
     {

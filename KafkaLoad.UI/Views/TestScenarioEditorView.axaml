@@ -5,11 +5,21 @@
              xmlns:rxui="http://reactiveui.net"
              xmlns:vm="using:KafkaLoad.UI.ViewModels"
              xmlns:enums="using:KafkaLoad.Core.Enums"
+             xmlns:behaviors="using:KafkaLoad.UI.Behaviors"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
              x:Class="KafkaLoad.UI.Views.TestScenarioEditorView"
              x:DataType="vm:TestScenarioEditorViewModel">
 
     <UserControl.Styles>
+        <Style Selector=":is(Control)">
+            <Setter Property="(DataValidationErrors.ErrorTemplate)">
+                <Setter.Value>
+                    <DataTemplate>
+                        <Grid/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style Selector="TextBlock.section-title">
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -113,12 +123,14 @@
                             <StackPanel Grid.Column="0" Spacing="4">
                                 <TextBlock Text="PRODUCERS" Classes="field-label"/>
                                 <NumericUpDown Value="{Binding ProducerCount, TargetNullValue={x:Null}}"
-                                               Minimum="1" Maximum="100" Increment="1" FormatString="N0"/>
+                                               Minimum="1" Maximum="100" Increment="1" FormatString="N0"
+                                               behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4">
                                 <TextBlock Text="CONSUMERS" Classes="field-label"/>
                                 <NumericUpDown Value="{Binding ConsumerCount, TargetNullValue={x:Null}}"
-                                               Minimum="0" Maximum="100" Increment="1" FormatString="N0"/>
+                                               Minimum="0" Maximum="100" Increment="1" FormatString="N0"
+                                               behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -195,7 +207,8 @@
                         <StackPanel Spacing="4" IsVisible="{Binding IsMessageSizeVisible}">
                             <TextBlock Text="MESSAGE SIZE (BYTES)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding MessageSize, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="10485760" Increment="128" FormatString="N0"/>
+                                           Minimum="1" Maximum="10485760" Increment="128" FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4" IsVisible="{Binding IsJsonTemplateVisible}">
@@ -267,12 +280,14 @@
                         <StackPanel Grid.Column="0" Spacing="4">
                             <TextBlock Text="DURATION (SEC)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding Duration, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="86400" Increment="10"/>
+                                           Minimum="1" Maximum="86400" Increment="10"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="4" IsVisible="{Binding IsTargetThroughputVisible}">
                             <TextBlock Text="TARGET THROUGHPUT (MSG/SEC)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding TargetThroughput, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
+                                           Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
                     </Grid>
 
@@ -281,22 +296,34 @@
                         <StackPanel Grid.Column="0" Spacing="4">
                             <TextBlock Text="BASE THROUGHPUT (MSG/SEC)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding BaseThroughput, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"/>
+                                           Minimum="1" Maximum="10000000" Increment="100" FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" Spacing="4">
                             <TextBlock Text="SPIKE THROUGHPUT (MSG/SEC)" Classes="field-label"/>
                             <NumericUpDown Value="{Binding SpikeThroughput, TargetNullValue={x:Null}}"
-                                           Minimum="1" Maximum="10000000" Increment="1000" FormatString="N0"/>
+                                           Minimum="1" Maximum="10000000" Increment="1000" FormatString="N0"
+                                           behaviors:NumericSpaceSeparatorBehavior.IsEnabled="True"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <Button Command="{Binding SaveCommand}"
-                    Content="Save Scenario"
-                    Classes="accent"
-                    HorizontalAlignment="Right"
-                    Padding="24,10"/>
+            <StackPanel HorizontalAlignment="Right" Spacing="6">
+                <TextBlock Text="{Binding ValidationSummary}"
+                           Foreground="#E53E3E"
+                           FontSize="12"
+                           TextWrapping="Wrap"
+                           MaxWidth="520"
+                           HorizontalAlignment="Right"
+                           IsVisible="{Binding ValidationSummary,
+                               Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <Button Command="{Binding SaveCommand}"
+                        Content="Save Scenario"
+                        Classes="accent"
+                        HorizontalAlignment="Right"
+                        Padding="24,10"/>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </rxui:ReactiveUserControl>

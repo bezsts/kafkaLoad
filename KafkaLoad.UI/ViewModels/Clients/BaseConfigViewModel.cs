@@ -65,14 +65,15 @@ namespace KafkaLoad.UI.ViewModels
                 return errorList.Count > 0 ? string.Join("\n", errorList) : null;
             }
 
-            _validationSummary = validationCtx.ValidationStatusChange
-                .Select(_ =>
-                {
-                    string? s = GetSummary();
-                    return s;
-                })
+            _validationSummary = Observable
+                .Merge(
+                    Observable.Return(Unit.Default).ObserveOn(AvaloniaScheduler.Instance),
+                    validationCtx.ValidationStatusChange.Select(_ => Unit.Default)
+                )
+                .Select(_ => GetSummary())
+                .DistinctUntilChanged()
                 .ObserveOn(AvaloniaScheduler.Instance)
-                .ToProperty(this, nameof(ValidationSummary), initialValue: GetSummary());
+                .ToProperty(this, nameof(ValidationSummary));
 
             SaveCommand = ReactiveCommand.CreateFromTask(
                 SaveConfigAsync,

@@ -16,6 +16,7 @@ public class TestScenarioEntity
 
     public string KeyStrategy { get; set; } = string.Empty;
     public string ValueStrategy { get; set; } = string.Empty;
+    public string? FixedKey { get; set; }
     public string? FixedTemplate { get; set; }
     public int? MessageSizeBytes { get; set; }
     public string TestType { get; set; } = string.Empty;

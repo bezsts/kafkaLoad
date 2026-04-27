@@ -22,7 +22,7 @@ public class ThroughputController : IDisposable
 
     public ThroughputController(TestScenario scenario)
     {
-        _testType = scenario.TestType;
+        _testType = scenario.TestType ?? throw new InvalidOperationException("TestType must be set before running a test.");
         _durationSec = scenario.Duration ?? 60;
         _targetRps = scenario.TargetThroughput ?? 1000;
         _baseRps = scenario.BaseThroughput ?? 100;

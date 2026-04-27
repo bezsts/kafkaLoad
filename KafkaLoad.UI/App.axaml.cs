@@ -11,6 +11,7 @@ using KafkaLoad.UI.ViewModels;
 using KafkaLoad.UI.ViewModels.Reports;
 using KafkaLoad.UI.Views;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using ReactiveUI;
 using Serilog;
 using Splat;
@@ -62,6 +63,7 @@ public partial class App : Application
 
         var options = new DbContextOptionsBuilder<KafkaLoadDbContext>()
             .UseSqlite($"Data Source={dbPath}")
+            .ConfigureWarnings(w => w.Log(RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         var db = new KafkaLoadDbContext(options);
