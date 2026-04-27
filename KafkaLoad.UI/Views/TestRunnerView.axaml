@@ -72,6 +72,9 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
+                        <TextBlock Text="⚠ Missing producer or consumer config — edit the scenario to fix it."
+                                   FontSize="11" Foreground="#EF4444" TextWrapping="Wrap"
+                                   IsVisible="{Binding SelectedTestScenario.IsConfigValid, FallbackValue=False, TargetNullValue=False, Converter={x:Static BoolConverters.Not}}"/>
                     </StackPanel>
 
                     <Separator Height="1" Background="{DynamicResource BorderColor}" Margin="0,0,0,12"/>

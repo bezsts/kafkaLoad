@@ -21,10 +21,17 @@ namespace KafkaLoad.UI.ViewModels
         DateAsc
     }
 
+    public record ConfirmDeleteInfo(string ConfigType, string ConfigName, IReadOnlyList<string> AffectedScenarios);
+
     public class ClientsConfigViewModel : ReactiveObject
     {
         private readonly IConfigRepository<CustomProducerConfig> _producerRepo;
         private readonly IConfigRepository<CustomConsumerConfig> _consumerRepo;
+        private readonly IConfigRepository<TestScenario> _scenarioRepo;
+
+        public event Action? ConfigDeleted;
+
+        public Interaction<ConfirmDeleteInfo, bool> ConfirmDeleteInteraction { get; } = new();
 
         private string _notificationMessage = string.Empty;
         public string NotificationMessage
@@ -141,10 +148,12 @@ namespace KafkaLoad.UI.ViewModels
 
         public ClientsConfigViewModel(
             IConfigRepository<CustomProducerConfig> producerRepo,
-            IConfigRepository<CustomConsumerConfig> consumerRepo)
+            IConfigRepository<CustomConsumerConfig> consumerRepo,
+            IConfigRepository<TestScenario> scenarioRepo)
         {
             _producerRepo = producerRepo;
             _consumerRepo = consumerRepo;
+            _scenarioRepo = scenarioRepo;
 
             _selectedProducerSort = SortOptions[0];
             _selectedConsumerSort = SortOptions[0];
@@ -249,6 +258,24 @@ namespace KafkaLoad.UI.ViewModels
 
             try
             {
+                var allScenarios = await _scenarioRepo.GetAllAsync();
+                var affected = allScenarios
+                    .Where(s => (typeName == "Producer" && s.ProducerConfig?.Name == selectedItem.Name)
+                             || (typeName == "Consumer" && s.ConsumerConfig?.Name == selectedItem.Name))
+                    .Select(s => s.Name)
+                    .ToList();
+
+                if (affected.Count > 0)
+                {
+                    var info = new ConfirmDeleteInfo(typeName, selectedItem.Name, affected);
+                    bool confirmed = await ConfirmDeleteInteraction.Handle(info).FirstAsync();
+                    if (!confirmed)
+                    {
+                        Log.Information("User cancelled deletion of {TypeName} '{ConfigName}'.", typeName, selectedItem.Name);
+                        return;
+                    }
+                }
+
                 await repo.DeleteAsync(selectedItem.Name);
                 await RefreshLists();
 
@@ -256,6 +283,7 @@ namespace KafkaLoad.UI.ViewModels
                 SelectedConsumer = null;
                 CurrentEditor = null;
 
+                ConfigDeleted?.Invoke();
                 ShowNotification($"{typeName} configuration deleted successfully!");
             }
             catch (Exception ex)

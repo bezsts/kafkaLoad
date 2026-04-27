@@ -27,4 +27,6 @@ public class TestScenario : IConfigModel
     public int? SpikeThroughput { get; set; }
 
     //public CustomSecurityConfig Security { get; set; } = null!;
+
+    public bool IsConfigValid => ProducerConfig != null && ConsumerConfig != null;
 }

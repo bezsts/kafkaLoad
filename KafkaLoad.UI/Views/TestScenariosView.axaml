@@ -66,12 +66,20 @@
                 <ListBox Grid.Row="3"
                          ItemsSource="{Binding FilteredScenarios}"
                          SelectedItem="{Binding SelectedScenario}">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="8,4"/>
+                        </Style>
+                    </ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Spacing="2">
                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
                                 <TextBlock Text="{Binding TestType}" FontSize="11"
                                            Foreground="{DynamicResource PrimaryBlue}"/>
+                                <TextBlock Text="⚠ Missing producer or consumer config"
+                                           FontSize="10" Foreground="#EF4444"
+                                           IsVisible="{Binding !IsConfigValid}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

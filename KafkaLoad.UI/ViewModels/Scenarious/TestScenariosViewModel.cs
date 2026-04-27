@@ -221,6 +221,8 @@ namespace KafkaLoad.UI.ViewModels
             CurrentEditor = vm;
         }
 
+        public Task RefreshAsync() => RefreshList();
+
         private async Task RefreshList()
         {
             Scenarios.Clear();

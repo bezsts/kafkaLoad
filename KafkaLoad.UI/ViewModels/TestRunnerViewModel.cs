@@ -76,6 +76,7 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             (running, scenario, topicFound) =>
                 !running &&
                 scenario != null &&
+                scenario.IsConfigValid &&
                 topicFound == true
         );
 
@@ -159,6 +160,8 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
                 catch (Exception ex) { Log.Error(ex, "Auto topic check failed."); }
             });
     }
+
+    public Task RefreshScenariosAsync() => LoadConfigurationsAsync();
 
     private async Task LoadConfigurationsAsync()
     {

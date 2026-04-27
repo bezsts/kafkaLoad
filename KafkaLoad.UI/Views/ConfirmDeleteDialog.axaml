@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="KafkaLoad.UI.Views.ConfirmDeleteDialog"
+        Title="Confirm Deletion"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#1E1E2E">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+        </Style>
+        <Style Selector="TextBlock.body">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style Selector="TextBlock.scenario-name">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="Margin" Value="8,2,0,2"/>
+        </Style>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#EF4444"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#DC2626"/>
+        </Style>
+        <Style Selector="Button.cancel">
+            <Setter Property="Background" Value="#334155"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="Button.cancel:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#475569"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Padding="24" Background="#1E1E2E">
+        <StackPanel Spacing="16">
+
+            <!-- Warning icon + title -->
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="⚠" FontSize="22" Foreground="#FBBF24" VerticalAlignment="Center"/>
+                <TextBlock Classes="title" x:Name="TitleText" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Description -->
+            <TextBlock Classes="body" x:Name="BodyText"/>
+
+            <!-- Scenario list -->
+            <Border Background="#0F172A" CornerRadius="6" Padding="12,8"
+                    MaxHeight="160">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="ScenarioList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="•" Foreground="#EF4444" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Classes="scenario-name" Text="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Warning note -->
+            <TextBlock Classes="body" Foreground="#FCA5A5"
+                       Text="These scenarios will lose their config reference and will be highlighted as invalid."/>
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Classes="cancel" x:Name="CancelButton" Content="Cancel"/>
+                <Button Classes="danger" x:Name="DeleteButton" Content="Delete anyway"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>

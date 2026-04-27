@@ -29,7 +29,8 @@ public class MainViewModel : ReactiveValidationObject
 
         ClientsConfigViewModel = new ClientsConfigViewModel(
             producerConfigRepository,
-            consumerConfigRepository
+            consumerConfigRepository,
+            testScenarioRepository
         );
 
         TestScenariosViewModel = new TestScenariosViewModel(
@@ -39,5 +40,11 @@ public class MainViewModel : ReactiveValidationObject
         TestRunnerViewModel = new TestRunnerViewModel(testRunnerService, metricsService, testScenarioRepository, kafkaTopicService);
 
         ReportsViewModel = new ReportsViewModel(testReportRepository);
+
+        ClientsConfigViewModel.ConfigDeleted += () =>
+        {
+            _ = TestScenariosViewModel.RefreshAsync();
+            _ = TestRunnerViewModel.RefreshScenariosAsync();
+        };
     }
 }

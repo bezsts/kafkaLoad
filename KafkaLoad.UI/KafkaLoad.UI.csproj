@@ -70,5 +70,8 @@
     <Compile Update="Views\TestScenarioEditorView.axaml.cs">
       <DependentUpon>TestScenarioEditorView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\ConfirmDeleteDialog.axaml.cs">
+      <DependentUpon>ConfirmDeleteDialog.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
