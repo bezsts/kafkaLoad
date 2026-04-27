@@ -43,21 +43,8 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
 
     public async Task SaveAsync(TestScenario scenario)
     {
-        int? producerConfigId = null;
-        if (scenario.ProducerConfig is not null)
-        {
-            var pc = await _db.ProducerConfigs
-                .FirstOrDefaultAsync(x => x.Name == scenario.ProducerConfig.Name);
-            producerConfigId = pc?.Id;
-        }
-
-        int? consumerConfigId = null;
-        if (scenario.ConsumerConfig is not null)
-        {
-            var cc = await _db.ConsumerConfigs
-                .FirstOrDefaultAsync(x => x.Name == scenario.ConsumerConfig.Name);
-            consumerConfigId = cc?.Id;
-        }
+        int? producerConfigId = scenario.ProducerConfig?.Id > 0 ? scenario.ProducerConfig.Id : null;
+        int? consumerConfigId = scenario.ConsumerConfig?.Id > 0 ? scenario.ConsumerConfig.Id : null;
 
         var existing = await _db.TestScenarios.FirstOrDefaultAsync(x => x.Name == scenario.Name);
 
@@ -101,6 +88,20 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
         return await _db.TestScenarios.AnyAsync(x => x.Name == name);
     }
 
+    public async Task RenameAndSaveAsync(string originalName, TestScenario config)
+    {
+        var entity = await _db.TestScenarios.FirstOrDefaultAsync(x => x.Name == originalName);
+        if (entity is null)
+        {
+            await SaveAsync(config);
+            return;
+        }
+        entity.Name = config.Name;
+        entity.UpdatedAt = DateTime.UtcNow;
+        Log.Information("Renaming test scenario '{OldName}' → '{NewName}'", originalName, config.Name);
+        await _db.SaveChangesAsync();
+    }
+
     private static TestScenario MapToDomain(TestScenarioEntity e) => new()
     {
         Name = e.Name,
@@ -123,6 +124,7 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
 
     private static CustomProducerConfig MapProducerConfig(ProducerConfigEntity e) => new()
     {
+        Id = e.Id,
         Name = e.Name,
         ClientID = e.ClientId,
         Acks = Enum.Parse<AcksEnum>(e.Acks),
@@ -148,6 +150,7 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
 
     private static CustomConsumerConfig MapConsumerConfig(ConsumerConfigEntity e) => new()
     {
+        Id = e.Id,
         Name = e.Name,
         GroupId = e.GroupId,
         AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),

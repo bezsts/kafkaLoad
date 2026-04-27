@@ -13,6 +13,7 @@ public class CustomConsumerConfig : IConfigModel
     private const int DefaultMaxPollIntervalMs = 5 * 60 * 1000;
 
 
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 
     // Unique identifier for the consumer group.

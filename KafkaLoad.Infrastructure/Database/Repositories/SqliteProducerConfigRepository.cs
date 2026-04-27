@@ -74,8 +74,23 @@ public class SqliteProducerConfigRepository : IConfigRepository<CustomProducerCo
         return await _db.ProducerConfigs.AnyAsync(x => x.Name == name);
     }
 
+    public async Task RenameAndSaveAsync(string originalName, CustomProducerConfig config)
+    {
+        var entity = await _db.ProducerConfigs.FirstOrDefaultAsync(x => x.Name == originalName);
+        if (entity is null)
+        {
+            await SaveAsync(config);
+            return;
+        }
+        MapToEntity(config, entity);
+        entity.UpdatedAt = DateTime.UtcNow;
+        Log.Information("Renaming producer config '{OldName}' → '{NewName}'", originalName, config.Name);
+        await _db.SaveChangesAsync();
+    }
+
     private static CustomProducerConfig MapToDomain(ProducerConfigEntity e) => new()
     {
+        Id = e.Id,
         Name = e.Name,
         ClientID = e.ClientId,
         Acks = Enum.Parse<AcksEnum>(e.Acks),

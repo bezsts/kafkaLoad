@@ -25,6 +25,25 @@ public class AvroSchemaGenerator : IDataGenerator
         _writer = new GenericDatumWriter<GenericRecord>(_schema);
     }
 
+    public static (bool ok, string? error) Validate(string schemaJson)
+    {
+        if (string.IsNullOrWhiteSpace(schemaJson))
+            return (true, null);
+
+        try
+        {
+            var parsed = Schema.Parse(schemaJson);
+            if (parsed is not RecordSchema)
+                return (false, "Avro schema must be a record type (\"type\": \"record\").");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+
+        return (true, null);
+    }
+
     public byte[]? Next()
     {
         var record = new GenericRecord(_schema);

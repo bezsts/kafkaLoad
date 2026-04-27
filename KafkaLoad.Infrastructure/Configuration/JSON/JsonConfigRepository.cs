@@ -96,4 +96,10 @@ public class JsonConfigRepository<T> : IConfigRepository<T> where T : class
 
         return _fileManager.LoadAsync<T>(fullPath);
     }
+
+    public async Task RenameAndSaveAsync(string originalName, T config)
+    {
+        await DeleteAsync(originalName);
+        await SaveAsync(config);
+    }
 }

@@ -11,6 +11,7 @@ public class CustomProducerConfig : IConfigModel
     private const long DefaultBufferMemoryBytes = 32 * 1024 * 1024;
     private const int DefaultLingerMs = 0;
     private const int DefaultMaxInFlightRequests = 5;
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 
     // Client identifier. Used to track the source of requests in broker logs and metrics.

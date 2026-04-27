@@ -223,6 +223,12 @@
                                        FontSize="10"
                                        Foreground="{DynamicResource TextSecondary}"
                                        TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SchemaValidationError}"
+                                       FontSize="11"
+                                       Foreground="#E53E3E"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding SchemaValidationError,
+                                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4" IsVisible="{Binding IsAvroSchemaVisible}">
@@ -244,6 +250,12 @@
                                        FontSize="10"
                                        Foreground="{DynamicResource TextSecondary}"
                                        TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SchemaValidationError}"
+                                       FontSize="11"
+                                       Foreground="#E53E3E"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding SchemaValidationError,
+                                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4" IsVisible="{Binding IsProtobufSchemaVisible}">
@@ -265,6 +277,16 @@
                                        FontSize="10"
                                        Foreground="{DynamicResource TextSecondary}"
                                        TextWrapping="Wrap"/>
+                            <TextBlock Text="Validating…"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       IsVisible="{Binding IsValidatingProto}"/>
+                            <TextBlock Text="{Binding SchemaValidationError}"
+                                       FontSize="11"
+                                       Foreground="#E53E3E"
+                                       TextWrapping="Wrap"
+                                       IsVisible="{Binding SchemaValidationError,
+                                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>

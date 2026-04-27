@@ -74,8 +74,23 @@ public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerCo
         return await _db.ConsumerConfigs.AnyAsync(x => x.Name == name);
     }
 
+    public async Task RenameAndSaveAsync(string originalName, CustomConsumerConfig config)
+    {
+        var entity = await _db.ConsumerConfigs.FirstOrDefaultAsync(x => x.Name == originalName);
+        if (entity is null)
+        {
+            await SaveAsync(config);
+            return;
+        }
+        MapToEntity(config, entity);
+        entity.UpdatedAt = DateTime.UtcNow;
+        Log.Information("Renaming consumer config '{OldName}' → '{NewName}'", originalName, config.Name);
+        await _db.SaveChangesAsync();
+    }
+
     private static CustomConsumerConfig MapToDomain(ConsumerConfigEntity e) => new()
     {
+        Id = e.Id,
         Name = e.Name,
         GroupId = e.GroupId,
         AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),

@@ -88,22 +88,22 @@ namespace KafkaLoad.UI.ViewModels
         {
             Log.Information("User attempting to save configuration: '{ConfigName}'", Model.Name);
 
-            // 1. Check if name changed AND if the new name is already taken
             if (Model.Name != _originalName && await ConfigRepository.ExistsAsync(Model.Name))
             {
                 Log.Warning("Save aborted: Configuration with name '{ConfigName}' already exists.", Model.Name);
                 throw new Exception($"Configuration with name '{Model.Name}' already exists!");
             }
 
-            // 2. If renamed, delete the old file
             if (!string.IsNullOrEmpty(_originalName) && Model.Name != _originalName)
             {
-                Log.Information("Configuration renamed from '{OldName}' to '{NewName}'. Deleting old file.", _originalName, Model.Name);
-                await ConfigRepository.DeleteAsync(_originalName);
+                Log.Information("Renaming configuration '{OldName}' → '{NewName}'", _originalName, Model.Name);
+                await ConfigRepository.RenameAndSaveAsync(_originalName, Model);
+            }
+            else
+            {
+                await ConfigRepository.SaveAsync(Model);
             }
 
-            // 3. Save
-            await ConfigRepository.SaveAsync(Model);
             Log.Debug("Configuration '{ConfigName}' successfully saved from UI.", Model.Name);
         }
         private TConfig Clone(TConfig source)

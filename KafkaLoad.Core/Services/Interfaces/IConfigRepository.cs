@@ -14,4 +14,6 @@ public interface IConfigRepository<T>
     Task DeleteAsync(string name);
 
     Task<bool> ExistsAsync(string name);
+
+    Task RenameAndSaveAsync(string originalName, T config);
 }

@@ -2,6 +2,7 @@ using KafkaLoad.Core.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace KafkaLoad.Core.Services.Generators.Value;
@@ -22,6 +23,37 @@ public class JsonTemplateGenerator : IDataGenerator
             throw new ArgumentException("JSON template must not be null or empty.", nameof(template));
 
         _segments = Parse(template);
+    }
+
+    public static (bool ok, string? error) Validate(string template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+            return (true, null);
+
+        var unknowns = new List<string>();
+        // Replace every placeholder with bare 0 — valid inside a JSON string ("0")
+        // and as a standalone value (0), regardless of context.
+        var dummy = PlaceholderRegex.Replace(template, match =>
+        {
+            var name = match.Groups[1].Value.ToLowerInvariant();
+            if (name is not ("uuid" or "timestamp" or "randombool" or "randomstring" or "randomint"))
+                unknowns.Add(match.Value);
+            return "0";
+        });
+
+        try
+        {
+            using var _ = JsonDocument.Parse(dummy);
+        }
+        catch (JsonException ex)
+        {
+            return (false, $"Invalid JSON: {ex.Message}");
+        }
+
+        if (unknowns.Count > 0)
+            return (false, $"Unknown placeholder(s): {string.Join(", ", unknowns)}");
+
+        return (true, null);
     }
 
     public byte[]? Next()

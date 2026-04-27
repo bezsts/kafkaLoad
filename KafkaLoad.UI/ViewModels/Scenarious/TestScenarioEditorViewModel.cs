@@ -2,6 +2,7 @@ using ReactiveUI.Avalonia;
 using KafkaLoad.Core.Enums;
 using TT = KafkaLoad.Core.Enums.TestType;
 using KafkaLoad.Core.Models;
+using KafkaLoad.Core.Services.Generators.Value;
 using KafkaLoad.Core.Services.Interfaces;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -50,6 +52,20 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     {
         get => _isProtobufSchemaVisible;
         set => this.RaiseAndSetIfChanged(ref _isProtobufSchemaVisible, value);
+    }
+
+    private string? _schemaValidationError;
+    public string? SchemaValidationError
+    {
+        get => _schemaValidationError;
+        private set => this.RaiseAndSetIfChanged(ref _schemaValidationError, value);
+    }
+
+    private bool _isValidatingProto;
+    public bool IsValidatingProto
+    {
+        get => _isValidatingProto;
+        private set => this.RaiseAndSetIfChanged(ref _isValidatingProto, value);
     }
 
     private bool _isMessageSizeVisible;
@@ -162,6 +178,51 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         {
             _ = LoadConfigurationsAsync();
         });
+
+        this.WhenAnyValue(x => x.FixedTemplate, x => x.ValueStrategy)
+            .Throttle(TimeSpan.FromMilliseconds(600))
+            .ObserveOn(AvaloniaScheduler.Instance)
+            .Do(t =>
+            {
+                SchemaValidationError = null;
+                IsValidatingProto = t.Item2 == ValueGenerationStrategy.Protobuf
+                    && !string.IsNullOrWhiteSpace(t.Item1);
+            })
+            .Select(t => Observable.FromAsync(ct => RunSchemaValidationAsync(t.Item1, t.Item2, ct)))
+            .Switch()
+            .ObserveOn(AvaloniaScheduler.Instance)
+            .Subscribe(result =>
+            {
+                SchemaValidationError = result;
+                IsValidatingProto = false;
+            });
+    }
+
+    private static async Task<string?> RunSchemaValidationAsync(
+        string? template, ValueGenerationStrategy? strategy, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(template) || strategy is null or ValueGenerationStrategy.RandomString)
+            return null;
+
+        return strategy switch
+        {
+            ValueGenerationStrategy.Json =>
+                await Task.Run(() =>
+                {
+                    var (ok, error) = JsonTemplateGenerator.Validate(template);
+                    return ok ? null : error;
+                }, ct),
+            ValueGenerationStrategy.Avro =>
+                await Task.Run(() =>
+                {
+                    var (ok, error) = AvroSchemaGenerator.Validate(template);
+                    return ok ? null : error;
+                }, ct),
+            ValueGenerationStrategy.Protobuf =>
+                await ProtobufSchemaGenerator.ValidateAsync(template, ct)
+                    .ContinueWith(t => t.Result.ok ? null : t.Result.error, ct),
+            _ => null
+        };
     }
 
     protected override void InitializeValidation()
@@ -207,6 +268,13 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
             (template, strategy) => strategy != ValueGenerationStrategy.Protobuf || !string.IsNullOrWhiteSpace(template)
         );
         this.ValidationRule(vm => vm.FixedTemplate, protobufSchemaValid, "Proto schema is required for Protobuf strategy");
+
+        var schemaContentValid = this.WhenAnyValue(
+            x => x.SchemaValidationError,
+            x => x.ValueStrategy,
+            (err, strategy) => strategy is null or ValueGenerationStrategy.RandomString || err is null
+        );
+        this.ValidationRule(vm => vm.FixedTemplate, schemaContentValid, "Schema content is invalid");
 
         var messageSizeValid = this.WhenAnyValue(
             x => x.MessageSize,
@@ -270,10 +338,10 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
 
     private async Task LoadConfigurationsAsync()
     {
-        // Save names before async loading — the ComboBox two-way binding can clear
+        // Save IDs before async loading — the ComboBox two-way binding can clear
         // Model.ProducerConfig/ConsumerConfig when ItemsSource is repopulated with new objects
-        var savedProducerName = Model.ProducerConfig?.Name;
-        var savedConsumerName = Model.ConsumerConfig?.Name;
+        var savedProducerId = Model.ProducerConfig?.Id;
+        var savedConsumerId = Model.ConsumerConfig?.Id;
 
         Producers.Clear();
         Consumers.Clear();
@@ -284,11 +352,11 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         var consumerList = await _consumerConfigRepository.GetAllAsync();
         foreach (var c in consumerList) Consumers.Add(c);
 
-        if (savedProducerName != null)
-            SelectedProducer = Producers.FirstOrDefault(p => p.Name == savedProducerName);
+        if (savedProducerId > 0)
+            SelectedProducer = Producers.FirstOrDefault(p => p.Id == savedProducerId);
 
-        if (savedConsumerName != null)
-            SelectedConsumer = Consumers.FirstOrDefault(c => c.Name == savedConsumerName);
+        if (savedConsumerId > 0)
+            SelectedConsumer = Consumers.FirstOrDefault(c => c.Id == savedConsumerId);
     }
 
     // --- Properties Wrappers ---

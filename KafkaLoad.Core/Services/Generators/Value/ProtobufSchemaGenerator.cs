@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace KafkaLoad.Core.Services.Generators.Value;
 
@@ -105,10 +107,34 @@ public class ProtobufSchemaGenerator : IDataGenerator
         }
     }
 
+    public static async Task<(bool ok, string? error)> ValidateAsync(string protoText, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(protoText))
+            return (true, null);
+
+        try
+        {
+            await Task.Run(() => CompileProto(protoText), ct);
+            return (true, null);
+        }
+        catch (OperationCanceledException)
+        {
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            var msg = ex.Message;
+            const string prefix = "protoc compilation failed:\n";
+            if (msg.StartsWith(prefix, StringComparison.Ordinal))
+                msg = msg[prefix.Length..].Trim();
+            return (false, msg);
+        }
+    }
+
     private static FileDescriptorSet CompileProto(string protoText)
     {
         var protocPath = FindProtoc();
-        var tempDir = Path.GetTempPath();
+        var tempDir = Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var baseName = $"kafkaload_{Guid.NewGuid():N}";
         var protoFile = Path.Combine(tempDir, baseName + ".proto");
         var descFile  = Path.Combine(tempDir, baseName + ".desc");
