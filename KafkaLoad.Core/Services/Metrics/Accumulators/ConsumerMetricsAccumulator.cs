@@ -24,7 +24,9 @@ public class ConsumerMetricsAccumulator : BaseMetricsAccumulator
              MaxEndToEndLatencyMs: MaxLatencyMs,
 
              MaxConsumerLag: Interlocked.Read(ref _maxConsumerLag),
-             FinalConsumerLag: Interlocked.Read(ref _finalConsumerLag)
+             FinalConsumerLag: Interlocked.Read(ref _finalConsumerLag),
+
+             LatencySumMs: Interlocked.Read(ref TotalLatencySumMs)
          );
     }
 

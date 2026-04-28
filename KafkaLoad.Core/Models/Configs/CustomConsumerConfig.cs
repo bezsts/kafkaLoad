@@ -16,10 +16,6 @@ public class CustomConsumerConfig : IConfigModel
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    // Unique identifier for the consumer group.
-    // Consumers sharing the same GroupId divide the topic partitions among themselves.
-    public string GroupId { get; set; } = string.Empty;
-
     // Determines the action when there is no initial offset in Kafka 
     // or if the current offset does not exist anymore (e.g., data deleted).
     // Earliest: Start from the beginning of the topic.

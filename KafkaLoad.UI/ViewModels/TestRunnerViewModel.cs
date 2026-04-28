@@ -116,7 +116,15 @@ public class TestRunnerViewModel : ReactiveObject, IActivatableViewModel
             finally
             {
                 IsRunning = false;
-                StatusText = "Test Finished";
+                if (!string.IsNullOrEmpty(_testRunner.ForceStopReason))
+                {
+                    StatusText = $"⚠ Force stopped: {_testRunner.ForceStopReason}";
+                    Log.Warning("Test force stopped: {Reason}", _testRunner.ForceStopReason);
+                }
+                else
+                {
+                    StatusText = "Test Finished";
+                }
             }
         }, canStart);
 

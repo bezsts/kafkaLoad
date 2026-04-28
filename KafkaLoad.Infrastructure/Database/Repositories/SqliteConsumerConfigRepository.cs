@@ -92,7 +92,6 @@ public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerCo
     {
         Id = e.Id,
         Name = e.Name,
-        GroupId = e.GroupId,
         AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),
         FetchMinBytes = e.FetchMinBytes,
         FetchMaxBytes = e.FetchMaxBytes,
@@ -116,7 +115,6 @@ public class SqliteConsumerConfigRepository : IConfigRepository<CustomConsumerCo
     {
         target ??= new ConsumerConfigEntity();
         target.Name = c.Name;
-        target.GroupId = c.GroupId;
         target.AutoOffsetReset = c.AutoOffsetReset.ToString();
         target.FetchMinBytes = c.FetchMinBytes;
         target.FetchMaxBytes = c.FetchMaxBytes;

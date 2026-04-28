@@ -25,6 +25,7 @@ public class TestRunnerService : ITestRunnerService
     private readonly object _clientsLock = new();
 
     public bool IsRunning => _cts != null && !_cts.IsCancellationRequested;
+    public string? ForceStopReason { get; private set; }
 
     public TestRunnerService(
         IKafkaClientFactory clientFactory, 
@@ -50,6 +51,7 @@ public class TestRunnerService : ITestRunnerService
             scenario.Name, scenario.TestType, request.TopicName, scenario.Duration);
 
         _cts = new CancellationTokenSource();
+        ForceStopReason = null;
         _metricsService.Reset();
 
         await Task.Run(async () =>
@@ -66,6 +68,9 @@ public class TestRunnerService : ITestRunnerService
             var throughputController = new ThroughputController(scenario);
             var replenisherTask = Task.Run(() => throughputController.RunReplenisherAsync(_cts.Token));
             tasks.Add(replenisherTask);
+
+            var healthMonitorTask = Task.Run(() => ClusterHealthMonitorAsync(request.BootstrapServers, _cts.Token));
+            tasks.Add(healthMonitorTask);
 
             // --- Start Producers ---
             if (scenario.ProducerConfig != null)
@@ -105,24 +110,25 @@ public class TestRunnerService : ITestRunnerService
 
                 if (cCount > 0)
                 {
-                    Log.Information("Initializing {Count} Consumer(s)...", cCount);
-                }
+                    string runGroupId = $"kafkaload-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                    Log.Information("Initializing {Count} Consumer(s) with GroupId: {GroupId}", cCount, runGroupId);
 
-                for (int i = 0; i < cCount; i++)
-                {
-                    var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, request.BootstrapServers, keyDeser, valDeser);
-
-                    lock (_clientsLock)
+                    for (int i = 0; i < cCount; i++)
                     {
-                        _activeClients.Add(consumer);
+                        var consumer = _clientFactory.CreateConsumer(scenario.ConsumerConfig, runGroupId, request.BootstrapServers, keyDeser, valDeser);
+
+                        lock (_clientsLock)
+                        {
+                            _activeClients.Add(consumer);
+                        }
+
+                        var worker = new ConsumerWorker(
+                            consumer,
+                            _metricsService,
+                            request.TopicName);
+
+                        tasks.Add(Task.Run(() => worker.StartAsync(_cts.Token)));
                     }
-
-                    var worker = new ConsumerWorker(
-                        consumer,
-                        _metricsService,
-                        request.TopicName);
-
-                    tasks.Add(Task.Run(() => worker.StartAsync(_cts.Token)));
                 }
             }
 
@@ -146,7 +152,17 @@ public class TestRunnerService : ITestRunnerService
                 try
                 {
                     Log.Debug("Waiting for all worker tasks to finish cleanly...");
-                    await Task.WhenAll(tasks);
+                    var waitAll = Task.WhenAll(tasks);
+                    if (await Task.WhenAny(waitAll, Task.Delay(TimeSpan.FromSeconds(15))) != waitAll)
+                    {
+                        Log.Warning("Workers did not stop within 15 seconds. Forcing shutdown.");
+                        if (string.IsNullOrEmpty(ForceStopReason))
+                            ForceStopReason = "Workers did not stop in time. Test was force stopped.";
+                    }
+                    else
+                    {
+                        await waitAll;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -237,6 +253,64 @@ public class TestRunnerService : ITestRunnerService
     {
         Log.Information("StopTest() called. Requesting cancellation...");
         _cts?.Cancel();
+    }
+
+    private async Task ClusterHealthMonitorAsync(string bootstrapServers, CancellationToken ct)
+    {
+        try { await Task.Delay(TimeSpan.FromSeconds(10), ct); }
+        catch (OperationCanceledException) { return; }
+
+        DateTime? unreachableSince = null;
+        var failureThreshold = TimeSpan.FromSeconds(30);
+        var checkInterval = TimeSpan.FromSeconds(5);
+
+        while (!ct.IsCancellationRequested)
+        {
+            bool ok = await CheckClusterReachableAsync(bootstrapServers);
+            if (!ok)
+            {
+                unreachableSince ??= DateTime.UtcNow;
+                var elapsed = DateTime.UtcNow - unreachableSince.Value;
+                Log.Warning("Cluster health check failed. Unreachable for {Elapsed:N0}s", elapsed.TotalSeconds);
+
+                if (elapsed >= failureThreshold)
+                {
+                    Log.Error("Kafka cluster unreachable for {Threshold}s. Force stopping test.", (int)failureThreshold.TotalSeconds);
+                    ForceStopReason = $"Kafka cluster was unreachable for {(int)failureThreshold.TotalSeconds} seconds.";
+                    _cts?.Cancel();
+                    return;
+                }
+            }
+            else
+            {
+                unreachableSince = null;
+            }
+
+            try { await Task.Delay(checkInterval, ct); }
+            catch (OperationCanceledException) { return; }
+        }
+    }
+
+    private static Task<bool> CheckClusterReachableAsync(string bootstrapServers)
+    {
+        return Task.Run(() =>
+        {
+            try
+            {
+                var config = new AdminClientConfig
+                {
+                    BootstrapServers = bootstrapServers,
+                    BrokerAddressFamily = BrokerAddressFamily.V4
+                };
+                using var adminClient = new AdminClientBuilder(config).Build();
+                adminClient.GetMetadata(TimeSpan.FromSeconds(3));
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        });
     }
 
     private void CleanupClients()

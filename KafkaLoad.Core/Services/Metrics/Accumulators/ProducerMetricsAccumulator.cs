@@ -27,7 +27,9 @@ public class ProducerMetricsAccumulator : BaseMetricsAccumulator
             AvgLatencyMs: CalculateAvgLatency(),
             MaxLatencyMs: MaxLatencyMs,
 
-            P95Lat: CalculateP95Latency()
+            P95Lat: CalculateP95Latency(),
+
+            LatencySumMs: Interlocked.Read(ref TotalLatencySumMs)
         );
     }
 

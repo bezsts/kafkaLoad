@@ -10,9 +10,11 @@ public record ProducerMetricsSnapshot(
 
     double ThroughputMsgSec,
     double ThroughputBytesSec,
-    
+
     double AvgLatencyMs,
     double MaxLatencyMs,
 
-    double P95Lat
+    double P95Lat,
+
+    long LatencySumMs
 );

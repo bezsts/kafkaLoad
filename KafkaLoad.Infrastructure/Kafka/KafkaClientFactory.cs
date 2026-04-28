@@ -57,16 +57,17 @@ public class KafkaClientFactory : IKafkaClientFactory
 
     public IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(
         CustomConsumerConfig config,
+        string groupId,
         string bootstrapServers,
         IDeserializer<TKey> keyDeserializer,
         IDeserializer<TValue> valueDeserializer)
     {
-        Log.Information("Creating Kafka Consumer for BootstrapServers: {Servers}, GroupId: {GroupId}", bootstrapServers, config.GroupId);
+        Log.Information("Creating Kafka Consumer for BootstrapServers: {Servers}, GroupId: {GroupId}", bootstrapServers, groupId);
 
         var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = bootstrapServers,
-            GroupId = config.GroupId,
+            GroupId = groupId,
             AutoOffsetReset = (AutoOffsetReset)config.AutoOffsetReset,
             
             // Performance settings

@@ -54,7 +54,6 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.Name).HasColumnName("name").IsRequired();
             e.HasIndex(x => x.Name).IsUnique();
-            e.Property(x => x.GroupId).HasColumnName("group_id").IsRequired();
             e.Property(x => x.AutoOffsetReset).HasColumnName("auto_offset_reset").IsRequired();
             e.Property(x => x.FetchMinBytes).HasColumnName("fetch_min_bytes");
             e.Property(x => x.FetchMaxBytes).HasColumnName("fetch_max_bytes");

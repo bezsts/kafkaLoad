@@ -11,4 +11,5 @@ public interface ITestRunnerService
     Task GenerateAndSaveReportAsync(TestRunRequest request, Dictionary<string, List<TimeSeriesPoint>> timeSeriesData);
     void StopTest();
     bool IsRunning { get; }
+    string? ForceStopReason { get; }
 }

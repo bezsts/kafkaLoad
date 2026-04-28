@@ -57,11 +57,6 @@
                     <TextBox Text="{Binding Name}"
                              Watermark="e.g. local-consumer"/>
                 </StackPanel>
-                <StackPanel Grid.Column="2" Spacing="4">
-                    <TextBlock Text="GROUP ID" Classes="field-label"/>
-                    <TextBox Text="{Binding GroupId}"
-                             Watermark="e.g. kafkaload-group-1"/>
-                </StackPanel>
             </Grid>
 
             <!-- Offset + Fetch settings side by side -->

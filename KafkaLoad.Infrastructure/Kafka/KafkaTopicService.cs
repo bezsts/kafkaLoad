@@ -17,7 +17,11 @@ namespace KafkaLoad.Infrastructure.Kafka
                 {
                     Log.Debug("Checking if topic '{TopicName}' exists on brokers: {Brokers}", topicName, bootstrapServers);
 
-                    var config = new AdminClientConfig { BootstrapServers = bootstrapServers };
+                    var config = new AdminClientConfig
+                    {
+                        BootstrapServers = bootstrapServers,
+                        BrokerAddressFamily = BrokerAddressFamily.V4
+                    };
 
                     using var adminClient = new AdminClientBuilder(config).Build();
 

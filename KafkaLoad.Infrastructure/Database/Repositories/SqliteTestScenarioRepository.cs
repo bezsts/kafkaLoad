@@ -152,7 +152,6 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
     {
         Id = e.Id,
         Name = e.Name,
-        GroupId = e.GroupId,
         AutoOffsetReset = Enum.Parse<AutoOffsetResetEnum>(e.AutoOffsetReset),
         FetchMinBytes = e.FetchMinBytes,
         FetchMaxBytes = e.FetchMaxBytes,

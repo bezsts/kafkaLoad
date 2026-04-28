@@ -50,10 +50,6 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
         this.ValidationRule(
             this.WhenAnyValue(x => x.Name, name => !string.IsNullOrWhiteSpace(name)),
             "Name is required");
-        this.ValidationRule(
-            this.WhenAnyValue(x => x.GroupId, g => !string.IsNullOrWhiteSpace(g)),
-            "Group Id required");
-
         var fetchMinValid = this.WhenAnyValue(x => x.FetchMinBytes, v => v > 0);
         this.ValidationRule(fetchMinValid, "Fetch Min Bytes must be greater than zero");
 
@@ -80,13 +76,6 @@ public class ConsumerConfigViewModel : BaseConfigViewModel<CustomConsumerConfig>
         get => Model.Name;
         set => SetProperty(value, Model.Name, v => Model.Name = v);
     }
-
-    public string GroupId
-    {
-        get => Model.GroupId;
-        set => SetProperty(value, Model.GroupId, v => Model.GroupId = v);
-    }
-
 
     public AutoOffsetResetEnum SelectedAutoOffsetReset
     {

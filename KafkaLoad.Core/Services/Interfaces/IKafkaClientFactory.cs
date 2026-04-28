@@ -7,5 +7,5 @@ public interface IKafkaClientFactory
 {
     IProducer<TKey, TValue> CreateProducer<TKey, TValue>(CustomProducerConfig config, string bootstrapServers, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerializer);
 
-    IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(CustomConsumerConfig config, string bootstrapServers, IDeserializer<TKey> keyDeserializer, IDeserializer<TValue> valueDeserializer);
+    IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(CustomConsumerConfig config, string groupId, string bootstrapServers, IDeserializer<TKey> keyDeserializer, IDeserializer<TValue> valueDeserializer);
 }

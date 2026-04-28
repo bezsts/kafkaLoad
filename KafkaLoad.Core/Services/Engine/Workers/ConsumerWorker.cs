@@ -23,6 +23,7 @@ public class ConsumerWorker : BaseWorker
     {
         await Task.Yield();
         int iterations = 0;
+        var testStartUtc = DateTime.UtcNow;
 
         try
         {
@@ -38,6 +39,9 @@ public class ConsumerWorker : BaseWorker
 
                     if (result != null && !result.IsPartitionEOF)
                     {
+                        // Skip messages produced before this test started (stale messages from previous runs)
+                        if (result.Message.Timestamp.UtcDateTime < testStartUtc) continue;
+
                         // Calculate End-to-End latency
                         double latencyMs = (DateTime.UtcNow - result.Message.Timestamp.UtcDateTime).TotalMilliseconds;
 

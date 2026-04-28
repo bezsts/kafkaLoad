@@ -114,14 +114,14 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         double consErrSec = (snapshot.Consumer.ErrorMessagesConsumed - _lastConsErrors) / deltaSec;
 
         // --- CALCULATE INSTANTANEOUS LATENCY ---
-        double currentProdLatSum = snapshot.Producer.AvgLatencyMs * snapshot.Producer.SuccessMessagesSent;
-        double currentConsLatSum = snapshot.Consumer.AvgEndToEndLatencyMs * snapshot.Consumer.SuccessMessagesConsumed;
+        double currentProdLatSum = snapshot.Producer.LatencySumMs;
+        double currentConsLatSum = snapshot.Consumer.LatencySumMs;
 
         double deltaProdMsgs = snapshot.Producer.SuccessMessagesSent - _lastProdMsgs;
         double deltaConsMsgs = snapshot.Consumer.SuccessMessagesConsumed - _lastConsMsgs;
 
-        double instProdLat = deltaProdMsgs > 0 ? (currentProdLatSum - _lastProdLatSum) / deltaProdMsgs : 0;
-        double instConsLat = deltaConsMsgs > 0 ? (currentConsLatSum - _lastConsLatSum) / deltaConsMsgs : 0;
+        double instProdLat = deltaProdMsgs > 0 ? Math.Max(0, (currentProdLatSum - _lastProdLatSum) / deltaProdMsgs) : 0;
+        double instConsLat = deltaConsMsgs > 0 ? Math.Max(0, (currentConsLatSum - _lastConsLatSum) / deltaConsMsgs) : 0;
 
         // Prevent negative values in case of counter resets
         prodMbSec = Math.Max(0, prodMbSec);
@@ -173,12 +173,12 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         _lastProdBytes = snapshot.Producer.TotalBytesSent;
         _lastProdMsgs = snapshot.Producer.SuccessMessagesSent;
         _lastProdErrors = snapshot.Producer.ErrorMessages;
-        _lastProdLatSum = snapshot.Producer.AvgLatencyMs * snapshot.Producer.SuccessMessagesSent;
+        _lastProdLatSum = snapshot.Producer.LatencySumMs;
 
         _lastConsBytes = snapshot.Consumer.TotalBytesConsumed;
         _lastConsMsgs = snapshot.Consumer.SuccessMessagesConsumed;
         _lastConsErrors = snapshot.Consumer.ErrorMessagesConsumed;
-        _lastConsLatSum = snapshot.Consumer.AvgEndToEndLatencyMs * snapshot.Consumer.SuccessMessagesConsumed;
+        _lastConsLatSum = snapshot.Consumer.LatencySumMs;
     }
 
     public Dictionary<string, List<TimeSeriesPoint>> GetTimeSeriesData()
@@ -236,9 +236,11 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         _lastProdBytes = 0;
         _lastProdMsgs = 0;
         _lastProdErrors = 0;
+        _lastProdLatSum = 0;
         _lastConsBytes = 0;
         _lastConsMsgs = 0;
         _lastConsErrors = 0;
+        _lastConsLatSum = 0;
 
         _swProdMsgRate.Reset();
         _swProdMbRate.Reset();

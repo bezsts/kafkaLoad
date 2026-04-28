@@ -13,5 +13,7 @@ public record ConsumerMetricsSnapshot(
     double MaxEndToEndLatencyMs,
 
     long MaxConsumerLag,
-    long FinalConsumerLag
+    long FinalConsumerLag,
+
+    long LatencySumMs
 );
