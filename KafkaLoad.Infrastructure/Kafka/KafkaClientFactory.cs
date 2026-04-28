@@ -34,7 +34,8 @@ public class KafkaClientFactory : IKafkaClientFactory
             EnableIdempotence = config.EnableIdempotence,
             MaxInFlight = config.MaxInFlightRequestsPerConnection,
 
-            QueueBufferingMaxMessages = 1_000_000
+            QueueBufferingMaxMessages = 1_000_000,
+            BrokerAddressFamily = BrokerAddressFamily.V4
         };
 
         ApplySecurityConfig(producerConfig, config.Security);
@@ -74,7 +75,8 @@ public class KafkaClientFactory : IKafkaClientFactory
             FetchWaitMaxMs = config.FetchMaxWait,
             MaxPollIntervalMs = config.MaxPollInterval,
 
-            EnableAutoCommit = true 
+            EnableAutoCommit = config.EnableAutoCommit,
+            BrokerAddressFamily = BrokerAddressFamily.V4
         };
 
         ApplySecurityConfig(consumerConfig, config.Security);
