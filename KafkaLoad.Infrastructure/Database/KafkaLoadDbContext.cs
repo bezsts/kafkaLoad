@@ -153,9 +153,10 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.ErrorRatePercent).HasColumnName("error_rate_percent");
             e.Property(x => x.ThroughputMsgSec).HasColumnName("throughput_msg_sec");
             e.Property(x => x.ThroughputBytesSec).HasColumnName("throughput_bytes_sec");
-            e.Property(x => x.AvgLatencyMs).HasColumnName("avg_latency_ms");
             e.Property(x => x.MaxLatencyMs).HasColumnName("max_latency_ms");
+            e.Property(x => x.P50LatencyMs).HasColumnName("p50_latency_ms");
             e.Property(x => x.P95LatencyMs).HasColumnName("p95_latency_ms");
+            e.Property(x => x.P99LatencyMs).HasColumnName("p99_latency_ms");
         });
 
         modelBuilder.Entity<ConsumerMetricsEntity>(e =>
@@ -170,8 +171,10 @@ public class KafkaLoadDbContext : DbContext
             e.Property(x => x.TotalBytesConsumed).HasColumnName("total_bytes_consumed");
             e.Property(x => x.ThroughputMsgSec).HasColumnName("throughput_msg_sec");
             e.Property(x => x.ThroughputBytesSec).HasColumnName("throughput_bytes_sec");
-            e.Property(x => x.AvgE2ELatencyMs).HasColumnName("avg_e2e_latency_ms");
             e.Property(x => x.MaxE2ELatencyMs).HasColumnName("max_e2e_latency_ms");
+            e.Property(x => x.P50E2ELatencyMs).HasColumnName("p50_e2e_latency_ms");
+            e.Property(x => x.P95E2ELatencyMs).HasColumnName("p95_e2e_latency_ms");
+            e.Property(x => x.P99E2ELatencyMs).HasColumnName("p99_e2e_latency_ms");
             e.Property(x => x.MaxConsumerLag).HasColumnName("max_consumer_lag");
             e.Property(x => x.FinalConsumerLag).HasColumnName("final_consumer_lag");
         });

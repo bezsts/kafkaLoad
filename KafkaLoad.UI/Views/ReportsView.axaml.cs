@@ -115,13 +115,52 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
 
         DrawChart(_prodThrMb,   report, "Producer_ThroughputMB", "MB/s",    0);
         DrawChart(_prodMsgRate, report, "Producer_MsgRate",       "msg/s",   0);
-        DrawChart(_prodLat,     report, "Producer_Latency",       "ms",      2);
+        DrawProducerLatencyChart(_prodLat, report);
         DrawChart(_prodErrors,  report, "Producer_Errors",        "err/s",   3);
 
-        DrawChart(_consThrMb,   report, "Consumer_ThroughputMB", "MB/s",    0);
-        DrawChart(_consMsgRate, report, "Consumer_MsgRate",       "msg/s",   0);
-        DrawChart(_consLat,     report, "Consumer_Latency",       "ms",      2);
-        DrawChart(_consErrors,  report, "Consumer_Errors",        "err/s",   3);
+        DrawChart(_consThrMb,   report, "Consumer_ThroughputMB", "MB/s",  0);
+        DrawChart(_consMsgRate, report, "Consumer_MsgRate",       "msg/s", 0);
+        DrawConsumerLatencyChart(_consLat, report);
+        DrawChart(_consErrors,  report, "Consumer_Errors",        "err/s", 3);
+    }
+
+    private void DrawProducerLatencyChart(AvaPlot? chart, TestReport report)
+    {
+        if (chart == null) return;
+
+        chart.Plot.PlottableList.Clear();
+
+        bool hasData = false;
+
+        void AddLine(string key, ScottPlot.Color color, string legend)
+        {
+            if (report.TimeSeriesData == null || !report.TimeSeriesData.TryGetValue(key, out var points) || points.Count == 0)
+                return;
+
+            var xs = points.Select(p => p.TimeSeconds).ToArray();
+            var ys = points.Select(p => p.Value).ToArray();
+
+            var scatter = chart.Plot.Add.Scatter(xs, ys);
+            scatter.Color = color;
+            scatter.LineWidth = 2;
+            scatter.MarkerSize = 0;
+            scatter.LegendText = legend;
+            hasData = true;
+        }
+
+        AddLine("Producer_Latency_P50", ChartTheme.LatencyP50, "P50");
+        AddLine("Producer_Latency_P95", ChartTheme.LatencyP95, "P95");
+        AddLine("Producer_Latency_P99", ChartTheme.LatencyP99, "P99");
+
+        if (hasData)
+            chart.Plot.ShowLegend(ScottPlot.Alignment.UpperLeft);
+        else
+            chart.Plot.HideLegend();
+
+        chart.Plot.Axes.Left.Label.Text = "ms";
+        chart.Plot.Title("Producer Latency", size: 12);
+        chart.Plot.Axes.AutoScale();
+        chart.Refresh();
     }
 
     private void DrawChart(AvaPlot? chart, TestReport report, string dictionaryKey, string yLabel, int themeIndex)
@@ -150,18 +189,57 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
         chart.Refresh();
     }
 
+    private void DrawConsumerLatencyChart(AvaPlot? chart, TestReport report)
+    {
+        if (chart == null) return;
+
+        chart.Plot.PlottableList.Clear();
+
+        bool hasData = false;
+
+        void AddLine(string key, ScottPlot.Color color, string legend)
+        {
+            if (report.TimeSeriesData == null || !report.TimeSeriesData.TryGetValue(key, out var points) || points.Count == 0)
+                return;
+
+            var xs = points.Select(p => p.TimeSeconds).ToArray();
+            var ys = points.Select(p => p.Value).ToArray();
+
+            var scatter = chart.Plot.Add.Scatter(xs, ys);
+            scatter.Color = color;
+            scatter.LineWidth = 2;
+            scatter.MarkerSize = 0;
+            scatter.LegendText = legend;
+            hasData = true;
+        }
+
+        AddLine("Consumer_Latency_P50", ChartTheme.LatencyP50, "P50");
+        AddLine("Consumer_Latency_P95", ChartTheme.LatencyP95, "P95");
+        AddLine("Consumer_Latency_P99", ChartTheme.LatencyP99, "P99");
+
+        if (hasData)
+            chart.Plot.ShowLegend(ScottPlot.Alignment.UpperLeft);
+        else
+            chart.Plot.HideLegend();
+
+        chart.Plot.Axes.Left.Label.Text = "ms";
+        chart.Plot.Title("Consumer E2E Latency", size: 12);
+        chart.Plot.Axes.AutoScale();
+        chart.Refresh();
+    }
+
     private void UpdateAllComparisonCharts(TestReport? r1, TestReport? r2)
     {
         if (r1 == null || r2 == null) return;
 
-        DrawComparisonChart(_prodThrMb,   r1, r2, "Producer_ThroughputMB", "MB/s",  lowerIsBetter: false, 0);
-        DrawComparisonChart(_prodMsgRate, r1, r2, "Producer_MsgRate",       "msg/s", lowerIsBetter: false, 0);
-        DrawComparisonChart(_prodLat,     r1, r2, "Producer_Latency",       "ms",    lowerIsBetter: true,  2);
-        DrawComparisonChart(_prodErrors,  r1, r2, "Producer_Errors",        "err/s", lowerIsBetter: true,  3);
+        DrawComparisonChart(_prodThrMb,   r1, r2, "Producer_ThroughputMB",  "MB/s",  lowerIsBetter: false, 0);
+        DrawComparisonChart(_prodMsgRate, r1, r2, "Producer_MsgRate",        "msg/s", lowerIsBetter: false, 0);
+        DrawComparisonChart(_prodLat,     r1, r2, "Producer_Latency_P95",    "ms",    lowerIsBetter: true,  2);
+        DrawComparisonChart(_prodErrors,  r1, r2, "Producer_Errors",         "err/s", lowerIsBetter: true,  3);
 
         DrawComparisonChart(_consThrMb,   r1, r2, "Consumer_ThroughputMB", "MB/s",  lowerIsBetter: false, 0);
         DrawComparisonChart(_consMsgRate, r1, r2, "Consumer_MsgRate",       "msg/s", lowerIsBetter: false, 0);
-        DrawComparisonChart(_consLat,     r1, r2, "Consumer_Latency",       "ms",    lowerIsBetter: true,  2);
+        DrawComparisonChart(_consLat,     r1, r2, "Consumer_Latency_P95",    "ms",    lowerIsBetter: true,  2);
         DrawComparisonChart(_consErrors,  r1, r2, "Consumer_Errors",        "err/s", lowerIsBetter: true,  3);
     }
 

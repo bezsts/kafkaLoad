@@ -11,14 +11,18 @@ namespace KafkaLoad.Infrastructure.Export
     {
         private static readonly (string Key, string Title, string YUnit, string Color)[] ChartDefinitions =
         {
-            ("Producer_ThroughputMB", "Producer Throughput",   "MB/s",   "#4a9eff"),
-            ("Producer_MsgRate",      "Producer Message Rate", "msg/s",  "#4a9eff"),
-            ("Producer_Latency",      "Producer Latency",      "ms",     "#f59e0b"),
-            ("Producer_Errors",       "Producer Errors",       "err/s",  "#ef4444"),
-            ("Consumer_ThroughputMB", "Consumer Throughput",   "MB/s",   "#10b981"),
-            ("Consumer_MsgRate",      "Consumer Message Rate", "msg/s",  "#10b981"),
-            ("Consumer_Latency",      "Consumer Latency",      "ms",     "#f59e0b"),
-            ("Consumer_Errors",       "Consumer Errors",       "err/s",  "#ef4444"),
+            ("Producer_ThroughputMB",    "Producer Throughput",    "MB/s",  "#4a9eff"),
+            ("Producer_MsgRate",         "Producer Message Rate",  "msg/s", "#4a9eff"),
+            ("Producer_Latency_P50",     "Producer Latency P50",   "ms",    "#22c55e"),
+            ("Producer_Latency_P95",     "Producer Latency P95",   "ms",    "#f59e0b"),
+            ("Producer_Latency_P99",     "Producer Latency P99",   "ms",    "#ef4444"),
+            ("Producer_Errors",          "Producer Errors",        "err/s", "#ef4444"),
+            ("Consumer_ThroughputMB",    "Consumer Throughput",    "MB/s",  "#10b981"),
+            ("Consumer_MsgRate",         "Consumer Message Rate",  "msg/s", "#10b981"),
+            ("Consumer_Latency_P50",     "Consumer Latency P50",   "ms",    "#22c55e"),
+            ("Consumer_Latency_P95",     "Consumer Latency P95",   "ms",    "#f59e0b"),
+            ("Consumer_Latency_P99",     "Consumer Latency P99",   "ms",    "#ef4444"),
+            ("Consumer_Errors",          "Consumer Errors",        "err/s", "#ef4444"),
         };
 
         public static string GenerateHtml(TestReport report)
@@ -106,9 +110,10 @@ namespace KafkaLoad.Infrastructure.Export
             AppendRow(sb, "Error Rate",        $"{p.ErrorRatePercent:N2} %");
             AppendRow(sb, "Throughput",        $"{p.ThroughputMsgSec:N1} msg/s");
             AppendRow(sb, "Data Sent",         $"{p.TotalBytesSent / 1_048_576.0:N2} MB");
-            AppendRow(sb, "Avg Latency",       $"{p.AvgLatencyMs:N2} ms",    "text-warn");
+            AppendRow(sb, "P50 Latency",       $"{p.P50LatencyMs:N2} ms",    "text-warn");
+            AppendRow(sb, "P95 Latency",       $"{p.P95LatencyMs:N2} ms",    "text-warn");
+            AppendRow(sb, "P99 Latency",       $"{p.P99LatencyMs:N2} ms",    "text-warn");
             AppendRow(sb, "Max Latency",       $"{p.MaxLatencyMs:N2} ms",    "text-warn");
-            AppendRow(sb, "P95 Latency",       $"{p.P95Lat:N2} ms",          "text-warn");
             sb.Append("</table>");
             sb.Append("</div>");
 
@@ -124,7 +129,9 @@ namespace KafkaLoad.Infrastructure.Export
                 AppendRow(sb, "Errors",           $"{c.ErrorMessagesConsumed:N0}",   "text-error");
                 AppendRow(sb, "Throughput",       $"{c.ThroughputMsgSec:N1} msg/s");
                 AppendRow(sb, "Data Received",    $"{c.TotalBytesConsumed / 1_048_576.0:N2} MB");
-                AppendRow(sb, "Avg E2E Latency",  $"{c.AvgEndToEndLatencyMs:N2} ms", "text-warn");
+                AppendRow(sb, "P50 E2E Latency",  $"{c.P50EndToEndLatencyMs:N2} ms", "text-warn");
+                AppendRow(sb, "P95 E2E Latency",  $"{c.P95EndToEndLatencyMs:N2} ms", "text-warn");
+                AppendRow(sb, "P99 E2E Latency",  $"{c.P99EndToEndLatencyMs:N2} ms", "text-warn");
                 AppendRow(sb, "Max E2E Latency",  $"{c.MaxEndToEndLatencyMs:N2} ms", "text-warn");
                 AppendRow(sb, "Max Consumer Lag", $"{c.MaxConsumerLag:N0}",           "text-warn");
                 AppendRow(sb, "Final Consumer Lag", $"{c.FinalConsumerLag:N0}");

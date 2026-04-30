@@ -115,29 +115,54 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
 
         int index = _prodSelector.SelectedIndex;
 
-        var buffer = index switch
-        {
-            1 => charts.ProducerMsgRate,
-            2 => charts.ProducerLatency,
-            3 => charts.ProducerErrors,
-            _ => charts.ProducerThroughput
-        };
-
-        var (color, label) = ChartTheme.GetMetricStyle(index);
-
         _producerChart.Plot.PlottableList.Clear();
 
-        var scatter = _producerChart.Plot.Add.Scatter(
-            buffer.XValues.ToArray(),
-            buffer.YValues.ToArray()
-        );
+        if (index == 2)
+        {
+            // Latency: draw P50, P95, P99 as three separate colored lines
+            void AddLatencyLine(MetricSeriesBuffer buffer, ScottPlot.Color color, string legend)
+            {
+                var scatter = _producerChart.Plot.Add.Scatter(
+                    buffer.XValues.ToArray(),
+                    buffer.YValues.ToArray()
+                );
+                scatter.Color = color;
+                scatter.LineWidth = 2;
+                scatter.MarkerSize = 0;
+                scatter.LegendText = legend;
+            }
 
-        scatter.Color = color;
-        scatter.LineWidth = 2;
-        scatter.MarkerSize = 0;
+            AddLatencyLine(charts.ProducerLatencyP50, ChartTheme.LatencyP50, "P50");
+            AddLatencyLine(charts.ProducerLatencyP95, ChartTheme.LatencyP95, "P95");
+            AddLatencyLine(charts.ProducerLatencyP99, ChartTheme.LatencyP99, "P99");
 
-        _producerChart.Plot.Axes.Left.Label.Text = label;
-        _producerChart.Plot.Title($"{buffer.Title}", size: 12);
+            _producerChart.Plot.ShowLegend(ScottPlot.Alignment.UpperLeft);
+            _producerChart.Plot.Axes.Left.Label.Text = "ms";
+            _producerChart.Plot.Title("Producer Latency (ms)", size: 12);
+        }
+        else
+        {
+            var buffer = index switch
+            {
+                1 => charts.ProducerMsgRate,
+                3 => charts.ProducerErrors,
+                _ => charts.ProducerThroughput
+            };
+
+            var (color, label) = ChartTheme.GetMetricStyle(index);
+
+            var scatter = _producerChart.Plot.Add.Scatter(
+                buffer.XValues.ToArray(),
+                buffer.YValues.ToArray()
+            );
+            scatter.Color = color;
+            scatter.LineWidth = 2;
+            scatter.MarkerSize = 0;
+
+            _producerChart.Plot.HideLegend();
+            _producerChart.Plot.Axes.Left.Label.Text = label;
+            _producerChart.Plot.Title($"{buffer.Title}", size: 12);
+        }
 
         _producerChart.Plot.Axes.AutoScale();
         _producerChart.Refresh();
@@ -149,23 +174,49 @@ public partial class TestRunnerView : ReactiveUserControl<TestRunnerViewModel>
 
         int index = _consSelector.SelectedIndex;
 
-        var buffer = index switch
-        {
-            1 => charts.ConsumerMsgRate,
-            2 => charts.ConsumerLatency,
-            3 => charts.ConsumerErrors,
-            _ => charts.ConsumerThroughput
-        };
-        var (color, label) = ChartTheme.GetMetricStyle(index);
-
         _consumerChart.Plot.PlottableList.Clear();
-        var scatter = _consumerChart.Plot.Add.Scatter(buffer.XValues.ToArray(), buffer.YValues.ToArray());
-        scatter.Color = color;
-        scatter.LineWidth = 2;
-        scatter.MarkerSize = 0;
 
-        _consumerChart.Plot.Axes.Left.Label.Text = label;
-        _consumerChart.Plot.Title($"{buffer.Title}", size: 12);
+        if (index == 2)
+        {
+            void AddLatencyLine(MetricSeriesBuffer buffer, ScottPlot.Color color, string legend)
+            {
+                var scatter = _consumerChart.Plot.Add.Scatter(
+                    buffer.XValues.ToArray(),
+                    buffer.YValues.ToArray()
+                );
+                scatter.Color = color;
+                scatter.LineWidth = 2;
+                scatter.MarkerSize = 0;
+                scatter.LegendText = legend;
+            }
+
+            AddLatencyLine(charts.ConsumerLatencyP50, ChartTheme.LatencyP50, "P50");
+            AddLatencyLine(charts.ConsumerLatencyP95, ChartTheme.LatencyP95, "P95");
+            AddLatencyLine(charts.ConsumerLatencyP99, ChartTheme.LatencyP99, "P99");
+
+            _consumerChart.Plot.ShowLegend(ScottPlot.Alignment.UpperLeft);
+            _consumerChart.Plot.Axes.Left.Label.Text = "ms";
+            _consumerChart.Plot.Title("Consumer E2E Latency (ms)", size: 12);
+        }
+        else
+        {
+            var buffer = index switch
+            {
+                1 => charts.ConsumerMsgRate,
+                3 => charts.ConsumerErrors,
+                _ => charts.ConsumerThroughput
+            };
+            var (color, label) = ChartTheme.GetMetricStyle(index);
+
+            var scatter = _consumerChart.Plot.Add.Scatter(buffer.XValues.ToArray(), buffer.YValues.ToArray());
+            scatter.Color = color;
+            scatter.LineWidth = 2;
+            scatter.MarkerSize = 0;
+
+            _consumerChart.Plot.HideLegend();
+            _consumerChart.Plot.Axes.Left.Label.Text = label;
+            _consumerChart.Plot.Title($"{buffer.Title}", size: 12);
+        }
 
         _consumerChart.Plot.Axes.AutoScale();
         _consumerChart.Refresh();

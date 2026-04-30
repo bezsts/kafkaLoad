@@ -419,7 +419,7 @@
                             <StackPanel Grid.Column="2" Spacing="8"
                                         IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
                                 <TextBlock Text="Producer Metrics" Classes="section-title"/>
-                                <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Total Attempted"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value"
                                                Text="{Binding ProducerMetrics.TotalMessagesAttempted, StringFormat='{}{0:N0}'}"/>
@@ -448,17 +448,21 @@
                                     <TextBlock Grid.Row="6" Grid.Column="2" Classes="metric-value"
                                                Text="{Binding ProducerMetrics.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
 
-                                    <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="Avg Latency"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="P50 Latency"/>
                                     <TextBlock Grid.Row="7" Grid.Column="2" Classes="metric-value metric-warn"
-                                               Text="{Binding ProducerMetrics.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+                                               Text="{Binding ProducerMetrics.P50LatencyMs, StringFormat='{}{0:N2} ms'}"/>
 
-                                    <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="Max Latency"/>
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="P95 Latency"/>
                                     <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value metric-warn"
-                                               Text="{Binding ProducerMetrics.MaxLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+                                               Text="{Binding ProducerMetrics.P95LatencyMs, StringFormat='{}{0:N2} ms'}"/>
 
-                                    <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="P95 Latency"/>
+                                    <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="P99 Latency"/>
                                     <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value metric-warn"
-                                               Text="{Binding ProducerMetrics.P95Lat, StringFormat='{}{0:N2} ms'}"/>
+                                               Text="{Binding ProducerMetrics.P99LatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="10" Grid.Column="0" Classes="metric-label" Text="Max Latency"/>
+                                    <TextBlock Grid.Row="10" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ProducerMetrics.MaxLatencyMs, StringFormat='{}{0:N2} ms'}"/>
                                 </Grid>
                             </StackPanel>
 
@@ -466,7 +470,7 @@
                                         IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
                                 <TextBlock Text="Consumer Metrics" Classes="section-title"
                                            IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6"
+                                <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6"
                                       IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Total Received"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value"
@@ -492,20 +496,28 @@
                                     <TextBlock Grid.Row="5" Grid.Column="2" Classes="metric-value"
                                                Text="{Binding ConsumerMetrics.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
 
-                                    <TextBlock Grid.Row="6" Grid.Column="0" Classes="metric-label" Text="Avg E2E Latency"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Classes="metric-label" Text="P50 E2E Latency"/>
                                     <TextBlock Grid.Row="6" Grid.Column="2" Classes="metric-value metric-warn"
-                                               Text="{Binding ConsumerMetrics.AvgEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+                                               Text="{Binding ConsumerMetrics.P50EndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
 
-                                    <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="Max E2E Latency"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="P95 E2E Latency"/>
                                     <TextBlock Grid.Row="7" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ConsumerMetrics.P95EndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="P99 E2E Latency"/>
+                                    <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ConsumerMetrics.P99EndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="Max E2E Latency"/>
+                                    <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value metric-warn"
                                                Text="{Binding ConsumerMetrics.MaxEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
 
-                                    <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="Max Consumer Lag"/>
-                                    <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value"
+                                    <TextBlock Grid.Row="10" Grid.Column="0" Classes="metric-label" Text="Max Consumer Lag"/>
+                                    <TextBlock Grid.Row="10" Grid.Column="2" Classes="metric-value"
                                                Text="{Binding ConsumerMetrics.MaxConsumerLag, StringFormat='{}{0:N0}'}"/>
 
-                                    <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="Final Consumer Lag"/>
-                                    <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value"
+                                    <TextBlock Grid.Row="11" Grid.Column="0" Classes="metric-label" Text="Final Consumer Lag"/>
+                                    <TextBlock Grid.Row="11" Grid.Column="2" Classes="metric-value"
                                                Text="{Binding ConsumerMetrics.FinalConsumerLag, StringFormat='{}{0:N0}'}"/>
                                 </Grid>
                             </StackPanel>

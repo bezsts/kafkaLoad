@@ -12,8 +12,10 @@ public class ConsumerMetricsEntity
     public long TotalBytesConsumed { get; set; }
     public double ThroughputMsgSec { get; set; }
     public double ThroughputBytesSec { get; set; }
-    public double AvgE2ELatencyMs { get; set; }
     public double MaxE2ELatencyMs { get; set; }
+    public double P50E2ELatencyMs { get; set; }
+    public double P95E2ELatencyMs { get; set; }
+    public double P99E2ELatencyMs { get; set; }
     public long MaxConsumerLag { get; set; }
     public long FinalConsumerLag { get; set; }
 }

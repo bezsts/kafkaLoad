@@ -217,9 +217,10 @@ public class TestRunnerService : ITestRunnerService
                 ErrorRatePercent = snapshot.Producer.ErrorRatePercent,
                 ThroughputMsgSec = snapshot.Producer.ThroughputMsgSec,
                 ThroughputBytesSec = snapshot.Producer.ThroughputBytesSec,
-                AvgLatencyMs = snapshot.Producer.AvgLatencyMs,
                 MaxLatencyMs = snapshot.Producer.MaxLatencyMs,
-                P95Lat = snapshot.Producer.P95Lat
+                P50LatencyMs = snapshot.Producer.P50Lat,
+                P95LatencyMs = snapshot.Producer.P95Lat,
+                P99LatencyMs = snapshot.Producer.P99Lat
             },
 
             TimeSeriesData = timeSeriesData
@@ -235,8 +236,10 @@ public class TestRunnerService : ITestRunnerService
                 ErrorMessagesConsumed = snapshot.Consumer.ErrorMessagesConsumed,
                 ThroughputMsgSec = snapshot.Consumer.ThroughputMsgSec,
                 ThroughputBytesSec = snapshot.Consumer.ThroughputBytesSec,
-                AvgEndToEndLatencyMs = snapshot.Consumer.AvgEndToEndLatencyMs,
                 MaxEndToEndLatencyMs = snapshot.Consumer.MaxEndToEndLatencyMs,
+                P50EndToEndLatencyMs = snapshot.Consumer.P50Lat,
+                P95EndToEndLatencyMs = snapshot.Consumer.P95Lat,
+                P99EndToEndLatencyMs = snapshot.Consumer.P99Lat,
                 MaxConsumerLag = snapshot.Consumer.MaxConsumerLag,
                 FinalConsumerLag = snapshot.Consumer.FinalConsumerLag
             };

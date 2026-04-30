@@ -107,12 +107,12 @@ namespace KafkaLoad.Core.Services.Metrics.Accumulators
             return total > 0 ? ((double)errors / total) * 100.0 : 0;
         }
 
-        protected double CalculateP95Latency()
+        protected double CalculatePercentileLatency(double percentile)
         {
             long totalRecorded = Interlocked.Read(ref LatencyCount);
             if (totalRecorded == 0) return 0;
 
-            long targetCount = (long)(totalRecorded * 0.95);
+            long targetCount = (long)(totalRecorded * percentile);
             long accumulatedCount = 0;
 
             for (int i = 0; i < LatencyBuckets.Length; i++)
@@ -127,5 +127,9 @@ namespace KafkaLoad.Core.Services.Metrics.Accumulators
 
             return LatencyBuckets.Length;
         }
+
+        protected double CalculateP50Latency() => CalculatePercentileLatency(0.50);
+        protected double CalculateP95Latency() => CalculatePercentileLatency(0.95);
+        protected double CalculateP99Latency() => CalculatePercentileLatency(0.99);
     }
 }

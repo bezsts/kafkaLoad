@@ -9,11 +9,11 @@ public record ConsumerMetricsSnapshot(
     double ThroughputMsgSec,
     double ThroughputBytesSec,
 
-    double AvgEndToEndLatencyMs,
     double MaxEndToEndLatencyMs,
+    double P50Lat,
+    double P95Lat,
+    double P99Lat,
 
     long MaxConsumerLag,
-    long FinalConsumerLag,
-
-    long LatencySumMs
+    long FinalConsumerLag
 );

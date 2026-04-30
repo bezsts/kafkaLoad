@@ -1,4 +1,4 @@
-﻿using KafkaLoad.Core.Models;
+using KafkaLoad.Core.Models;
 using KafkaLoad.Core.Models.Metrics;
 using KafkaLoad.Core.Models.Reports;
 using KafkaLoad.Core.Services.Interfaces;
@@ -20,12 +20,16 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
 
     // Buffers for charts
     public MetricSeriesBuffer ProducerThroughput { get; }
-    public MetricSeriesBuffer ProducerLatency { get; }
+    public MetricSeriesBuffer ProducerLatencyP50 { get; }
+    public MetricSeriesBuffer ProducerLatencyP95 { get; }
+    public MetricSeriesBuffer ProducerLatencyP99 { get; }
     public MetricSeriesBuffer ProducerMsgRate { get; }
     public MetricSeriesBuffer ProducerErrors { get; }
 
     public MetricSeriesBuffer ConsumerThroughput { get; }
-    public MetricSeriesBuffer ConsumerLatency { get; }
+    public MetricSeriesBuffer ConsumerLatencyP50 { get; }
+    public MetricSeriesBuffer ConsumerLatencyP95 { get; }
+    public MetricSeriesBuffer ConsumerLatencyP99 { get; }
     public MetricSeriesBuffer ConsumerMsgRate { get; }
     public MetricSeriesBuffer ConsumerErrors { get; }
 
@@ -42,33 +46,33 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
     private long _lastProdBytes = 0;
     private long _lastProdMsgs = 0;
     private long _lastProdErrors = 0;
-    private double _lastProdLatSum = 0;
 
     private long _lastConsBytes = 0;
     private long _lastConsMsgs = 0;
     private long _lastConsErrors = 0;
-    private double _lastConsLatSum = 0;
 
     // --- SLIDING WINDOW SMOOTHING (8 samples × 500ms = 4 seconds) ---
     private const int SmoothingSamples = 8;
-    private readonly SlidingWindowRate _swProdMsgRate   = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swProdMbRate    = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swProdLatency   = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swConsMsgRate   = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swConsMbRate    = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swConsLatency   = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swProdMsgRate = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swProdMbRate  = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swConsMsgRate = new(SmoothingSamples);
+    private readonly SlidingWindowRate _swConsMbRate  = new(SmoothingSamples);
 
     public RealTimeChartViewModel(IMetricsService metricsService)
     {
         _metricsService = metricsService;
 
         ProducerThroughput = new MetricSeriesBuffer("Producer MB/s");
-        ProducerLatency = new MetricSeriesBuffer("Producer Latency (ms)");
+        ProducerLatencyP50 = new MetricSeriesBuffer("Producer P50 Latency (ms)");
+        ProducerLatencyP95 = new MetricSeriesBuffer("Producer P95 Latency (ms)");
+        ProducerLatencyP99 = new MetricSeriesBuffer("Producer P99 Latency (ms)");
         ProducerMsgRate = new MetricSeriesBuffer("Producer Msg/s");
         ProducerErrors = new MetricSeriesBuffer("Producer Errors/sec");
 
         ConsumerThroughput = new MetricSeriesBuffer("Consumer MB/s");
-        ConsumerLatency = new MetricSeriesBuffer("Consumer Latency (ms)");
+        ConsumerLatencyP50 = new MetricSeriesBuffer("Consumer P50 Latency (ms)");
+        ConsumerLatencyP95 = new MetricSeriesBuffer("Consumer P95 Latency (ms)");
+        ConsumerLatencyP99 = new MetricSeriesBuffer("Consumer P99 Latency (ms)");
         ConsumerMsgRate = new MetricSeriesBuffer("Consumer Msg/s");
         ConsumerErrors = new MetricSeriesBuffer("Consumer Errors/sec");
 
@@ -111,16 +115,6 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         double consMsgSec = (snapshot.Consumer.SuccessMessagesConsumed - _lastConsMsgs) / deltaSec;
         long deltaConsErrors = snapshot.Consumer.ErrorMessagesConsumed - _lastConsErrors;
 
-        // --- CALCULATE INSTANTANEOUS LATENCY ---
-        double currentProdLatSum = snapshot.Producer.LatencySumMs;
-        double currentConsLatSum = snapshot.Consumer.LatencySumMs;
-
-        double deltaProdMsgs = snapshot.Producer.SuccessMessagesSent - _lastProdMsgs;
-        double deltaConsMsgs = snapshot.Consumer.SuccessMessagesConsumed - _lastConsMsgs;
-
-        double instProdLat = deltaProdMsgs > 0 ? Math.Max(0, (currentProdLatSum - _lastProdLatSum) / deltaProdMsgs) : 0;
-        double instConsLat = deltaConsMsgs > 0 ? Math.Max(0, (currentConsLatSum - _lastConsLatSum) / deltaConsMsgs) : 0;
-
         // Prevent negative values in case of counter resets
         prodMbSec = Math.Max(0, prodMbSec);
         prodMsgSec = Math.Max(0, prodMsgSec);
@@ -131,17 +125,10 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
 
         // --- SMOOTH RATES OVER A 4-SECOND SLIDING WINDOW ---
 
-        double smoothProdMsgSec  = _swProdMsgRate.Add(prodMsgSec  * deltaSec, deltaSec);
-        double smoothProdMbSec   = _swProdMbRate .Add(prodMbSec   * deltaSec, deltaSec);
-        double smoothConsMsgSec  = _swConsMsgRate.Add(consMsgSec  * deltaSec, deltaSec);
-        double smoothConsMbSec   = _swConsMbRate .Add(consMbSec   * deltaSec, deltaSec);
-
-        double smoothProdLatency = deltaProdMsgs > 0
-            ? _swProdLatency.Add(instProdLat * deltaProdMsgs, deltaProdMsgs)
-            : _swProdLatency.Add(0, 0);
-        double smoothConsLatency = deltaConsMsgs > 0
-            ? _swConsLatency.Add(instConsLat * deltaConsMsgs, deltaConsMsgs)
-            : _swConsLatency.Add(0, 0);
+        double smoothProdMsgSec = _swProdMsgRate.Add(prodMsgSec * deltaSec, deltaSec);
+        double smoothProdMbSec  = _swProdMbRate .Add(prodMbSec  * deltaSec, deltaSec);
+        double smoothConsMsgSec = _swConsMsgRate.Add(consMsgSec * deltaSec, deltaSec);
+        double smoothConsMbSec  = _swConsMbRate .Add(consMbSec  * deltaSec, deltaSec);
 
         // --- UPDATE BUFFERS ---
 
@@ -149,13 +136,21 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         ProducerThroughput.AddPoint(time, smoothProdMbSec);
         ProducerMsgRate.AddPoint(time, smoothProdMsgSec);
         ProducerErrors.AddPoint(time, deltaProdErrors);
-        ProducerLatency.AddPoint(time, smoothProdLatency);
+
+        // Producer latency: use running cumulative percentiles from histogram
+        ProducerLatencyP50.AddPoint(time, snapshot.Producer.P50Lat);
+        ProducerLatencyP95.AddPoint(time, snapshot.Producer.P95Lat);
+        ProducerLatencyP99.AddPoint(time, snapshot.Producer.P99Lat);
 
         // Consumer
         ConsumerThroughput.AddPoint(time, smoothConsMbSec);
         ConsumerMsgRate.AddPoint(time, smoothConsMsgSec);
         ConsumerErrors.AddPoint(time, deltaConsErrors);
-        ConsumerLatency.AddPoint(time, smoothConsLatency);
+
+        // Consumer latency: use running cumulative percentiles from histogram
+        ConsumerLatencyP50.AddPoint(time, snapshot.Consumer.P50Lat);
+        ConsumerLatencyP95.AddPoint(time, snapshot.Consumer.P95Lat);
+        ConsumerLatencyP99.AddPoint(time, snapshot.Consumer.P99Lat);
 
         // --- SAVE STATE FOR NEXT CALCULATION ---
         UpdateLastValues(snapshot);
@@ -169,12 +164,10 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         _lastProdBytes = snapshot.Producer.TotalBytesSent;
         _lastProdMsgs = snapshot.Producer.SuccessMessagesSent;
         _lastProdErrors = snapshot.Producer.TotalErrors;
-        _lastProdLatSum = snapshot.Producer.LatencySumMs;
 
         _lastConsBytes = snapshot.Consumer.TotalBytesConsumed;
         _lastConsMsgs = snapshot.Consumer.SuccessMessagesConsumed;
         _lastConsErrors = snapshot.Consumer.ErrorMessagesConsumed;
-        _lastConsLatSum = snapshot.Consumer.LatencySumMs;
     }
 
     public Dictionary<string, List<TimeSeriesPoint>> GetTimeSeriesData()
@@ -205,12 +198,16 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
 
         AddSeries("Producer_MsgRate", ProducerMsgRate);
         AddSeries("Producer_ThroughputMB", ProducerThroughput);
-        AddSeries("Producer_Latency", ProducerLatency);
+        AddSeries("Producer_Latency_P50", ProducerLatencyP50);
+        AddSeries("Producer_Latency_P95", ProducerLatencyP95);
+        AddSeries("Producer_Latency_P99", ProducerLatencyP99);
         AddSeries("Producer_Errors", ProducerErrors);
 
         AddSeries("Consumer_MsgRate", ConsumerMsgRate);
         AddSeries("Consumer_ThroughputMB", ConsumerThroughput);
-        AddSeries("Consumer_Latency", ConsumerLatency);
+        AddSeries("Consumer_Latency_P50", ConsumerLatencyP50);
+        AddSeries("Consumer_Latency_P95", ConsumerLatencyP95);
+        AddSeries("Consumer_Latency_P99", ConsumerLatencyP99);
         AddSeries("Consumer_Errors", ConsumerErrors);
 
         return result;
@@ -219,12 +216,16 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
     public void Reset()
     {
         ProducerThroughput.Clear();
-        ProducerLatency.Clear();
+        ProducerLatencyP50.Clear();
+        ProducerLatencyP95.Clear();
+        ProducerLatencyP99.Clear();
         ProducerMsgRate.Clear();
         ProducerErrors.Clear();
 
         ConsumerThroughput.Clear();
-        ConsumerLatency.Clear();
+        ConsumerLatencyP50.Clear();
+        ConsumerLatencyP95.Clear();
+        ConsumerLatencyP99.Clear();
         ConsumerMsgRate.Clear();
         ConsumerErrors.Clear();
 
@@ -232,18 +233,14 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         _lastProdBytes = 0;
         _lastProdMsgs = 0;
         _lastProdErrors = 0;
-        _lastProdLatSum = 0;
         _lastConsBytes = 0;
         _lastConsMsgs = 0;
         _lastConsErrors = 0;
-        _lastConsLatSum = 0;
 
         _swProdMsgRate.Reset();
         _swProdMbRate.Reset();
-        _swProdLatency.Reset();
         _swConsMsgRate.Reset();
         _swConsMbRate.Reset();
-        _swConsLatency.Reset();
 
         RefreshCounter = 0;
     }

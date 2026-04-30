@@ -1,4 +1,4 @@
-﻿using ScottPlot;
+using ScottPlot;
 
 namespace KafkaLoad.UI.Helpers
 {
@@ -12,6 +12,10 @@ namespace KafkaLoad.UI.Helpers
         public static readonly Color MetricThroughputMsg = Color.FromHex("#8B5CF6");
         public static readonly Color MetricLatency = Color.FromHex("#F59E0B");
         public static readonly Color MetricErrors = Color.FromHex("#EF4444");
+
+        public static readonly Color LatencyP50 = Color.FromHex("#22C55E");
+        public static readonly Color LatencyP95 = Color.FromHex("#F59E0B");
+        public static readonly Color LatencyP99 = Color.FromHex("#EF4444");
 
         public static (Color Color, string Label) GetMetricStyle(int index)
         {

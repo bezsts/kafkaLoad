@@ -13,7 +13,8 @@ public class ProducerMetricsEntity
     public double ErrorRatePercent { get; set; }
     public double ThroughputMsgSec { get; set; }
     public double ThroughputBytesSec { get; set; }
-    public double AvgLatencyMs { get; set; }
     public double MaxLatencyMs { get; set; }
+    public double P50LatencyMs { get; set; }
     public double P95LatencyMs { get; set; }
+    public double P99LatencyMs { get; set; }
 }

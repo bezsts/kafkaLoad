@@ -36,9 +36,10 @@ namespace KafkaLoad.Core.Models.Reports
         public double ThroughputMsgSec { get; set; }
         public double ThroughputBytesSec { get; set; }
 
-        public double AvgLatencyMs { get; set; }
         public double MaxLatencyMs { get; set; }
-        public double P95Lat { get; set; }
+        public double P50LatencyMs { get; set; }
+        public double P95LatencyMs { get; set; }
+        public double P99LatencyMs { get; set; }
     }
 
     public class ConsumerReportMetrics
@@ -51,8 +52,10 @@ namespace KafkaLoad.Core.Models.Reports
         public double ThroughputMsgSec { get; set; }
         public double ThroughputBytesSec { get; set; }
 
-        public double AvgEndToEndLatencyMs { get; set; }
         public double MaxEndToEndLatencyMs { get; set; }
+        public double P50EndToEndLatencyMs { get; set; }
+        public double P95EndToEndLatencyMs { get; set; }
+        public double P99EndToEndLatencyMs { get; set; }
 
         public long MaxConsumerLag { get; set; }
         public long FinalConsumerLag { get; set; }

@@ -12,12 +12,11 @@ public record ProducerMetricsSnapshot(
     double ThroughputMsgSec,
     double ThroughputBytesSec,
 
-    double AvgLatencyMs,
     double MaxLatencyMs,
 
+    double P50Lat,
     double P95Lat,
-
-    long LatencySumMs
+    double P99Lat
 )
 {
     public long TotalErrors => ErrorMessages;

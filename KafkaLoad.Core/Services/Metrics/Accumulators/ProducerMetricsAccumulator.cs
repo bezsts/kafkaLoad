@@ -25,12 +25,11 @@ public class ProducerMetricsAccumulator : BaseMetricsAccumulator
             ThroughputMsgSec: CalculateThroughputMsg(elapsedSeconds),
             ThroughputBytesSec: CalculateThroughputBytes(elapsedSeconds),
 
-            AvgLatencyMs: CalculateAvgLatency(),
             MaxLatencyMs: MaxLatencyMs,
 
+            P50Lat: CalculateP50Latency(),
             P95Lat: CalculateP95Latency(),
-
-            LatencySumMs: Interlocked.Read(ref TotalLatencySumMs)
+            P99Lat: CalculateP99Latency()
         );
     }
 

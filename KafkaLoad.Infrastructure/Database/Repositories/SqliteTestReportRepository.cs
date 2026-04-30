@@ -53,9 +53,10 @@ public class SqliteTestReportRepository : ITestReportRepository
                 ErrorRatePercent = report.ProducerMetrics.ErrorRatePercent,
                 ThroughputMsgSec = report.ProducerMetrics.ThroughputMsgSec,
                 ThroughputBytesSec = report.ProducerMetrics.ThroughputBytesSec,
-                AvgLatencyMs = report.ProducerMetrics.AvgLatencyMs,
                 MaxLatencyMs = report.ProducerMetrics.MaxLatencyMs,
-                P95LatencyMs = report.ProducerMetrics.P95Lat
+                P50LatencyMs = report.ProducerMetrics.P50LatencyMs,
+                P95LatencyMs = report.ProducerMetrics.P95LatencyMs,
+                P99LatencyMs = report.ProducerMetrics.P99LatencyMs
             },
             ConsumerMetrics = report.ConsumerMetrics is null ? null : new ConsumerMetricsEntity
             {
@@ -66,8 +67,10 @@ public class SqliteTestReportRepository : ITestReportRepository
                 TotalBytesConsumed = report.ConsumerMetrics.TotalBytesConsumed,
                 ThroughputMsgSec = report.ConsumerMetrics.ThroughputMsgSec,
                 ThroughputBytesSec = report.ConsumerMetrics.ThroughputBytesSec,
-                AvgE2ELatencyMs = report.ConsumerMetrics.AvgEndToEndLatencyMs,
                 MaxE2ELatencyMs = report.ConsumerMetrics.MaxEndToEndLatencyMs,
+                P50E2ELatencyMs = report.ConsumerMetrics.P50EndToEndLatencyMs,
+                P95E2ELatencyMs = report.ConsumerMetrics.P95EndToEndLatencyMs,
+                P99E2ELatencyMs = report.ConsumerMetrics.P99EndToEndLatencyMs,
                 MaxConsumerLag = report.ConsumerMetrics.MaxConsumerLag,
                 FinalConsumerLag = report.ConsumerMetrics.FinalConsumerLag
             },
@@ -189,9 +192,10 @@ public class SqliteTestReportRepository : ITestReportRepository
                 ErrorRatePercent = e.ProducerMetrics.ErrorRatePercent,
                 ThroughputMsgSec = e.ProducerMetrics.ThroughputMsgSec,
                 ThroughputBytesSec = e.ProducerMetrics.ThroughputBytesSec,
-                AvgLatencyMs = e.ProducerMetrics.AvgLatencyMs,
                 MaxLatencyMs = e.ProducerMetrics.MaxLatencyMs,
-                P95Lat = e.ProducerMetrics.P95LatencyMs
+                P50LatencyMs = e.ProducerMetrics.P50LatencyMs,
+                P95LatencyMs = e.ProducerMetrics.P95LatencyMs,
+                P99LatencyMs = e.ProducerMetrics.P99LatencyMs
             },
             ConsumerMetrics = e.ConsumerMetrics is null ? null : new ConsumerReportMetrics
             {
@@ -201,8 +205,10 @@ public class SqliteTestReportRepository : ITestReportRepository
                 TotalBytesConsumed = e.ConsumerMetrics.TotalBytesConsumed,
                 ThroughputMsgSec = e.ConsumerMetrics.ThroughputMsgSec,
                 ThroughputBytesSec = e.ConsumerMetrics.ThroughputBytesSec,
-                AvgEndToEndLatencyMs = e.ConsumerMetrics.AvgE2ELatencyMs,
                 MaxEndToEndLatencyMs = e.ConsumerMetrics.MaxE2ELatencyMs,
+                P50EndToEndLatencyMs = e.ConsumerMetrics.P50E2ELatencyMs,
+                P95EndToEndLatencyMs = e.ConsumerMetrics.P95E2ELatencyMs,
+                P99EndToEndLatencyMs = e.ConsumerMetrics.P99E2ELatencyMs,
                 MaxConsumerLag = e.ConsumerMetrics.MaxConsumerLag,
                 FinalConsumerLag = e.ConsumerMetrics.FinalConsumerLag
             },

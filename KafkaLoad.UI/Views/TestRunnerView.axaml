@@ -222,14 +222,18 @@
                                            Text="{Binding Metrics.Producer.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s', FallbackValue='0.00 MB/s'}"/>
                             </Grid>
 
-                            <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto" RowSpacing="8">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Avg latency"/>
+                            <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="P50 latency"/>
                                 <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding Metrics.Producer.AvgLatencyMs, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
+                                           Text="{Binding Metrics.Producer.P50Lat, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="P95 latency"/>
                                 <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value metric-warn"
                                            Text="{Binding Metrics.Producer.P95Lat, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="P99 latency"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-warn"
+                                           Text="{Binding Metrics.Producer.P99Lat, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
                             </Grid>
 
                             <Separator Height="1" Background="{DynamicResource BorderColor}"/>
@@ -284,13 +288,21 @@
                                            Text="{Binding Metrics.Consumer.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s', FallbackValue='0.00 MB/s'}"/>
                             </Grid>
 
-                            <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto" RowSpacing="8">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Avg E2E latency"/>
+                            <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="P50 E2E latency"/>
                                 <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding Metrics.Consumer.AvgEndToEndLatencyMs, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
+                                           Text="{Binding Metrics.Consumer.P50Lat, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Consumer lag"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value"
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="P95 E2E latency"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value metric-warn"
+                                           Text="{Binding Metrics.Consumer.P95Lat, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="P99 E2E latency"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-warn"
+                                           Text="{Binding Metrics.Consumer.P99Lat, StringFormat='{}{0:N2} ms', FallbackValue='0.00 ms'}"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Consumer lag"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Classes="metric-value"
                                            Text="{Binding Metrics.Consumer.FinalConsumerLag, StringFormat='{}{0:N0}', FallbackValue='0'}"/>
                             </Grid>
 

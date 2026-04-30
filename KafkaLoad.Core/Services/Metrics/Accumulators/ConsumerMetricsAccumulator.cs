@@ -20,13 +20,13 @@ public class ConsumerMetricsAccumulator : BaseMetricsAccumulator
              ThroughputMsgSec: CalculateThroughputMsg(elapsedSeconds),
              ThroughputBytesSec: CalculateThroughputBytes(elapsedSeconds),
 
-             AvgEndToEndLatencyMs: CalculateAvgLatency(),
              MaxEndToEndLatencyMs: MaxLatencyMs,
+             P50Lat: CalculateP50Latency(),
+             P95Lat: CalculateP95Latency(),
+             P99Lat: CalculateP99Latency(),
 
              MaxConsumerLag: Interlocked.Read(ref _maxConsumerLag),
-             FinalConsumerLag: Interlocked.Read(ref _finalConsumerLag),
-
-             LatencySumMs: Interlocked.Read(ref TotalLatencySumMs)
+             FinalConsumerLag: Interlocked.Read(ref _finalConsumerLag)
          );
     }
 

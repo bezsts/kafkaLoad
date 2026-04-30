@@ -318,8 +318,9 @@ namespace KafkaLoad.UI.ViewModels.Reports
             ProducerComparison.Add(Compare("Errors", p1.ErrorMessages, p2.ErrorMessages, lowerIsBetter: true, "N0"));
             ProducerComparison.Add(Compare("Throughput (Msg/s)", p1.ThroughputMsgSec, p2.ThroughputMsgSec, lowerIsBetter: false));
             ProducerComparison.Add(Compare("Throughput (MB/s)", p1.ThroughputBytesSec / 1024.0 / 1024.0, p2.ThroughputBytesSec / 1024.0 / 1024.0, lowerIsBetter: false));
-            ProducerComparison.Add(Compare("Avg Latency (ms)", p1.AvgLatencyMs, p2.AvgLatencyMs, lowerIsBetter: true));
-            ProducerComparison.Add(Compare("P95 Latency (ms)", p1.P95Lat, p2.P95Lat, lowerIsBetter: true));
+            ProducerComparison.Add(Compare("P50 Latency (ms)", p1.P50LatencyMs, p2.P50LatencyMs, lowerIsBetter: true));
+            ProducerComparison.Add(Compare("P95 Latency (ms)", p1.P95LatencyMs, p2.P95LatencyMs, lowerIsBetter: true));
+            ProducerComparison.Add(Compare("P99 Latency (ms)", p1.P99LatencyMs, p2.P99LatencyMs, lowerIsBetter: true));
 
             if (SelectedReport.ConsumerMetrics != null && CompareWithReport.ConsumerMetrics != null)
             {
