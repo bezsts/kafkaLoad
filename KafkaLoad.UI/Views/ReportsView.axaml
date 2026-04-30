@@ -6,6 +6,7 @@
              xmlns:vm="using:KafkaLoad.UI.ViewModels.Reports"
              xmlns:conv="using:KafkaLoad.UI.Helpers"
              xmlns:reports="using:KafkaLoad.Core.Models.Reports"
+             xmlns:enums="using:KafkaLoad.Core.Enums"
              xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="KafkaLoad.UI.Views.ReportsView"
@@ -41,6 +42,14 @@
             <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
+        <Style Selector="TextBlock.col-header">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="ListBoxItem.candidate-row">
+            <Setter Property="Padding" Value="0"/>
+        </Style>
     </UserControl.Styles>
 
     <Grid ColumnDefinitions="280, 8, *">
@@ -57,29 +66,8 @@
                             Cursor="Hand" ToolTip.Tip="Refresh"/>
                 </Grid>
 
-                <!-- Compare + Delete buttons -->
+                <!-- Delete button row -->
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,0,0,8">
-                    <ComboBox ItemsSource="{Binding Reports}"
-                              SelectedItem="{Binding CompareWithReport}"
-                              PlaceholderText="Compare with..."
-                              HorizontalAlignment="Stretch" Width="160" FontSize="12">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="{Binding ScenarioName}" FontWeight="SemiBold" FontSize="12"/>
-                                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:MM.dd HH:mm}'}"
-                                               Foreground="{DynamicResource TextSecondary}" FontSize="11"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <Button Content="✖"
-                            Command="{Binding ClearComparisonCommand}"
-                            IsVisible="{Binding CompareWithReport, Converter={x:Static ObjectConverters.IsNotNull}}"
-                            Background="Transparent" Foreground="{DynamicResource TextSecondary}"
-                            BorderThickness="0" Padding="4,0" Cursor="Hand"
-                            ToolTip.Tip="Clear comparison"/>
                     <Button Classes="delete" Content="Delete"
                             Command="{Binding DeleteReportCommand}"
                             CommandParameter="{Binding SelectedReport.Id}"
@@ -111,282 +99,480 @@
             </Grid>
         </Border>
 
-        <!-- Right panel: report details -->
+        <!-- Right panel -->
         <Grid Grid.Column="2" Margin="0,8,8,8">
 
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
-                    IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNull}}">
-            <TextBlock Text="Select a report to view details"
-                       FontSize="20" FontWeight="Light"
-                       Foreground="{DynamicResource TextSecondary}"/>
-        </StackPanel>
+            <!-- State 1: No report selected -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8"
+                        IsVisible="{Binding SelectedReport, Converter={x:Static ObjectConverters.IsNull}}">
+                <TextBlock Text="Select a report to view details"
+                           FontSize="20" FontWeight="Light"
+                           Foreground="{DynamicResource TextSecondary}"/>
+            </StackPanel>
 
-        <Border Classes="card" Padding="20"
-                DataContext="{Binding SelectedReport}"
-                IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Grid RowDefinitions="*, Auto, 2*">
-                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,8">
-                <StackPanel Spacing="14" Margin="0,0,4,0">
+            <!-- State 2: Report selector screen -->
+            <Border Classes="card" Padding="20"
+                    IsVisible="{Binding IsSelectingCompareReport}">
+                <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
 
-                    <!-- Header: name + badges + run time -->
-                    <StackPanel Spacing="4">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding ScenarioName}" FontSize="22" FontWeight="Bold"/>
-                                <Border Background="{DynamicResource PrimaryBlue}" CornerRadius="4"
-                                        Padding="8,3" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding TestType}" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="White"/>
+                    <!-- Selector header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,12">
+                        <Button Grid.Column="0"
+                                Command="{Binding CancelComparisonSelectorCommand}"
+                                Content="← Back"
+                                Background="Transparent" BorderThickness="0"
+                                Foreground="{DynamicResource PrimaryBlue}"
+                                FontSize="13" FontWeight="SemiBold"
+                                Cursor="Hand" Padding="0,0,16,0"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="Select a report to compare with"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimary}"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Search box -->
+                    <TextBox Grid.Row="1" Classes="search"
+                             Text="{Binding CandidateSearchText}"
+                             Watermark="Search by scenario name..."
+                             Margin="0,0,0,8"/>
+
+                    <!-- Filter chips + Sort -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                        <WrapPanel Grid.Column="0" Orientation="Horizontal">
+                            <ToggleButton Classes="filter" Margin="0,0,4,0"
+                                          IsChecked="{Binding IsCandidateFilterAll, Mode=OneWay}"
+                                          Command="{Binding SetCandidateFilterCommand}"
+                                          CommandParameter="{x:Null}"
+                                          Content="All"/>
+                            <ToggleButton Classes="filter" Margin="0,0,4,0"
+                                          IsChecked="{Binding IsCandidateFilterLoad, Mode=OneWay}"
+                                          Command="{Binding SetCandidateFilterCommand}"
+                                          CommandParameter="{x:Static enums:TestType.Load}"
+                                          Content="Load"/>
+                            <ToggleButton Classes="filter" Margin="0,0,4,0"
+                                          IsChecked="{Binding IsCandidateFilterStress, Mode=OneWay}"
+                                          Command="{Binding SetCandidateFilterCommand}"
+                                          CommandParameter="{x:Static enums:TestType.Stress}"
+                                          Content="Stress"/>
+                            <ToggleButton Classes="filter" Margin="0,0,4,0"
+                                          IsChecked="{Binding IsCandidateFilterSpike, Mode=OneWay}"
+                                          Command="{Binding SetCandidateFilterCommand}"
+                                          CommandParameter="{x:Static enums:TestType.Spike}"
+                                          Content="Spike"/>
+                            <ToggleButton Classes="filter" Margin="0,0,4,0"
+                                          IsChecked="{Binding IsCandidateFilterSoak, Mode=OneWay}"
+                                          Command="{Binding SetCandidateFilterCommand}"
+                                          CommandParameter="{x:Static enums:TestType.Soak}"
+                                          Content="Soak"/>
+                        </WrapPanel>
+                        <ComboBox Grid.Column="1" Classes="sort"
+                                  ItemsSource="{Binding CandidateSortOptions}"
+                                  SelectedItem="{Binding CandidateSelectedSort}"
+                                  MinWidth="120" VerticalAlignment="Top"/>
+                    </Grid>
+
+                    <Separator Grid.Row="3" Height="1" Background="{DynamicResource BorderColor}" Margin="0,0,0,10"/>
+
+                    <!-- Table -->
+                    <Grid Grid.Row="4" RowDefinitions="Auto, *">
+
+                        <!-- Column headers — widths must match row template exactly -->
+                        <Border Grid.Row="0"
+                                Background="{DynamicResource CardBackground}"
+                                BorderBrush="{DynamicResource BorderColor}"
+                                BorderThickness="1" CornerRadius="4,4,0,0"
+                                Padding="12,8">
+                            <Grid ColumnDefinitions="2*, 155, 90, 80, *, 96">
+                                <TextBlock Grid.Column="0" Classes="col-header" Text="Scenario"/>
+                                <TextBlock Grid.Column="1" Classes="col-header" Text="Date"/>
+                                <TextBlock Grid.Column="2" Classes="col-header" Text="Type"/>
+                                <TextBlock Grid.Column="3" Classes="col-header" Text="Duration" HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="4" Classes="col-header" Text="Target"/>
+                                <TextBlock Grid.Column="5" Classes="col-header" Text=""/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Rows -->
+                        <Border Grid.Row="1"
+                                BorderBrush="{DynamicResource BorderColor}"
+                                BorderThickness="1,0,1,1" CornerRadius="0,0,4,4">
+                            <ListBox ItemsSource="{Binding CompareReportCandidates}"
+                                     Background="Transparent"
+                                     SelectionMode="Single">
+                                <ListBox.ItemContainerTheme>
+                                    <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    </ControlTheme>
+                                </ListBox.ItemContainerTheme>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="reports:TestReport">
+                                        <Border BorderBrush="{DynamicResource BorderColor}"
+                                                BorderThickness="0,0,0,1"
+                                                Padding="12,9">
+                                            <Grid ColumnDefinitions="2*, 155, 90, 80, *, 96">
+
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding ScenarioName}"
+                                                           FontWeight="SemiBold" FontSize="13"
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"/>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                           Foreground="{DynamicResource TextSecondary}"
+                                                           FontSize="12" VerticalAlignment="Center"/>
+
+                                                <Border Grid.Column="2"
+                                                        CornerRadius="4" Padding="6,2"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Left">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border">
+                                                            <Setter Property="Background" Value="{DynamicResource PrimaryBlue}"/>
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <TextBlock Text="{Binding TestType}"
+                                                               FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="White"
+                                                               HorizontalAlignment="Center"/>
+                                                </Border>
+
+                                                <TextBlock Grid.Column="3"
+                                                           Text="{Binding DurationSeconds, StringFormat='{}{0}s'}"
+                                                           Foreground="{DynamicResource TextSecondary}"
+                                                           FontSize="12" VerticalAlignment="Center"
+                                                           HorizontalAlignment="Center"/>
+
+                                                <TextBlock Grid.Column="4"
+                                                           Text="{Binding ConfigSnapshot.TargetThroughput, StringFormat='{}{0:N0} msg/s', TargetNullValue='Unlimited'}"
+                                                           Foreground="{DynamicResource TextSecondary}"
+                                                           FontSize="12" VerticalAlignment="Center"/>
+
+                                                <Button Grid.Column="5"
+                                                        Classes="accent"
+                                                        Content="Compare"
+                                                        Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).SelectCompareReportCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Padding="10,4" FontSize="12"
+                                                        VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- State 3: Report detail view -->
+            <Border Classes="card" Padding="20"
+                    DataContext="{Binding SelectedReport}"
+                    IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).IsSelectingCompareReport, Converter={x:Static BoolConverters.Not}}">
+                <Border.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="." Converter="{x:Static ObjectConverters.IsNotNull}"/>
+                        <Binding Path="$parent[UserControl].((vm:ReportsViewModel)DataContext).IsSelectingCompareReport"
+                                 Converter="{x:Static BoolConverters.Not}"/>
+                    </MultiBinding>
+                </Border.IsVisible>
+
+                <Grid RowDefinitions="*, Auto, 2*">
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,8">
+                    <StackPanel Spacing="14" Margin="0,0,4,0">
+
+                        <!-- Header: name + badges + buttons -->
+                        <StackPanel Spacing="4">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ScenarioName}" FontSize="22" FontWeight="Bold"/>
+                                    <Border Background="{DynamicResource PrimaryBlue}" CornerRadius="4"
+                                            Padding="8,3" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TestType}" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="White"/>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardBackground}" CornerRadius="4"
+                                            BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+                                            Padding="8,3" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DurationSeconds, StringFormat='{}{0}s'}"
+                                                   FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Action buttons -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+                                    <!-- Comparison active badge -->
+                                    <Border Background="#EFF6FF"
+                                            BorderBrush="#BFDBFE" BorderThickness="1"
+                                            CornerRadius="6" Padding="8,4"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Foreground="#2563EB" FontSize="11"
+                                                       VerticalAlignment="Center">
+                                                <Run Text="Comparing with: "/>
+                                                <Run Text="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport.ScenarioName}"
+                                                     FontWeight="SemiBold"/>
+                                            </TextBlock>
+                                            <Button Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ClearComparisonCommand}"
+                                                    Content="✕"
+                                                    Background="Transparent" BorderThickness="0"
+                                                    Foreground="#2563EB" Padding="2,0"
+                                                    FontSize="11" Cursor="Hand"
+                                                    ToolTip.Tip="Clear comparison"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Button Content="Export HTML"
+                                            Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ExportReportCommand}"
+                                            Padding="10,5" FontSize="12" VerticalAlignment="Center"
+                                            ToolTip.Tip="Save report as a self-contained HTML file"/>
+
+                                    <Button Classes="accent"
+                                            Content="Compare"
+                                            Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).OpenComparisonSelectorCommand}"
+                                            Padding="10,5" FontSize="12" VerticalAlignment="Center"
+                                            ToolTip.Tip="Compare with another report"
+                                            IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="{Binding CreatedAt, StringFormat='Run: {0:yyyy-MM-dd HH:mm:ss}'}"
+                                       Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                        </StackPanel>
+
+                        <Separator Height="1" Background="{DynamicResource BorderColor}"/>
+
+                        <!-- Config snapshot + Producer/Consumer metrics side-by-side -->
+                        <Grid ColumnDefinitions="200, 12, *, 12, *">
+
+                            <!-- Config data -->
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Configuration" Classes="section-title"/>
+                                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Topic" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="metric-value"
+                                               Text="{Binding ConfigSnapshot.TopicName}" HorizontalAlignment="Left"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Producers" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="metric-value"
+                                               Text="{Binding ConfigSnapshot.ProducersCount}" HorizontalAlignment="Left"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Consumers" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="metric-value"
+                                               Text="{Binding ConfigSnapshot.ConsumersCount}" HorizontalAlignment="Left"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Msg size" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Classes="metric-value"
+                                               Text="{Binding ConfigSnapshot.MessageSize, StringFormat='{}{0:N0} B'}" HorizontalAlignment="Left"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="metric-label" Text="Target" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Classes="metric-value"
+                                               Text="{Binding ConfigSnapshot.TargetThroughput, StringFormat='{}{0:N0} msg/s', TargetNullValue='Unlimited'}"
+                                               HorizontalAlignment="Left"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Comparison results (when comparing) -->
+                            <StackPanel Grid.Column="2" Grid.ColumnSpan="3" Spacing="10"
+                                        IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="Comparison Results" Classes="section-title"/>
+
+                                <StackPanel.Resources>
+                                    <DataTemplate x:Key="DiffTemplate" x:DataType="reports:MetricDiff">
+                                        <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" Padding="4,8">
+                                            <Grid ColumnDefinitions="180, *, *, *">
+                                                <TextBlock Grid.Column="0" Text="{Binding MetricName}"
+                                                           Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value1}" FontWeight="SemiBold" FontSize="12"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Value2}" FontWeight="SemiBold" FontSize="12"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding DiffText}"
+                                                           Foreground="{Binding DiffColor}" FontWeight="Bold" FontSize="12"
+                                                           HorizontalAlignment="Right"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </StackPanel.Resources>
+
+                                <Grid ColumnDefinitions="180, *, *, *" Margin="4,0">
+                                    <TextBlock Grid.Column="0" Text="Metric" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
+                                    <TextBlock Grid.Column="1" Text="Selected" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
+                                    <TextBlock Grid.Column="2" Text="Compared" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
+                                    <TextBlock Grid.Column="3" Text="Diff" Foreground="{DynamicResource TextSecondary}" FontSize="11" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <TextBlock Text="PRODUCER" FontWeight="Bold" FontSize="11"
+                                           Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                                <ItemsControl ItemsSource="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ProducerComparison}"
+                                              ItemTemplate="{StaticResource DiffTemplate}"/>
+
+                                <TextBlock Text="CONSUMER" FontWeight="Bold" FontSize="11"
+                                           Foreground="{DynamicResource TextSecondary}" Margin="0,8,0,0"
+                                           IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ConsumerComparison.Count}"/>
+                                <ItemsControl ItemsSource="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ConsumerComparison}"
+                                              ItemTemplate="{StaticResource DiffTemplate}"/>
+                            </StackPanel>
+
+                            <!-- Single report metrics (when not comparing) -->
+                            <StackPanel Grid.Column="2" Spacing="8"
+                                        IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
+                                <TextBlock Text="Producer Metrics" Classes="section-title"/>
+                                <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Total Attempted"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ProducerMetrics.TotalMessagesAttempted, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Successful Sent"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value metric-success"
+                                               Text="{Binding ProducerMetrics.SuccessMessagesSent, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Errors"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-error"
+                                               Text="{Binding ProducerMetrics.ErrorMessages, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Error Rate"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="metric-value metric-error"
+                                               Text="{Binding ProducerMetrics.ErrorRatePercent, StringFormat='{}{0:N2} %'}"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ProducerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1} msg/s'}"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ProducerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Classes="metric-label" Text="Data Sent"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ProducerMetrics.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
+
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="Avg Latency"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ProducerMetrics.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="Max Latency"/>
+                                    <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ProducerMetrics.MaxLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="P95 Latency"/>
+                                    <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ProducerMetrics.P95Lat, StringFormat='{}{0:N2} ms'}"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4" Spacing="8"
+                                        IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
+                                <TextBlock Text="Consumer Metrics" Classes="section-title"
+                                           IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6"
+                                      IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Total Received"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ConsumerMetrics.TotalMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Successful"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value metric-success"
+                                               Text="{Binding ConsumerMetrics.SuccessMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Errors"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-error"
+                                               Text="{Binding ConsumerMetrics.ErrorMessagesConsumed, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ConsumerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1} msg/s'}"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ConsumerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Classes="metric-label" Text="Data Received"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ConsumerMetrics.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Classes="metric-label" Text="Avg E2E Latency"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ConsumerMetrics.AvgEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="Max E2E Latency"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="2" Classes="metric-value metric-warn"
+                                               Text="{Binding ConsumerMetrics.MaxEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
+
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="Max Consumer Lag"/>
+                                    <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ConsumerMetrics.MaxConsumerLag, StringFormat='{}{0:N0}'}"/>
+
+                                    <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="Final Consumer Lag"/>
+                                    <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value"
+                                               Text="{Binding ConsumerMetrics.FinalConsumerLag, StringFormat='{}{0:N0}'}"/>
+                                </Grid>
+                            </StackPanel>
+
+                        </Grid>
+
+                        <Separator Height="1" Background="{DynamicResource BorderColor}"/>
+                    </StackPanel>
+                    </ScrollViewer>
+
+                    <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch"
+                                  Background="{DynamicResource BorderColor}"
+                                  Cursor="SizeNorthSouth" Margin="0,2"/>
+
+                    <!-- Charts area -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                                  Margin="0,8,0,0">
+                        <Grid ColumnDefinitions="*, 12, *" Margin="0,0,4,0">
+
+                            <!-- Producer charts -->
+                            <StackPanel Grid.Column="0" Spacing="10">
+                                <TextBlock Text="Producer" Classes="section-title" Margin="0,0,0,4"/>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ProdThroughputMbChart" Height="200"/>
                                 </Border>
-                                <Border Background="{DynamicResource CardBackground}" CornerRadius="4"
-                                        BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
-                                        Padding="8,3" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding DurationSeconds, StringFormat='{}{0}s'}"
-                                               FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ProdMsgRateChart" Height="200"/>
+                                </Border>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ProdLatencyChart" Height="200"/>
+                                </Border>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ProdErrorsChart" Height="200"/>
                                 </Border>
                             </StackPanel>
-                            <Button Grid.Column="1"
-                                    Content="Export HTML"
-                                    Command="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ExportReportCommand}"
-                                    Padding="10,5" FontSize="12" VerticalAlignment="Center"
-                                    ToolTip.Tip="Save report as a self-contained HTML file"/>
+
+                            <!-- Consumer charts -->
+                            <StackPanel Grid.Column="2" Spacing="10"
+                                        IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="Consumer" Classes="section-title" Margin="0,0,0,4"/>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ConsThroughputMbChart" Height="200"/>
+                                </Border>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ConsMsgRateChart" Height="200"/>
+                                </Border>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ConsLatencyChart" Height="200"/>
+                                </Border>
+                                <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1" CornerRadius="4" Padding="8">
+                                    <sp:AvaPlot Name="ConsErrorsChart" Height="200"/>
+                                </Border>
+                            </StackPanel>
+
                         </Grid>
-                        <TextBlock Text="{Binding CreatedAt, StringFormat='Run: {0:yyyy-MM-dd HH:mm:ss}'}"
-                                   Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
-                    </StackPanel>
+                    </ScrollViewer>
 
-                    <Separator Height="1" Background="{DynamicResource BorderColor}"/>
-
-                    <!-- Config snapshot + Producer/Consumer metrics side-by-side -->
-                    <Grid ColumnDefinitions="200, 12, *, 12, *">
-
-                        <!-- Config data -->
-                        <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="Configuration" Classes="section-title"/>
-                            <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Topic" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Classes="metric-value"
-                                           Text="{Binding ConfigSnapshot.TopicName}" HorizontalAlignment="Left"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Producers" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Classes="metric-value"
-                                           Text="{Binding ConfigSnapshot.ProducersCount}" HorizontalAlignment="Left"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Consumers" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Classes="metric-value"
-                                           Text="{Binding ConfigSnapshot.ConsumersCount}" HorizontalAlignment="Left"/>
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Msg size" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Classes="metric-value"
-                                           Text="{Binding ConfigSnapshot.MessageSize, StringFormat='{}{0:N0} B'}" HorizontalAlignment="Left"/>
-
-                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="metric-label" Text="Target" Margin="0,0,10,0"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Classes="metric-value"
-                                           Text="{Binding ConfigSnapshot.TargetThroughput, StringFormat='{}{0:N0} msg/s', TargetNullValue='Unlimited'}"
-                                           HorizontalAlignment="Left"/>
-                            </Grid>
-                        </StackPanel>
-
-                        <!-- Comparison results (when comparing) -->
-                        <StackPanel Grid.Column="2" Grid.ColumnSpan="3" Spacing="10"
-                                    IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNotNull}}">
-                            <TextBlock Text="Comparison Results" Classes="section-title"/>
-
-                            <StackPanel.Resources>
-                                <DataTemplate x:Key="DiffTemplate" x:DataType="reports:MetricDiff">
-                                    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" Padding="4,8">
-                                        <Grid ColumnDefinitions="180, *, *, *">
-                                            <TextBlock Grid.Column="0" Text="{Binding MetricName}"
-                                                       Foreground="{DynamicResource TextSecondary}" FontSize="12"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Value1}" FontWeight="SemiBold" FontSize="12"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding Value2}" FontWeight="SemiBold" FontSize="12"/>
-                                            <TextBlock Grid.Column="3" Text="{Binding DiffText}"
-                                                       Foreground="{Binding DiffColor}" FontWeight="Bold" FontSize="12"
-                                                       HorizontalAlignment="Right"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </StackPanel.Resources>
-
-                            <Grid ColumnDefinitions="180, *, *, *" Margin="4,0">
-                                <TextBlock Grid.Column="0" Text="Metric" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
-                                <TextBlock Grid.Column="1" Text="Selected" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
-                                <TextBlock Grid.Column="2" Text="Compared" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
-                                <TextBlock Grid.Column="3" Text="Diff" Foreground="{DynamicResource TextSecondary}" FontSize="11" HorizontalAlignment="Right"/>
-                            </Grid>
-
-                            <TextBlock Text="PRODUCER" FontWeight="Bold" FontSize="11"
-                                       Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
-                            <ItemsControl ItemsSource="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ProducerComparison}"
-                                          ItemTemplate="{StaticResource DiffTemplate}"/>
-
-                            <TextBlock Text="CONSUMER" FontWeight="Bold" FontSize="11"
-                                       Foreground="{DynamicResource TextSecondary}" Margin="0,8,0,0"
-                                       IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ConsumerComparison.Count}"/>
-                            <ItemsControl ItemsSource="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).ConsumerComparison}"
-                                          ItemTemplate="{StaticResource DiffTemplate}"/>
-                        </StackPanel>
-
-                        <!-- Single report metrics (when not comparing) -->
-                        <StackPanel Grid.Column="2" Spacing="8"
-                                    IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
-                            <TextBlock Text="Producer Metrics" Classes="section-title"/>
-                            <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Total Attempted"/>
-                                <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ProducerMetrics.TotalMessagesAttempted, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Successful Sent"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value metric-success"
-                                           Text="{Binding ProducerMetrics.SuccessMessagesSent, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Errors"/>
-                                <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-error"
-                                           Text="{Binding ProducerMetrics.ErrorMessages, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Error Rate"/>
-                                <TextBlock Grid.Row="3" Grid.Column="2" Classes="metric-value metric-error"
-                                           Text="{Binding ProducerMetrics.ErrorRatePercent, StringFormat='{}{0:N2} %'}"/>
-
-                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
-                                <TextBlock Grid.Row="4" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ProducerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1} msg/s'}"/>
-
-                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
-                                <TextBlock Grid.Row="5" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ProducerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
-
-                                <TextBlock Grid.Row="6" Grid.Column="0" Classes="metric-label" Text="Data Sent"/>
-                                <TextBlock Grid.Row="6" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ProducerMetrics.TotalBytesSent, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
-
-                                <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="Avg Latency"/>
-                                <TextBlock Grid.Row="7" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding ProducerMetrics.AvgLatencyMs, StringFormat='{}{0:N2} ms'}"/>
-
-                                <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="Max Latency"/>
-                                <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding ProducerMetrics.MaxLatencyMs, StringFormat='{}{0:N2} ms'}"/>
-
-                                <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="P95 Latency"/>
-                                <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding ProducerMetrics.P95Lat, StringFormat='{}{0:N2} ms'}"/>
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="4" Spacing="8"
-                                    IsVisible="{Binding $parent[UserControl].((vm:ReportsViewModel)DataContext).CompareWithReport, Converter={x:Static ObjectConverters.IsNull}}">
-                            <TextBlock Text="Consumer Metrics" Classes="section-title"
-                                       IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                            <Grid ColumnDefinitions="*, 8, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6"
-                                  IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="metric-label" Text="Total Received"/>
-                                <TextBlock Grid.Row="0" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ConsumerMetrics.TotalMessagesConsumed, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="metric-label" Text="Successful"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2" Classes="metric-value metric-success"
-                                           Text="{Binding ConsumerMetrics.SuccessMessagesConsumed, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Errors"/>
-                                <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-error"
-                                           Text="{Binding ConsumerMetrics.ErrorMessagesConsumed, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
-                                <TextBlock Grid.Row="3" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ConsumerMetrics.ThroughputMsgSec, StringFormat='{}{0:N1} msg/s'}"/>
-
-                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
-                                <TextBlock Grid.Row="4" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ConsumerMetrics.ThroughputBytesSec, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB/s'}"/>
-
-                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="metric-label" Text="Data Received"/>
-                                <TextBlock Grid.Row="5" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ConsumerMetrics.TotalBytesConsumed, Converter={StaticResource BytesToMegabytesConverter}, StringFormat='{}{0:N2} MB'}"/>
-
-                                <TextBlock Grid.Row="6" Grid.Column="0" Classes="metric-label" Text="Avg E2E Latency"/>
-                                <TextBlock Grid.Row="6" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding ConsumerMetrics.AvgEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
-
-                                <TextBlock Grid.Row="7" Grid.Column="0" Classes="metric-label" Text="Max E2E Latency"/>
-                                <TextBlock Grid.Row="7" Grid.Column="2" Classes="metric-value metric-warn"
-                                           Text="{Binding ConsumerMetrics.MaxEndToEndLatencyMs, StringFormat='{}{0:N2} ms'}"/>
-
-                                <TextBlock Grid.Row="8" Grid.Column="0" Classes="metric-label" Text="Max Consumer Lag"/>
-                                <TextBlock Grid.Row="8" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ConsumerMetrics.MaxConsumerLag, StringFormat='{}{0:N0}'}"/>
-
-                                <TextBlock Grid.Row="9" Grid.Column="0" Classes="metric-label" Text="Final Consumer Lag"/>
-                                <TextBlock Grid.Row="9" Grid.Column="2" Classes="metric-value"
-                                           Text="{Binding ConsumerMetrics.FinalConsumerLag, StringFormat='{}{0:N0}'}"/>
-                            </Grid>
-                        </StackPanel>
-
-                    </Grid>
-
-                    <Separator Height="1" Background="{DynamicResource BorderColor}"/>
-                </StackPanel>
-                </ScrollViewer>
-
-                <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch"
-                              Background="{DynamicResource BorderColor}"
-                              Cursor="SizeNorthSouth" Margin="0,2"/>
-
-                <!-- Charts area: own ScrollViewer to avoid conflict with chart wheel-zoom -->
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                              Margin="0,8,0,0">
-                    
-                   
-                    <Grid ColumnDefinitions="*, 12, *" Margin="0,0,4,0">
-
-                        <!-- Producer charts: stacked vertically -->
-                        <StackPanel Grid.Column="0" Spacing="10">
-                            <TextBlock Text="Producer" Classes="section-title" Margin="0,0,0,4"/>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ProdThroughputMbChart" Height="200"/>
-                            </Border>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ProdMsgRateChart" Height="200"/>
-                            </Border>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ProdLatencyChart" Height="200"/>
-                            </Border>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ProdErrorsChart" Height="200"/>
-                            </Border>
-                        </StackPanel>
-
-                        <!-- Consumer charts: stacked vertically -->
-                        <StackPanel Grid.Column="2" Spacing="10"
-                                    IsVisible="{Binding ConsumerMetrics, Converter={x:Static ObjectConverters.IsNotNull}}">
-                            <TextBlock Text="Consumer" Classes="section-title" Margin="0,0,0,4"/>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ConsThroughputMbChart" Height="200"/>
-                            </Border>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ConsMsgRateChart" Height="200"/>
-                            </Border>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ConsLatencyChart" Height="200"/>
-                            </Border>
-                            <Border Background="#F9FAFB" BorderBrush="{DynamicResource BorderColor}"
-                                    BorderThickness="1" CornerRadius="4" Padding="8">
-                                <sp:AvaPlot Name="ConsErrorsChart" Height="200"/>
-                            </Border>
-                        </StackPanel>
-
-                    </Grid>
-                </ScrollViewer>
-
-            </Grid>
-        </Border>
+                </Grid>
+            </Border>
 
         </Grid><!-- right panel wrapper -->
 

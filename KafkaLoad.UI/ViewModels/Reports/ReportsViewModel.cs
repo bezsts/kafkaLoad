@@ -1,12 +1,15 @@
-﻿using KafkaLoad.Core.Models.Reports;
+using KafkaLoad.Core.Enums;
+using KafkaLoad.Core.Models.Reports;
 using KafkaLoad.Core.Services.Interfaces;
 using KafkaLoad.Infrastructure.Export;
+using KafkaLoad.UI.ViewModels;
 using ReactiveUI;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -14,11 +17,24 @@ using System.Threading.Tasks;
 
 namespace KafkaLoad.UI.ViewModels.Reports
 {
+    public enum CandidateSort
+    {
+        Newest,
+        Oldest,
+        NameAsc,
+        NameDesc,
+        DurationAsc,
+        DurationDesc,
+        TargetAsc,
+        TargetDesc
+    }
+
     public class ReportsViewModel : ReactiveObject
     {
         private readonly ITestReportRepository _reportRepository;
 
         public ObservableCollection<TestReport> Reports { get; } = new();
+        public ObservableCollection<TestReport> CompareReportCandidates { get; } = new();
 
         private TestReport? _selectedReport;
         public TestReport? SelectedReport
@@ -28,6 +44,7 @@ namespace KafkaLoad.UI.ViewModels.Reports
             {
                 this.RaiseAndSetIfChanged(ref _selectedReport, value);
                 CompareWithReport = null;
+                IsSelectingCompareReport = false;
                 if (value != null)
                     _ = EnsureTimeSeriesAsync(value, nameof(SelectedReport));
             }
@@ -38,6 +55,13 @@ namespace KafkaLoad.UI.ViewModels.Reports
         {
             get => _isLoading;
             set => this.RaiseAndSetIfChanged(ref _isLoading, value);
+        }
+
+        private bool _isSelectingCompareReport;
+        public bool IsSelectingCompareReport
+        {
+            get => _isSelectingCompareReport;
+            set => this.RaiseAndSetIfChanged(ref _isSelectingCompareReport, value);
         }
 
         private TestReport? _compareWithReport;
@@ -53,24 +77,91 @@ namespace KafkaLoad.UI.ViewModels.Reports
             }
         }
 
+        // --- Candidate filter / search / sort ---
+
+        private string _candidateSearchText = string.Empty;
+        public string CandidateSearchText
+        {
+            get => _candidateSearchText;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _candidateSearchText, value);
+                RefreshCandidates();
+            }
+        }
+
+        private TestType? _candidateTypeFilter;
+        public TestType? CandidateTypeFilter
+        {
+            get => _candidateTypeFilter;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _candidateTypeFilter, value);
+                this.RaisePropertyChanged(nameof(IsCandidateFilterAll));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterLoad));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterStress));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterSpike));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterSoak));
+                RefreshCandidates();
+            }
+        }
+
+        public bool IsCandidateFilterAll    => !_candidateTypeFilter.HasValue;
+        public bool IsCandidateFilterLoad   => _candidateTypeFilter == TestType.Load;
+        public bool IsCandidateFilterStress => _candidateTypeFilter == TestType.Stress;
+        public bool IsCandidateFilterSpike  => _candidateTypeFilter == TestType.Spike;
+        public bool IsCandidateFilterSoak   => _candidateTypeFilter == TestType.Soak;
+
+        public List<SortOption<CandidateSort>> CandidateSortOptions { get; } = new()
+        {
+            new("Newest",       CandidateSort.Newest),
+            new("Oldest",       CandidateSort.Oldest),
+            new("Name A→Z",     CandidateSort.NameAsc),
+            new("Name Z→A",     CandidateSort.NameDesc),
+            new("Duration ↑",   CandidateSort.DurationAsc),
+            new("Duration ↓",   CandidateSort.DurationDesc),
+            new("Target ↑",     CandidateSort.TargetAsc),
+            new("Target ↓",     CandidateSort.TargetDesc),
+        };
+
+        private SortOption<CandidateSort> _candidateSelectedSort;
+        public SortOption<CandidateSort> CandidateSelectedSort
+        {
+            get => _candidateSelectedSort;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _candidateSelectedSort, value);
+                RefreshCandidates();
+            }
+        }
+
+        public ReactiveCommand<object?, Unit> SetCandidateFilterCommand { get; }
+
+        // --- Comparison data ---
+
         public ObservableCollection<MetricDiff> ProducerComparison { get; } = new();
         public ObservableCollection<MetricDiff> ConsumerComparison { get; } = new();
-
         public ObservableCollection<ScenarioRunSummary> ScenarioStatistics { get; } = new();
 
         private readonly Subject<TestReport> _timeSeriesReady = new();
         public IObservable<TestReport> TimeSeriesReady => _timeSeriesReady;
 
+        // --- Commands ---
+
         public ReactiveCommand<Unit, Unit> LoadReportsCommand { get; }
         public ReactiveCommand<string, Unit> DeleteReportCommand { get; }
         public ReactiveCommand<Unit, Unit> ClearComparisonCommand { get; }
         public ReactiveCommand<Unit, Unit> ExportReportCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenComparisonSelectorCommand { get; }
+        public ReactiveCommand<Unit, Unit> CancelComparisonSelectorCommand { get; }
+        public ReactiveCommand<TestReport, Unit> SelectCompareReportCommand { get; }
 
         public Interaction<string, string?> SaveFileDialog { get; } = new();
 
         public ReportsViewModel(ITestReportRepository reportRepository)
         {
             _reportRepository = reportRepository;
+            _candidateSelectedSort = CandidateSortOptions[0];
 
             LoadReportsCommand = ReactiveCommand.CreateFromTask(LoadReportsAsync);
             DeleteReportCommand = ReactiveCommand.CreateFromTask<string>(DeleteReportAsync);
@@ -79,14 +170,73 @@ namespace KafkaLoad.UI.ViewModels.Reports
             var canExport = this.WhenAnyValue(x => x.SelectedReport).Select(r => r != null);
             ExportReportCommand = ReactiveCommand.CreateFromTask(ExportReportAsync, canExport);
 
+            var canOpenSelector = this.WhenAnyValue(x => x.SelectedReport).Select(r => r != null);
+            OpenComparisonSelectorCommand = ReactiveCommand.Create(() =>
+            {
+                CandidateSearchText = string.Empty;
+                _candidateTypeFilter = null;
+                this.RaisePropertyChanged(nameof(IsCandidateFilterAll));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterLoad));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterStress));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterSpike));
+                this.RaisePropertyChanged(nameof(IsCandidateFilterSoak));
+                _candidateSelectedSort = CandidateSortOptions[0];
+                this.RaisePropertyChanged(nameof(CandidateSelectedSort));
+                RefreshCandidates();
+                IsSelectingCompareReport = true;
+            }, canOpenSelector);
+
+            CancelComparisonSelectorCommand = ReactiveCommand.Create(() =>
+            {
+                IsSelectingCompareReport = false;
+            });
+
+            SelectCompareReportCommand = ReactiveCommand.Create<TestReport>(report =>
+            {
+                IsSelectingCompareReport = false;
+                CompareWithReport = report;
+            });
+
+            SetCandidateFilterCommand = ReactiveCommand.Create<object?>(param =>
+            {
+                CandidateTypeFilter = param is TestType t ? t : (TestType?)null;
+            });
+
             LoadReportsCommand.Execute().Subscribe();
+        }
+
+        private void RefreshCandidates()
+        {
+            var q = Reports.Where(r => r.Id != SelectedReport?.Id).AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(CandidateSearchText))
+                q = q.Where(r => r.ScenarioName.Contains(CandidateSearchText, StringComparison.OrdinalIgnoreCase));
+
+            if (_candidateTypeFilter.HasValue)
+                q = q.Where(r => r.TestType == _candidateTypeFilter.Value);
+
+            q = (_candidateSelectedSort?.Value ?? CandidateSort.Newest) switch
+            {
+                CandidateSort.Oldest       => q.OrderBy(r => r.CreatedAt),
+                CandidateSort.NameAsc      => q.OrderBy(r => r.ScenarioName),
+                CandidateSort.NameDesc     => q.OrderByDescending(r => r.ScenarioName),
+                CandidateSort.DurationAsc  => q.OrderBy(r => r.DurationSeconds),
+                CandidateSort.DurationDesc => q.OrderByDescending(r => r.DurationSeconds),
+                CandidateSort.TargetAsc    => q.OrderBy(r => r.ConfigSnapshot.TargetThroughput ?? int.MaxValue),
+                CandidateSort.TargetDesc   => q.OrderByDescending(r => r.ConfigSnapshot.TargetThroughput ?? -1),
+                _                          => q.OrderByDescending(r => r.CreatedAt),
+            };
+
+            CompareReportCandidates.Clear();
+            foreach (var r in q)
+                CompareReportCandidates.Add(r);
         }
 
         private async Task LoadReportsAsync()
         {
             Log.Information("User requested to load/refresh test reports.");
             IsLoading = true;
-            
+
             try
             {
                 var reports = await _reportRepository.GetAllReportsAsync();
@@ -121,9 +271,7 @@ namespace KafkaLoad.UI.ViewModels.Reports
                 await _reportRepository.DeleteReportAsync(id);
 
                 if (SelectedReport?.Id == id)
-                {
                     SelectedReport = null;
-                }
 
                 Log.Information("Report {ReportId} was successfully deleted from UI.", id);
                 await LoadReportsAsync();
@@ -163,7 +311,6 @@ namespace KafkaLoad.UI.ViewModels.Reports
 
             if (SelectedReport == null || CompareWithReport == null) return;
 
-            // --- PRODUCER METRICS ---
             var p1 = SelectedReport.ProducerMetrics;
             var p2 = CompareWithReport.ProducerMetrics;
 
@@ -174,7 +321,6 @@ namespace KafkaLoad.UI.ViewModels.Reports
             ProducerComparison.Add(Compare("Avg Latency (ms)", p1.AvgLatencyMs, p2.AvgLatencyMs, lowerIsBetter: true));
             ProducerComparison.Add(Compare("P95 Latency (ms)", p1.P95Lat, p2.P95Lat, lowerIsBetter: true));
 
-            // --- CONSUMER METRICS ---
             if (SelectedReport.ConsumerMetrics != null && CompareWithReport.ConsumerMetrics != null)
             {
                 var c1 = SelectedReport.ConsumerMetrics;
@@ -203,7 +349,6 @@ namespace KafkaLoad.UI.ViewModels.Reports
             }
         }
 
-        // Helper method to calculate differences and assign colors
         private MetricDiff Compare(string name, double v1, double v2, bool lowerIsBetter, string format = "N2")
         {
             double diff = v2 - v1;
