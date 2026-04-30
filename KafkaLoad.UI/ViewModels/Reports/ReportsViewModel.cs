@@ -330,7 +330,9 @@ namespace KafkaLoad.UI.ViewModels.Reports
                 ConsumerComparison.Add(Compare("Success Recv", c1.SuccessMessagesConsumed, c2.SuccessMessagesConsumed, lowerIsBetter: false, "N0"));
                 ConsumerComparison.Add(Compare("Throughput (Msg/s)", c1.ThroughputMsgSec, c2.ThroughputMsgSec, lowerIsBetter: false));
                 ConsumerComparison.Add(Compare("Throughput (MB/s)", c1.ThroughputBytesSec / 1024.0 / 1024.0, c2.ThroughputBytesSec / 1024.0 / 1024.0, lowerIsBetter: false));
-                ConsumerComparison.Add(Compare("Avg E2E Latency (ms)", c1.AvgEndToEndLatencyMs, c2.AvgEndToEndLatencyMs, lowerIsBetter: true));
+                ConsumerComparison.Add(Compare("P50 E2E Latency (ms)", c1.P50EndToEndLatencyMs, c2.P50EndToEndLatencyMs, lowerIsBetter: true));
+                ConsumerComparison.Add(Compare("P95 E2E Latency (ms)", c1.P95EndToEndLatencyMs, c2.P95EndToEndLatencyMs, lowerIsBetter: true));
+                ConsumerComparison.Add(Compare("P99 E2E Latency (ms)", c1.P99EndToEndLatencyMs, c2.P99EndToEndLatencyMs, lowerIsBetter: true));
                 ConsumerComparison.Add(Compare("Max Lag", c1.MaxConsumerLag, c2.MaxConsumerLag, lowerIsBetter: true, "N0"));
             }
         }
