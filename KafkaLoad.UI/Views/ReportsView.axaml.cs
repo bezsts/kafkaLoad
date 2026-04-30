@@ -74,12 +74,14 @@ public partial class ReportsView : ReactiveUserControl<ReportsViewModel>
             // reference gets its TimeSeriesData populated. Subscribe to the dedicated signal instead.
             ViewModel!.TimeSeriesReady
                 .ObserveOn(AvaloniaScheduler.Instance)
-                .Subscribe(report =>
+                .Subscribe(_ =>
                 {
-                    if (ViewModel?.CompareWithReport == null)
-                        UpdateAllCharts(report);
+                    var selected = ViewModel?.SelectedReport;
+                    var compare  = ViewModel?.CompareWithReport;
+                    if (compare == null)
+                        UpdateAllCharts(selected);
                     else
-                        UpdateAllComparisonCharts(report, ViewModel.CompareWithReport);
+                        UpdateAllComparisonCharts(selected, compare);
                 })
                 .DisposeWith(disposables);
         });
