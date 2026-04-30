@@ -53,11 +53,9 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
     private const int SmoothingSamples = 8;
     private readonly SlidingWindowRate _swProdMsgRate   = new(SmoothingSamples);
     private readonly SlidingWindowRate _swProdMbRate    = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swProdErrRate   = new(SmoothingSamples);
     private readonly SlidingWindowRate _swProdLatency   = new(SmoothingSamples);
     private readonly SlidingWindowRate _swConsMsgRate   = new(SmoothingSamples);
     private readonly SlidingWindowRate _swConsMbRate    = new(SmoothingSamples);
-    private readonly SlidingWindowRate _swConsErrRate   = new(SmoothingSamples);
     private readonly SlidingWindowRate _swConsLatency   = new(SmoothingSamples);
 
     public RealTimeChartViewModel(IMetricsService metricsService)
@@ -107,11 +105,11 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
 
         double prodMbSec = ((snapshot.Producer.TotalBytesSent - _lastProdBytes) / 1024.0 / 1024.0) / deltaSec;
         double prodMsgSec = (snapshot.Producer.SuccessMessagesSent - _lastProdMsgs) / deltaSec;
-        double prodErrSec = (snapshot.Producer.TotalErrors - _lastProdErrors) / deltaSec;
+        long deltaProdErrors = snapshot.Producer.TotalErrors - _lastProdErrors;
 
         double consMbSec = ((snapshot.Consumer.TotalBytesConsumed - _lastConsBytes) / 1024.0 / 1024.0) / deltaSec;
         double consMsgSec = (snapshot.Consumer.SuccessMessagesConsumed - _lastConsMsgs) / deltaSec;
-        double consErrSec = (snapshot.Consumer.ErrorMessagesConsumed - _lastConsErrors) / deltaSec;
+        long deltaConsErrors = snapshot.Consumer.ErrorMessagesConsumed - _lastConsErrors;
 
         // --- CALCULATE INSTANTANEOUS LATENCY ---
         double currentProdLatSum = snapshot.Producer.LatencySumMs;
@@ -126,19 +124,17 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         // Prevent negative values in case of counter resets
         prodMbSec = Math.Max(0, prodMbSec);
         prodMsgSec = Math.Max(0, prodMsgSec);
-        prodErrSec = Math.Max(0, prodErrSec);
+        deltaProdErrors = Math.Max(0, deltaProdErrors);
         consMbSec = Math.Max(0, consMbSec);
         consMsgSec = Math.Max(0, consMsgSec);
-        consErrSec = Math.Max(0, consErrSec);
+        deltaConsErrors = Math.Max(0, deltaConsErrors);
 
         // --- SMOOTH RATES OVER A 4-SECOND SLIDING WINDOW ---
 
         double smoothProdMsgSec  = _swProdMsgRate.Add(prodMsgSec  * deltaSec, deltaSec);
         double smoothProdMbSec   = _swProdMbRate .Add(prodMbSec   * deltaSec, deltaSec);
-        double smoothProdErrSec  = _swProdErrRate.Add(prodErrSec  * deltaSec, deltaSec);
         double smoothConsMsgSec  = _swConsMsgRate.Add(consMsgSec  * deltaSec, deltaSec);
         double smoothConsMbSec   = _swConsMbRate .Add(consMbSec   * deltaSec, deltaSec);
-        double smoothConsErrSec  = _swConsErrRate.Add(consErrSec  * deltaSec, deltaSec);
 
         double smoothProdLatency = deltaProdMsgs > 0
             ? _swProdLatency.Add(instProdLat * deltaProdMsgs, deltaProdMsgs)
@@ -152,13 +148,13 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
         // Producer
         ProducerThroughput.AddPoint(time, smoothProdMbSec);
         ProducerMsgRate.AddPoint(time, smoothProdMsgSec);
-        ProducerErrors.AddPoint(time, smoothProdErrSec);
+        ProducerErrors.AddPoint(time, deltaProdErrors);
         ProducerLatency.AddPoint(time, smoothProdLatency);
 
         // Consumer
         ConsumerThroughput.AddPoint(time, smoothConsMbSec);
         ConsumerMsgRate.AddPoint(time, smoothConsMsgSec);
-        ConsumerErrors.AddPoint(time, smoothConsErrSec);
+        ConsumerErrors.AddPoint(time, deltaConsErrors);
         ConsumerLatency.AddPoint(time, smoothConsLatency);
 
         // --- SAVE STATE FOR NEXT CALCULATION ---
@@ -244,11 +240,9 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
 
         _swProdMsgRate.Reset();
         _swProdMbRate.Reset();
-        _swProdErrRate.Reset();
         _swProdLatency.Reset();
         _swConsMsgRate.Reset();
         _swConsMbRate.Reset();
-        _swConsErrRate.Reset();
         _swConsLatency.Reset();
 
         RefreshCounter = 0;

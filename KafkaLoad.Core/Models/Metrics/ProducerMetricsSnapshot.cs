@@ -20,5 +20,5 @@ public record ProducerMetricsSnapshot(
     long LatencySumMs
 )
 {
-    public long TotalErrors => ErrorMessages + InFlightMessages;
+    public long TotalErrors => ErrorMessages;
 };
