@@ -107,7 +107,7 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
 
         double prodMbSec = ((snapshot.Producer.TotalBytesSent - _lastProdBytes) / 1024.0 / 1024.0) / deltaSec;
         double prodMsgSec = (snapshot.Producer.SuccessMessagesSent - _lastProdMsgs) / deltaSec;
-        double prodErrSec = (snapshot.Producer.ErrorMessages - _lastProdErrors) / deltaSec;
+        double prodErrSec = (snapshot.Producer.TotalErrors - _lastProdErrors) / deltaSec;
 
         double consMbSec = ((snapshot.Consumer.TotalBytesConsumed - _lastConsBytes) / 1024.0 / 1024.0) / deltaSec;
         double consMsgSec = (snapshot.Consumer.SuccessMessagesConsumed - _lastConsMsgs) / deltaSec;
@@ -172,7 +172,7 @@ public class RealTimeChartViewModel : ReactiveObject, IDisposable
     {
         _lastProdBytes = snapshot.Producer.TotalBytesSent;
         _lastProdMsgs = snapshot.Producer.SuccessMessagesSent;
-        _lastProdErrors = snapshot.Producer.ErrorMessages;
+        _lastProdErrors = snapshot.Producer.TotalErrors;
         _lastProdLatSum = snapshot.Producer.LatencySumMs;
 
         _lastConsBytes = snapshot.Consumer.TotalBytesConsumed;

@@ -26,6 +26,9 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
     private readonly IConfigRepository<CustomProducerConfig> _producerConfigRepository;
     private readonly IConfigRepository<CustomConsumerConfig> _consumerConfigRepository;
 
+    private readonly int? _initialProducerConfigId;
+    private readonly int? _initialConsumerConfigId;
+
     private bool _isFixedKeyVisible;
     public bool IsFixedKeyVisible
     {
@@ -124,6 +127,9 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
         IConfigRepository<TestScenario> testScenarioRepository,
         TestScenario? modelToEdit = null) : base(testScenarioRepository, modelToEdit)
     {
+        _initialProducerConfigId = Model.ProducerConfig?.Id;
+        _initialConsumerConfigId = Model.ConsumerConfig?.Id;
+
         _producerConfigRepository = producerConfigRepository;
         _consumerConfigRepository = consumerConfigRepository;
 
@@ -338,10 +344,11 @@ public class TestScenarioEditorViewModel : BaseConfigViewModel<TestScenario>, IA
 
     private async Task LoadConfigurationsAsync()
     {
-        // Save IDs before async loading — the ComboBox two-way binding can clear
-        // Model.ProducerConfig/ConsumerConfig when ItemsSource is repopulated with new objects
-        var savedProducerId = Model.ProducerConfig?.Id;
-        var savedConsumerId = Model.ConsumerConfig?.Id;
+        // Use IDs captured at construction time — by the time WhenActivated fires,
+        // Avalonia's ComboBox binding may have already nullified Model.ProducerConfig/ConsumerConfig
+        // (empty ItemsSource on first render clears the two-way SelectedItem binding).
+        var savedProducerId = _initialProducerConfigId;
+        var savedConsumerId = _initialConsumerConfigId;
 
         Producers.Clear();
         Consumers.Clear();

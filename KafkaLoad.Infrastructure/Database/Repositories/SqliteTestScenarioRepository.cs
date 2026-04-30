@@ -96,7 +96,9 @@ public class SqliteTestScenarioRepository : IConfigRepository<TestScenario>
             await SaveAsync(config);
             return;
         }
-        entity.Name = config.Name;
+        MapToEntity(config, entity);
+        entity.ProducerConfigId = config.ProducerConfig?.Id > 0 ? config.ProducerConfig.Id : null;
+        entity.ConsumerConfigId = config.ConsumerConfig?.Id > 0 ? config.ConsumerConfig.Id : null;
         entity.UpdatedAt = DateTime.UtcNow;
         Log.Information("Renaming test scenario '{OldName}' → '{NewName}'", originalName, config.Name);
         await _db.SaveChangesAsync();

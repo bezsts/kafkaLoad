@@ -25,6 +25,8 @@ public class MetricsService : IMetricsService
 
     public void RecordProducerError() => _producerAccumulator.AddError();
     public void RecordConsumerError() => _consumerAccumulator.AddError();
+    public void RecordProducerInFlightIncrement() => _producerAccumulator.IncrementInFlight();
+    public void RecordProducerInFlightDecrement() => _producerAccumulator.DecrementInFlight();
     public void RecordProducerQueueTime(double queueTimeMs) =>
         _producerAccumulator.AddQueueTime(queueTimeMs);
 

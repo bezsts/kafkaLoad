@@ -71,8 +71,13 @@ public class ConsumerWorker : BaseWorker
                 }
                 catch (ConsumeException ex)
                 {
-                    Log.Error(ex, "Kafka ConsumeException on topic {Topic}. Reason: {Reason}", Topic, ex.Error.Reason);
-                    Metrics.RecordConsumerError();
+                    if (ex.Error.IsLocalError && !ex.Error.IsFatal)
+                        Log.Warning("Transient consume error on topic {Topic}: {Reason}", Topic, ex.Error.Reason);
+                    else
+                    {
+                        Log.Error(ex, "Kafka ConsumeException on topic {Topic}. Reason: {Reason}", Topic, ex.Error.Reason);
+                        Metrics.RecordConsumerError();
+                    }
                 }
                 catch (Exception ex)
                 {

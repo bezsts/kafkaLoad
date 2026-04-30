@@ -211,7 +211,7 @@
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Classes="metric-label" Text="Errors"/>
                                 <TextBlock Grid.Row="2" Grid.Column="2" Classes="metric-value metric-error"
-                                           Text="{Binding Metrics.Producer.ErrorMessages, StringFormat='{}{0:N0}', FallbackValue='0'}"/>
+                                           Text="{Binding Metrics.Producer.TotalErrors, StringFormat='{}{0:N0}', FallbackValue='0'}"/>
 
                                 <TextBlock Grid.Row="3" Grid.Column="0" Classes="metric-label" Text="Throughput"/>
                                 <TextBlock Grid.Row="3" Grid.Column="2" Classes="metric-value"

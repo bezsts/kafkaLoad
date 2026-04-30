@@ -17,6 +17,7 @@ public class ProducerMetricsAccumulator : BaseMetricsAccumulator
             TotalMessagesAttempted: Interlocked.Read(ref TotalMessages),
             SuccessMessagesSent: Interlocked.Read(ref SuccessMessages),
             ErrorMessages: Interlocked.Read(ref ErrorMessages),
+            InFlightMessages: Interlocked.Read(ref InFlightMessages),
             TotalBytesSent: Interlocked.Read(ref TotalBytes),
 
             ErrorRatePercent: CalculateErrorRatePercent(),

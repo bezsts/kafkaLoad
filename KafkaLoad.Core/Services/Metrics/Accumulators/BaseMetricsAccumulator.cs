@@ -9,6 +9,7 @@ namespace KafkaLoad.Core.Services.Metrics.Accumulators
         protected long TotalBytes;
         protected long SuccessMessages;
         protected long ErrorMessages;
+        protected long InFlightMessages;
         protected long TotalLatencySumMs;
         protected long LatencyCount;
 
@@ -57,12 +58,17 @@ namespace KafkaLoad.Core.Services.Metrics.Accumulators
             Interlocked.Increment(ref ErrorMessages);
         }
 
+        public void IncrementInFlight() => Interlocked.Increment(ref InFlightMessages);
+
+        public void DecrementInFlight() => Interlocked.Decrement(ref InFlightMessages);
+
         public virtual void Reset()
         {
             Interlocked.Exchange(ref TotalMessages, 0);
             Interlocked.Exchange(ref TotalBytes, 0);
             Interlocked.Exchange(ref SuccessMessages, 0);
             Interlocked.Exchange(ref ErrorMessages, 0);
+            Interlocked.Exchange(ref InFlightMessages, 0);
             Interlocked.Exchange(ref TotalLatencySumMs, 0);
             Interlocked.Exchange(ref LatencyCount, 0);
 

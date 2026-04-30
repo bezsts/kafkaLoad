@@ -4,6 +4,7 @@ public record ProducerMetricsSnapshot(
     long TotalMessagesAttempted,
     long SuccessMessagesSent,
     long ErrorMessages,
+    long InFlightMessages,
     long TotalBytesSent,
 
     double ErrorRatePercent,
@@ -17,4 +18,7 @@ public record ProducerMetricsSnapshot(
     double P95Lat,
 
     long LatencySumMs
-);
+)
+{
+    public long TotalErrors => ErrorMessages + InFlightMessages;
+};

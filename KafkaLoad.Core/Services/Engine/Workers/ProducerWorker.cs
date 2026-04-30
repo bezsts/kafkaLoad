@@ -63,11 +63,15 @@ public class ProducerWorker : BaseWorker
 
                 try
                 {
+                    Metrics.RecordProducerInFlightIncrement();
+
                     // Send message asynchronously
                     _producer.Produce(Topic, kafkaMessage,
                         (deliveryReport) =>
                         {
                             stopwatch.Stop();
+                            Metrics.RecordProducerInFlightDecrement();
+
                             if (deliveryReport.Error.IsError)
                             {
                                 Log.Warning("Message delivery failed. Error: {Reason} (Code: {Code})", deliveryReport.Error.Reason, deliveryReport.Error.Code);
@@ -83,13 +87,13 @@ public class ProducerWorker : BaseWorker
                 }
                 catch (ProduceException<byte[], byte[]> ex) when (ex.Error.Code == ErrorCode.Local_QueueFull)
                 {
-                    //Metrics.RecordProducerError();
-
+                    Metrics.RecordProducerInFlightDecrement();
                     await Task.Delay(10, ct);
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Produce error on topic: {Topic}", Topic);
+                    Metrics.RecordProducerInFlightDecrement();
                     Metrics.RecordProducerError();
                 }
 
@@ -113,7 +117,12 @@ public class ProducerWorker : BaseWorker
             try
             {
                 Log.Debug("Flushing producer buffer for topic: {Topic}", Topic);
-                _producer.Flush(TimeSpan.FromSeconds(2));
+                int undelivered = _producer.Flush(TimeSpan.FromSeconds(2));
+                for (int i = 0; i < undelivered; i++)
+                {
+                    Metrics.RecordProducerInFlightDecrement();
+                    Metrics.RecordProducerError();
+                }
             }
             catch (Exception e)
             {
